@@ -39,6 +39,10 @@
 #include <cstdlib>
 #include <math.h>
 
+#include <RAT/ParentPrimaryVertexInformation.hh>
+#include <RAT/VertexGen_Decay0.hh>
+
+
 namespace RAT {
 
 // Doesn't waste space unless you want to draw tracks
@@ -108,6 +112,10 @@ void Gsim::Init() {
   GlobalFactory<GLG4Gen>::Register("coincidence",
                                    new Alloc<GLG4Gen,Coincidence_Gen>);
 
+  GlobalFactory<GLG4VertexGen>::Register("decay0",
+					 new Alloc<GLG4VertexGen,
+					 VertexGen_Decay0>);
+  
   // An additional "messenger" class for user diagnostics
   theDebugMessenger = new GLG4DebugMessenger(theDetectorConstruction);
   
