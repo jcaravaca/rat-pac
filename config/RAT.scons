@@ -85,7 +85,7 @@ for key in ['CXX', 'CC']:
         env.Replace(**kwargs)
 
 env.Append(ENV=os.environ,
-           CPPPATH=['#/include', '#/include/RAT'],  # FIXME: remove second
+           CPPPATH=['$RATROOT/include','$RATROOT/include/RAT'],  # FIXME: remove second
            CPPDEFINES=[('KL_USE_ROOT', 1)
                        ],
            LIBPATH=['#/lib']

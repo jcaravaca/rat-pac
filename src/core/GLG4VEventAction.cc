@@ -157,7 +157,7 @@ void GLG4VEventAction::EndOfEventAction(const G4Event* evt)
 		|| ((drawFlag == "allnonopt")
 		    &&(trj->GetParticleName() != "opticalphoton"))
                 || ((drawFlag == "charged")&&(trj->GetCharge() != 0.)) )
-	     trj->DrawTrajectory(50); 
+	     trj->DrawTrajectory(50);
       }
   }
 }

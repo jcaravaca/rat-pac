@@ -19,7 +19,7 @@
 // time.h must come after Randomize.hh on RedHat 7.3 
 #include <time.h>
 
-#include <RAT/Config.hh>
+#include "RAT/Config.hh"
 #include <RAT/Log.hh>
 #include <RAT/RunManager.hh>
 #include <RAT/InROOTProducer.hh>

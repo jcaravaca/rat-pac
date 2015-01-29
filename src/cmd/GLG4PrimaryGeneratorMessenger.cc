@@ -157,7 +157,7 @@ SetNewValue(G4UIcommand * command,G4String newValues)
     if (newWindow <= 0.0)
       G4cerr << "Time window must be positive" << G4endl;
     else
-      myAction->SetEventWindow(newWindow*ns);
+      myAction->SetEventWindow(newWindow*CLHEP::ns);
   } else if (command == GenClearCmd){   
     myAction->ClearGenerators(); // clear all event generators
   } else {
