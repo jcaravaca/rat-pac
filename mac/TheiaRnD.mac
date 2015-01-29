@@ -3,21 +3,27 @@
 
 /rat/db/set DETECTOR experiment "TheiaRnD"
 /rat/db/set DETECTOR geo_file "TheiaRnD/TheiaRnD.geo"
+#/rat/db/set DAQ noise_flag 0 #Set no noise
 
 /run/initialize
 
 ##### Visualization ##########################
 
 ###OPENGL
-#/vis/open OGLSXm
-#/vis/scene/create
-#/vis/scene/add/volume
-#/vis/sceneHandler/attach
-#/vis/scene/add/trajectories
-#/tracking/storeTrajectory 1
-#/vis/viewer/refresh
-#/vis/scene/endOfEventAction accumulate
-#/vis/drawVolume
+# /vis/open OGLSXm
+# /vis/scene/create
+# /vis/scene/add/volume
+# /vis/sceneHandler/attach
+# /vis/scene/add/trajectories
+# /tracking/storeTrajectory 1
+# /vis/viewer/refresh
+# /vis/scene/endOfEventAction accumulate
+# /vis/drawVolume darkbox
+# /vis/viewer/set/background white
+# /vis/viewer/set/style s
+# /vis/viewer/set/projection p
+# /vis/viewer/set/upVector 0 0 1
+# /vis/viewer/set/viewpointThetaPhi 70 0
 
 ###RAYTRACER
 #/vis/open RayTracer
@@ -39,9 +45,10 @@
 #/vis/sceneHandler/attach
 #/vis/scene/add/trajectories #Add trajectories to vis
 #/vis/scene/add/hits
-#/tracking/storeTrajectory 1
 
 ###############################################
+
+/tracking/storeTrajectory 1
 
 ##### BEGIN EVENT LOOP ##################
 /rat/proc simpledaq
@@ -50,7 +57,7 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/TheiaRnD_210Bi_water.root"
+/rat/procset file "../results/TheiaRnD_properPMTs_r7081_air_below.root"
 #########################################
 
 ##### GENERATORS #################
@@ -87,4 +94,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 1000000
+/run/beamOn 10000
