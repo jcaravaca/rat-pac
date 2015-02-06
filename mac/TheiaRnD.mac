@@ -10,20 +10,21 @@
 ##### Visualization ##########################
 
 ###OPENGL
-/vis/open OGLSXm
-/vis/scene/create
-/vis/scene/add/volume
-/vis/sceneHandler/attach
-/vis/scene/add/trajectories
-/tracking/storeTrajectory 1
-/vis/viewer/refresh
-/vis/scene/endOfEventAction accumulate
-/vis/drawVolume darkbox
-/vis/viewer/set/background white
-/vis/viewer/set/style s
-/vis/viewer/set/projection p
-/vis/viewer/set/upVector 0 0 1
-/vis/viewer/set/viewpointThetaPhi 70 0
+# /vis/open OGLSXm
+# /vis/scene/create
+# /vis/scene/add/volume
+# /vis/sceneHandler/attach
+# /vis/scene/add/trajectories
+# /tracking/storeTrajectory 1
+# /vis/viewer/refresh
+# /vis/scene/endOfEventAction accumulate
+# /vis/drawVolume darkbox
+# /vis/viewer/set/background white
+# /vis/viewer/set/style s
+# /vis/viewer/set/projection p
+# /vis/viewer/set/upVector 0 0 1
+# /vis/viewer/set/viewpointThetaPhi 70 30
+# /vis/viewer/zoom 7.26
 
 ###RAYTRACER
 #/vis/open RayTracer
@@ -57,7 +58,7 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/TheiaRnD_gun_novessel_r7081_scint_ogl.root"
+/rat/procset file "../results/TheiaRnD_gun_novessel_cubicpmt_water.root"
 #########################################
 
 ##### GENERATORS #################

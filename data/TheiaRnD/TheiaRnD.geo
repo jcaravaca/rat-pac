@@ -74,8 +74,7 @@
   valid_end: [0, 0],
   mother: "inner",
   type: "pmtarray",
-  pmt_model: "r7081_hqe",
-//  pmt_type: "r7081_hqe", //r7081_hqe, r11780_hqe //old option
+  pmt_model: "fast_test", //r7081_hqe, r11780_hqe, fast_test
   pmt_detector_type: "idpmt",
   sensitive_detector: "/mydet/pmt/inner",
   efficiency_correction: 1.027,
@@ -95,6 +94,6 @@
   position: [0.0, 0.0, 5.0],
   r_max: 10.0,
   size_z: 15.0,
-  material: "scintillator", //air, water, scintillator
+  material: "water", //air, water, scintillator
   color: [0.1, 0.3, 0.8, 0.3],
 }

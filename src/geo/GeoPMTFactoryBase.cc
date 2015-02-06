@@ -209,6 +209,9 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
   
   // Add waveguide if needed
   if (waveguide_factory) {
+
+    cout << "IN WAVEGUIDE!!!" << endl;
+    
     waveguide_factory->SetPMTBodySolid(pmtConstruct.NewBodySolid(volume_name+"_waveguide_sub"));
     logiWg = waveguide_factory->Construct(volume_name+"_waveguide_log",
                                                               logiPMT,
@@ -226,7 +229,7 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
     } 
   }
      
-//preparing to calculate magnetic efficiency corrections for all PMTs, if requested
+  //preparing to calculate magnetic efficiency corrections for all PMTs, if requested
   int BFieldOn=0;
   try{BFieldOn=DB::Get()->GetLink("BField")->GetI("b_field_on");}
   catch (DBNotFoundError &e){}
@@ -236,7 +239,7 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
   string BEffiModel="multiplicative";
   vector<pair<int,double> > BEfficiencyCorrection;
   DBLinkPtr BEffiTable;
-//  G4PhysicsOrderedFreeVector Bepsix,Bepsiy;
+  //  G4PhysicsOrderedFreeVector Bepsix,Bepsiy;
   vector<G4PhysicsOrderedFreeVector> Bepsix,Bepsiy;
   vector<G4ThreeVector> Bpos,Bf;
   vector<G4ThreeVector> Dpos,Dorie;//dynode position&orient
