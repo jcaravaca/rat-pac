@@ -81,9 +81,20 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
 
   PMTConstructionParams pmtParam;
   pmtParam.faceGap = 0.1 * mm;
-  pmtParam.zEdge = lpmt->GetDArray("z_edge");
-  pmtParam.rhoEdge = lpmt->GetDArray("rho_edge");
-  pmtParam.zOrigin = lpmt->GetDArray("z_origin");
+  pmtParam.shape = lpmt->GetS("shape");
+  
+  if(pmtParam.shape == "torus"){
+    pmtParam.zEdge = lpmt->GetDArray("z_edge");
+    pmtParam.rhoEdge = lpmt->GetDArray("rho_edge");
+    pmtParam.zOrigin = lpmt->GetDArray("z_origin");
+  } else if(pmtParam.shape == "cube"){
+    pmtParam.width = lpmt->GetD( "width" );
+    pmtParam.PCMirrorOverlapTop = lpmt->GetD( "photocathode_mirror_top" );
+    pmtParam.PCMirrorOverlapBottom = lpmt->GetD( "photocathode_mirror_bottom" );
+  } else {
+    Log::Die("PMT shape " + lpmt->GetS("shape") + "not found");
+  }
+  
   pmtParam.dynodeRadius = lpmt->GetD("dynode_radius");
   pmtParam.dynodeTop = lpmt->GetD("dynode_top");
   pmtParam.wallThickness = lpmt->GetD("wall_thickness");

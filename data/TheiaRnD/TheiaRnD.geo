@@ -48,7 +48,7 @@
   type: "box",
   position: [0.0, 0.0, 400.0],
   size: [20.0,20.0,20.0], //mm, half-lenght
-  material: "acrylic_uvt", //acrylic_uvt
+  material: "air", //acrylic_uvt
   color: [0.1, 0.3, 0.8, 0.1],
 }
 
@@ -74,14 +74,14 @@
   valid_end: [0, 0],
   mother: "inner",
   type: "pmtarray",
-//  pmt_model: "r7081_hqe",
-  pmt_type: "r7081_hqe", //r7081_hqe, r11780_hqe //old option
+  pmt_model: "r7081_hqe",
+//  pmt_type: "r7081_hqe", //r7081_hqe, r11780_hqe //old option
   pmt_detector_type: "idpmt",
   sensitive_detector: "/mydet/pmt/inner",
   efficiency_correction: 1.027,
   pos_table: "PMTINFO",
-  orientation: "point",
-  orient_point: [0.0, 0.0, 400.0],
+  orientation: "manual",
+//  orient_point: [0.0, 0.0, 400.0],
 }
 
 {
@@ -95,6 +95,6 @@
   position: [0.0, 0.0, 5.0],
   r_max: 10.0,
   size_z: 15.0,
-  material: "air", //air, water, scintillator
+  material: "scintillator", //air, water, scintillator
   color: [0.1, 0.3, 0.8, 0.3],
 }

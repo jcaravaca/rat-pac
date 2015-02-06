@@ -19,17 +19,25 @@ struct PMTConstructionParams {
     prepulseProb = 0.0;
   };
   
+  //Define shape
+  std::string shape;
+  
   // Envelope control
   bool useEnvelope;
   double faceGap;
   double minEnvelopeRadius;
   
   // Body
+  // Torus
   std::vector<double> zEdge; // n+1
   std::vector<double> rhoEdge; // n+1
   std::vector<double> zOrigin; // n
+  // Cube
+  double width;
+  double PCMirrorOverlapTop;
+  double PCMirrorOverlapBottom;
+  
   double wallThickness; // mm
-
   double dynodeRadius; // mm
   double dynodeTop; // mm
 
@@ -61,7 +69,7 @@ protected:
   void CalcInnerParams(GLG4TorusStack *body,
                        std::vector<double> &innerZEdge, std::vector<double> &innerRhoEdge,
                        int &equatorIndex, double &zLowestDynode);  
-  // phyiscal volumes 
+  // physical volumes 
   G4PVPlacement* body_phys;
   G4PVPlacement* inner1_phys;
   G4PVPlacement* inner2_phys;

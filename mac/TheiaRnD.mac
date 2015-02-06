@@ -10,20 +10,20 @@
 ##### Visualization ##########################
 
 ###OPENGL
-# /vis/open OGLSXm
-# /vis/scene/create
-# /vis/scene/add/volume
-# /vis/sceneHandler/attach
-# /vis/scene/add/trajectories
-# /tracking/storeTrajectory 1
-# /vis/viewer/refresh
-# /vis/scene/endOfEventAction accumulate
-# /vis/drawVolume darkbox
-# /vis/viewer/set/background white
-# /vis/viewer/set/style s
-# /vis/viewer/set/projection p
-# /vis/viewer/set/upVector 0 0 1
-# /vis/viewer/set/viewpointThetaPhi 70 0
+/vis/open OGLSXm
+/vis/scene/create
+/vis/scene/add/volume
+/vis/sceneHandler/attach
+/vis/scene/add/trajectories
+/tracking/storeTrajectory 1
+/vis/viewer/refresh
+/vis/scene/endOfEventAction accumulate
+/vis/drawVolume darkbox
+/vis/viewer/set/background white
+/vis/viewer/set/style s
+/vis/viewer/set/projection p
+/vis/viewer/set/upVector 0 0 1
+/vis/viewer/set/viewpointThetaPhi 70 0
 
 ###RAYTRACER
 #/vis/open RayTracer
@@ -53,19 +53,18 @@
 ##### BEGIN EVENT LOOP ##################
 /rat/proc simpledaq
 /rat/proc count
-/rat/procset update 1000
+/rat/procset update 100
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/TheiaRnD_properPMTs_r7081_air_below.root"
+/rat/procset file "../results/TheiaRnD_gun_novessel_r7081_scint_ogl.root"
 #########################################
 
 ##### GENERATORS #################
-
 ###ELECTRON GUN
-#/generator/add combo gun2:fill
-#/generator/vtx/set e- 0 0 0 0 10.0 10.0
-#/generator/pos/set 0 0 0
+/generator/add combo gun2:point
+/generator/vtx/set e- 0 0 -1.0 0 10.0 10.0
+/generator/pos/set 0 0 422.0
 
 ###PHOTON GUN
 #/generator/add combo gun:point
@@ -76,10 +75,10 @@
 #/generator/rate/set 1
 
 ###RADIACTIVE SOURCE DECAY0
-/generator/add combo decay0:fill:uniform
-/generator/vtx/set backg Bi210
-/generator/pos/set 0 0 22.0
-/generator/pos/set source
+# /generator/add combo decay0:fill:uniform
+# /generator/vtx/set backg Bi210
+# /generator/pos/set 0 0 400.0 #Position of the container of the source i.e. inner
+# /generator/pos/set source
 
 ###RADIACTIVE SOURCE DECAYCHAIN
 #/generator/add decaychain 90Sr:fill:uniform
@@ -90,8 +89,7 @@
 #/generator/add solar pep:nue
 #/generator/pos/set 0 0 22.0
 #/generator/pos/set source
-
 #######################################
 
 ##### RUN ###########
-/run/beamOn 10000
+/run/beamOn 100

@@ -3,6 +3,7 @@
 #include <RAT/PMTConstruction.hh>
 #include <RAT/GLG4PMTOpticalModel.hh>
 #include <G4Tubs.hh>
+#include <G4Box.hh>
 #include <G4SubtractionSolid.hh>
 #include <G4Region.hh>
 #include <G4VisAttributes.hh>
@@ -13,8 +14,11 @@ namespace RAT {
   
   PMTConstruction::PMTConstruction(const PMTConstructionParams &params) : fParams(params)
   {
-    assert(fParams.zEdge.size() == fParams.rhoEdge.size());
-    assert(fParams.zEdge.size() == fParams.zOrigin.size()+1);
+
+    if(fParams.shape == "torus"){
+      assert(fParams.zEdge.size() == fParams.rhoEdge.size());
+      assert(fParams.zEdge.size() == fParams.zOrigin.size()+1);
+    }
     assert(fParams.exterior);
     assert(fParams.glass);
     assert(fParams.vacuum);
@@ -28,14 +32,17 @@ namespace RAT {
   
   G4LogicalVolume *PMTConstruction::NewPMT(const std::string &prefix, bool simpleVis)
   {
-    // envelope cylinder
+
+    if(fParams.shape == "torus"){
+
+      // envelope cylinder
     G4VSolid *envelope_solid=0;
     if (fParams.useEnvelope)
       envelope_solid = NewEnvelopeSolid(prefix+"_envelope_solid");
                                         
     // glass body
     GLG4TorusStack *body_solid = NewBodySolid(prefix+"_body_solid");
-    
+
     // inner vacuum
     GLG4TorusStack *inner1_solid= new GLG4TorusStack(prefix + "_inner1_solid");
     GLG4TorusStack *inner2_solid= new GLG4TorusStack(prefix + "_inner2_solid");
@@ -196,7 +203,132 @@ namespace RAT {
       return envelope_log;
     else
       return body_log;
-  }
+
+
+    } else if(fParams.shape == "cube"){
+
+      const bool overlapRegion = fParams.PCMirrorOverlapTop != fParams.PCMirrorOverlapBottom;
+      const double wall = fParams.wallThickness;
+
+      // envelope cylinder
+      G4VSolid *envelope_solid=0;
+      if (fParams.useEnvelope)
+	envelope_solid = NewEnvelopeSolid(prefix+"_envelope_solid");
+      
+      // Construct the glass body
+      G4Box* bodySolid = new G4Box( prefix + "_body_solid", fParams.width/2.0, fParams.width/2.0, fParams.width/2.0);
+      // Now construct the solids
+      const double inner1Height = fParams.width/2.0 - fParams.PCMirrorOverlapTop - wall;
+      G4Box* inner1Solid = new G4Box( prefix + "_inner1_solid", fParams.width/2.0 - wall, fParams.width/2.0 - wall, inner1Height / 2.0 );
+      const double inner2Height = fParams.PCMirrorOverlapTop - fParams.PCMirrorOverlapBottom;
+      G4Box* inner2Solid = NULL;
+      if( overlapRegion ) 
+	inner2Solid = new G4Box( prefix + "_inner2_solid", fParams.width / 2.0 - wall, fParams.width / 2.0 - wall, inner2Height / 2.0 );
+      const double inner3Height = fParams.PCMirrorOverlapBottom + fParams.width / 2.0 - wall;
+      G4Box* inner3Solid = new G4Box( prefix + "_inner3_solid", fParams.width / 2.0 - wall, fParams.width / 2.0 - wall, inner3Height / 2.0 );
+      // Construct the dynode volume
+      double dynodeHeight = fParams.dynodeTop + fParams.width / 2.0 - wall;
+      G4Box* dynodeSolid = new G4Box( prefix + "_dynode_solid", fParams.dynodeRadius, fParams.dynodeRadius, dynodeHeight / 2.0 );
+
+      // Construct the logical volumes
+      G4LogicalVolume *envelope_log, *fBodyLogic, *fInner1Logic, *fInner2Logic, *fInner3Logic, *fDynode1Logic;
+      if (fParams.useEnvelope)
+	envelope_log = new G4LogicalVolume(envelope_solid, fParams.exterior, prefix+"envelope_log");
+      
+      fBodyLogic = new G4LogicalVolume( bodySolid, fParams.glass, prefix + "_body_logic" );
+      fInner1Logic = new G4LogicalVolume( inner1Solid, fParams.vacuum, prefix + "_inner1_logic" );
+      if( overlapRegion )
+	fInner2Logic = new G4LogicalVolume( inner2Solid, fParams.vacuum, prefix + "_inner2_logic");
+      fInner3Logic = new G4LogicalVolume( inner3Solid, fParams.vacuum, prefix + "_inner3_logic");
+      fDynode1Logic = new G4LogicalVolume( dynodeSolid, fParams.dynode, prefix + "_dynode_logic" );
+      
+      
+      // ------------ Physical Volumes -------------
+      G4ThreeVector noTranslation(0., 0., 0.);
+      body_phys=0;
+      if (fParams.useEnvelope) {
+	// place body in envelope
+	body_phys= new G4PVPlacement
+	  ( 0,                   // no rotation
+	    noTranslation,      // Bounding envelope already constructed to put equator at origin
+	    fBodyLogic,            // the logical volume
+	    prefix+"_body_phys", // a name for this physical volume
+	    envelope_log,                // the mother volume
+	    false,               // no boolean ops
+	    0 );                 // copy number
+      }
+      // Place the inner solids in the body solid to produce the physical volumes
+      inner1_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, fParams.PCMirrorOverlapTop + inner1Height / 2.0 ), fInner1Logic, prefix + "_inner1", fBodyLogic, false, 0 );
+      inner2_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0,fParams.PCMirrorOverlapBottom - inner3Height / 2.0 ), fInner3Logic, prefix + "_inner3", fBodyLogic, false,  0 );
+      central_gap_phys = NULL;
+      if( overlapRegion )
+	central_gap_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, fParams.PCMirrorOverlapBottom + inner2Height / 2.0 ), fInner2Logic, prefix + "_inner2", fBodyLogic, false, 0 );
+      dynode_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, fParams.dynodeTop - dynodeHeight / 2.0 ), fDynode1Logic, prefix + "_dynode", fInner3Logic, false, 0 );
+
+
+    // build the optical surface for the dynode straight away since we already have the logical volume
+    new G4LogicalSkinSurface(prefix+"_dynode_logsurf",fDynode1Logic,fParams.dynode_surface);
+    
+    //--------------Exterior Optical Surface----------------- 
+    // If we're using an envelope, body_phys has been created and we can therefore
+    // set the optical surfaces, otherwise this must be done later once the physical volume
+    // has been placed
+    if (fParams.useEnvelope) {
+      SetPMTOpticalSurfaces(body_phys,prefix);
+    } 
+    
+    // Go ahead and place the cathode optical surface---this can always be done at this point
+     G4LogicalBorderSurface *pc_log_surface = 
+            new G4LogicalBorderSurface(prefix+"_photocathode_logsurf1",
+                               inner1_phys, body_phys,
+                               fParams.photocathode);
+    // ------------ FastSimulationModel -------------
+    // 28-Jul-2006 WGS: Must define a G4Region for Fast Simulations
+    // (change from Geant 4.7 to Geant 4.8).
+     G4Region* body_region = new G4Region(prefix+"_GLG4_PMTOpticalRegion");
+     body_region->AddRootLogicalVolume(fBodyLogic);
+     /*GLG4PMTOpticalModel * pmtOpticalModel =*/
+     new GLG4PMTOpticalModel(prefix+"_optical_model", body_region, fBodyLogic,
+			     pc_log_surface, fParams.efficiencyCorrection,
+			     fParams.dynodeTop, fParams.dynodeRadius,
+			     fParams.prepulseProb);
+    
+    // ------------ Vis Attributes -------------
+    G4VisAttributes * visAtt;
+    if (simpleVis) {
+      visAtt = new G4VisAttributes(G4Color(0.0,1.0,1.0,0.05));
+      if (fParams.useEnvelope) envelope_log->SetVisAttributes(visAtt);
+      fBodyLogic->SetVisAttributes(  G4VisAttributes::Invisible );
+      fDynode1Logic->SetVisAttributes(G4VisAttributes::Invisible);
+      fInner1Logic->SetVisAttributes(G4VisAttributes::Invisible);
+      fInner3Logic->SetVisAttributes(G4VisAttributes::Invisible);  
+      fInner2Logic->SetVisAttributes(G4VisAttributes::Invisible); 
+    } else {
+      if (fParams.useEnvelope) envelope_log-> SetVisAttributes (G4VisAttributes::Invisible);
+    // PMT glass
+      visAtt= new G4VisAttributes(G4Color(0.0,1.0,1.0,0.05));
+      fBodyLogic->SetVisAttributes( visAtt );
+    // dynode is medium gray
+      visAtt= new G4VisAttributes(G4Color(0.5,0.5,0.5,1.0));
+      fDynode1Logic->SetVisAttributes( visAtt );
+    // (surface of) interior vacuum is clear orangish gray on top (PC),
+    // silvery blue on bottom (mirror)
+      visAtt= new G4VisAttributes(G4Color(0.7,0.5,0.3,0.27));
+      fInner1Logic->SetVisAttributes (visAtt);
+      visAtt= new G4VisAttributes(G4Color(0.6,0.7,0.8,0.67));
+      fInner3Logic->SetVisAttributes (visAtt);
+    // central gap is invisible  
+      fInner2Logic->SetVisAttributes (G4VisAttributes::Invisible);
+    }
+
+    if (fParams.useEnvelope)
+      return envelope_log;
+    else
+      return fBodyLogic;
+
+    }
+    
+  } //end NewPMT
   
   GLG4TorusStack *PMTConstruction::NewBodySolid(const std::string &name)
   {
