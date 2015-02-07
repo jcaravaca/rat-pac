@@ -48,7 +48,7 @@
   sensitive_detector: "/mydet/pmt/inner",
   efficiency_correction: 1.027,
   pos_table: "PMTINFO",
-  orientation: "manual",
+  orientation: "point",
   orient_point: [0.0, 0.0, 400.0],
 }
 
@@ -64,8 +64,8 @@
   sensitive_detector: "/mydet/pmt/inner",
   efficiency_correction: 1.027,
   pos_table: "PMTINFO_TRIGGER",
-  orientation: "manual",
-//  orient_point: [0.0, 0.0, 400.0],
+  orientation: "point",
+  orient_point: [0.0, 0.0, 400.0],
 }
 
 {
@@ -91,7 +91,7 @@
   mother: "inner",
   type: "tube",
   position: [0.0, 0.0, 422.0],
-  r_max: 10.0,
+  r_max: 12.7,
   size_z: 2.0,
   material: "strontium", //strontium
   color: [0.1, 1.0, 0.3, 0.8],
@@ -106,7 +106,7 @@
   mother: "vessel",
   type: "tube",
   position: [0.0, 0.0, 5.0],
-  r_max: 10.0,
+  r_max: 15.0,
   size_z: 15.0,
   material: "water", //air, water, scintillator
   color: [0.1, 0.3, 0.8, 0.3],

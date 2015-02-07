@@ -11,6 +11,9 @@
 #include <TObject.h>
 #include <TVector3.h>
 #include <algorithm>
+#include <iostream>
+
+using namespace std;
 
 namespace RAT {
   namespace DS {
@@ -24,6 +27,7 @@ public:
                       const TVector3& _dir,
                       const int _type,
                       const std::string _model) {
+    
     pos.push_back(_pos);
     dir.push_back(_dir);
     type.push_back(_type);

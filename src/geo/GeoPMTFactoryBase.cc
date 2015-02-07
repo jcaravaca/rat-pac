@@ -147,6 +147,9 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
     dir_y = lpos_table->GetDArray("dir_y");
     dir_z = lpos_table->GetDArray("dir_z");
   } else {
+    dir_x = lpos_table->GetDArray("x"); //dummy values needed for pmtinfo.AddPMT
+    dir_y = lpos_table->GetDArray("x");
+    dir_z = lpos_table->GetDArray("x");
     orient_point_array = table->GetDArray("orient_point");
     if (orient_point_array.size() != 3)
       Log::Die("GeoPMTFactoryBase error: orient_point must have 3 values");
@@ -210,8 +213,6 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
   // Add waveguide if needed
   if (waveguide_factory) {
 
-    cout << "IN WAVEGUIDE!!!" << endl;
-    
     waveguide_factory->SetPMTBodySolid(pmtConstruct.NewBodySolid(volume_name+"_waveguide_sub"));
     logiWg = waveguide_factory->Construct(volume_name+"_waveguide_log",
                                                               logiPMT,
@@ -337,7 +338,7 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
         }
       }
 
-  //try to load PMT orientation table from file
+      //try to load PMT orientation table from file
       dynorfilename=string(getenv("GLG4DATA"))+"/"+ExpSubdir+"/"+dynorfilename;
       ifstream dynorfile(dynorfilename.data());
       if(!dynorfile.is_open()){
@@ -397,6 +398,7 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
     if (rescale_radius)
       pmtpos.setMag(new_radius);
 
+
     // direction
     G4ThreeVector pmtdir;
     if (orient_manual)
@@ -405,7 +407,7 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
       pmtdir = orient_point - pmtpos;
     pmtdir = pmtdir.unit();
     if (flip == 1) pmtdir = -pmtdir; 
-    
+
     // if requested, generates the magnetic efficiency corrections as the PMTs are created
     if(BFieldOn){
       //finds the point of the B grid closest to the current PMT, and attributes it that Bfield
