@@ -90,9 +90,9 @@
   invisible: 0, // omitted for visualization
   mother: "inner",
   type: "tube",
-  position: [0.0, 0.0, 422.0],
+  position: [0.0, 0.0, 423.0],
   r_max: 12.7,
-  size_z: 2.0,
+  size_z: 1.5, //half-height
   material: "strontium", //strontium
   color: [0.1, 1.0, 0.3, 0.8],
 }
