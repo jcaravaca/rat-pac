@@ -126,13 +126,13 @@ dynode_surface: "stainless_steel",
 //From SNO+rat
 
 shape: "cube", //torus, cube
-dynode_radius: 27.5, // mm
-dynode_top: 5.0, // mm
+dynode_radius: 12.0, // mm
+dynode_top: 1.0, // mm
 wall_thickness: 3.0, // mm
 
-width: 100.0, //mm
-photocathode_mirror_top: 0.0, //mm
-photocathode_mirror_bottom: 0.0, //mm
+width: 40.0, //mm
+photocathode_mirror_top: 10.0, //mm
+photocathode_mirror_bottom: 10.0, //mm
 
 }
 
