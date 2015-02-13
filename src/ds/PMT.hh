@@ -30,12 +30,17 @@ public:
   virtual void SetTime(Float_t _time) { this->time = _time; }
   virtual Float_t GetTime() { return time; }
 
- ClassDef(PMT, 1);
+  /** If it was above threshold or not */
+  virtual void SetAboveThreshold(bool _AboveThreshold) { this->AboveThreshold=_AboveThreshold; }
+  virtual bool IsAboveThreshold() { return AboveThreshold; }
+
+  ClassDef(PMT, 1);
 
 protected:
   Int_t id;
   Float_t charge;
   Float_t time;
+  bool AboveThreshold;
 };
 
   } // namespace DS

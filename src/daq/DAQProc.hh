@@ -2,6 +2,9 @@
 #define __RAT_DAQProc__
 
 #include <RAT/Processor.hh>
+#include <RAT/DS/PMT.hh>
+#include <RAT/DB.hh>
+#include <CLHEP/Random/RandGeneral.h>
 
 namespace RAT {
 
@@ -14,7 +17,20 @@ public:
 
 protected:
   int fEventCounter;
+
   std::vector<double> fSPECharge;
+  double fSamplingTimeDB; ///< sampling time in ns --- this is the size of a PMT time window
+  double fIntTimeDB; ///< integration time in ns
+  float fPulseWidthDB; ///< width of a PMT pulse in ns
+  float fPulseOffsetDB; ///< offset of a PMT pulse in mV
+  float fStepTimeDB; ///< stepping time for discrimination
+  float fPulseMinDB; ///< Minimum pulse height to consider
+  float fNoiseAmplDB; ///< width of noise in adc counts
+  double fGDelayDB; ///< time before discriminator fires that sampling gate opens
+  double fTriggerThresholdDB; ///< time before discriminator fires that sampling gate opens
+
+  DBLinkPtr fLdaq;
+
 };
 
 

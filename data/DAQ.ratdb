@@ -3,5 +3,16 @@ name: "DAQ",
 valid_begin: [0, 0],
 valid_end: [0, 0],
 channel_efficiency: 1.0d,
-}
 
+
+//Front End specifications
+sampling_time: 410.0d, //full gate for grouping hits in a single integration
+int_time: 60.0d, //short integration time in ns (`SAMPLE')
+pulse_width: 15.0, //PMT pulse width in ns for square pulses
+pulse_offset: 0.0, //PMT pulse offset in mV
+step_time: 0.1, //stepping time for PMT waveforms
+pulse_min: 0.001, //minimum pulse height to consider (in ADC counts!)
+noise_amplitude: 0.61, //amplitude of high frequency noise in adc counts
+gate_delay: 10.0d, //time before discriminator fires that sampling gate opens
+trigger_threshold: 2.0 //PMT threshold to issue a trigger in mV
+}

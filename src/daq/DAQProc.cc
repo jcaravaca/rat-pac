@@ -3,92 +3,185 @@
 #include <RAT/DB.hh>
 #include <G4ThreeVector.hh>
 #include <RAT/DetectorConstruction.hh>
+#include <RAT/PMTPulse.hh>
+#include <RAT/PMTWaveform.hh>
 
 using namespace std;
 
 namespace RAT {
-
-DAQProc::DAQProc() : Processor("daq") {
-  //DBLinkPtr ldaq = DB::Get()->GetLink("DAQ");
-  //fSPECharge = ldaq->GetDArray("SPE_charge"); // convert pC to gain-normalized units
-  fEventCounter = 0;
-}
-
-Processor::Result DAQProc::DSEvent(DS::Root *ds) {
-  // This simple simulation assumes only tubes hit by a photon register
-  // a hit, and that every MC event corresponds to one triggered event
-  // The time of the PMT hit is that of the first photon.
-
-  DS::MC *mc = ds->GetMC();
-  if(ds->ExistEV()) {  // there is already a EV branch present 
-    ds->PruneEV();     // remove it, otherwise we'll have multiple detector events
-                       // in this physics event
-                       // we really should warn the user what is taking place		    
-  }
-  DS::EV *ev = ds->AddNewEV();
   
-  ev->SetID(fEventCounter);
-  fEventCounter++;
+  inline bool Cmp_PMTPulse_TimeAscending(const PMTPulse *a,
+					 const PMTPulse *b)
+  {
+    double atime = a->GetPulseStartTime();
+   double btime = b->GetPulseStartTime();
+   return atime < btime;
+  }
+  
+  DAQProc::DAQProc() : Processor("daq") {
+    fLdaq = DB::Get()->GetLink("DAQ");
 
-  double totalQ = 0.0;
-  double calibQ = 0.0;
+    //sampling time in ns --- this is the size of a PMT time window
+    fSamplingTimeDB = fLdaq->GetD("sampling_time");
+    //integration time in ns
+    fIntTimeDB = fLdaq->GetD("int_time");
+    //width of a PMT pulse in ns
+    fPulseWidthDB = fLdaq->GetD("pulse_width");
+    //offset of a PMT pulse in mV
+    fPulseOffsetDB = fLdaq->GetD("pulse_offset");
+    //stepping time for discrimination
+    fStepTimeDB = fLdaq->GetD("step_time");
+    //Minimum pulse height to consider
+    fPulseMinDB = fLdaq->GetD("pulse_min");
+    //time before discriminator fires that sampling gate opens
+    fGDelayDB = fLdaq->GetD("gate_delay");
+    //width of noise in adc counts
+    fNoiseAmplDB = fLdaq->GetD("noise_amplitude");
+    //PMT thresholds
+    fTriggerThresholdDB = fLdaq->GetD("trigger_threshold");
 
+    
+    detail << "DAQProc: DAQ constants loaded" << newline;
+    detail << dformat("  PMT Pulse Width: ....................... %5.1f ns\n", fPulseWidthDB);
+    detail << dformat("  PMT Pulse Offset: ...................... %5.1f ADC Counts\n", fPulseOffsetDB);
+    detail << dformat("  Min PMT Pulse Height: .................. %5.1f mV\n", fPulseMinDB);
+    detail << dformat("  PMT Channel Integration Time: .... %6.2f ns\n", fIntTimeDB);
+    detail << dformat("  PMT Channel Total Sample Time: ......... %6.2f ns\n", fSamplingTimeDB);
+    detail << dformat("  PMT Channel Stepping Time: ............. %6.2f ns\n", fStepTimeDB);
+    detail << dformat("  Channel Gate Delay: .................... %5.1f ns\n", fGDelayDB);
+    detail << dformat("  Hi Freq. Channel Noise: ................ %6.2f adc counts\n", fNoiseAmplDB);
+    detail << dformat("  PMT Trigger threshold: ......................... %5.1f mV\n", fTriggerThresholdDB);
+    
+    fEventCounter = 0;
+  }
+  
+  Processor::Result DAQProc::DSEvent(DS::Root *ds) {
+    //This processor build waveforms for each PMT in the MC generated event, sample them and
+    //store each sampled piece as a MCPMTSampled.
 
-  //Check if trigger PMT was hit
-  bool triggerON = false;
-  DS::MCPMT *mcpmt; //HQE PMT
-  for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
-
-    if(mc->GetMCPMT(imcpmt)->GetID()==1){ //Is the trigger PMT
-      if (mcpmt->GetMCPhotonCount() > 0) triggerON = true;
-    } else{
-
-      mcpmt = mc->GetMCPMT(imcpmt);
-
+    DS::MC *mc = ds->GetMC();
+    if(ds->ExistEV()) {  // there is already a EV branch present 
+      ds->PruneEV();     // remove it, otherwise we'll have multiple detector events
+                         // in this physics event
+                         // we really should warn the user what is taking place
     }
-    
-    // DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
-    // int pmtID = mcpmt->GetID();
-    
-  }
-  
-  if(triggerON){
-    
-    if (mcpmt->GetMCPhotonCount() > 0) {
-      // Need at least one photon to trigger
-      DS::PMT* pmt = ev->AddNewPMT();
-      pmt->SetID(0);
+
+     
+    //Loop through the PMTs in the MC generated event
+    for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
       
-      // Create one sample, hit time is determined by first hit,
-      // "infinite" charge integration time
-      // WARNING: gets multiphoton effect right, but not walk correction
-      // Write directly to calibrated waveform branch
+      DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
       
-      double time = mcpmt->GetMCPhoton(0)->GetHitTime();
-      double charge = 0;
+      //For each PMT loop over hit photons and create a square waveform for each of them
+      PMTWaveform pmtwf;
+      double TimePhoton;
+      double PulseDuty=0.0;
+      for (size_t iph=0; iph < mcpmt->GetMCPhotonCount(); iph++) {
+	
+	DS::MCPhoton *mcphotoelectron = mcpmt->GetMCPhoton(iph);
+	//      TimePhoton = mcphotoelectron.GetFrontEndTime();
+	TimePhoton = mcphotoelectron->GetHitTime(); //fixme: not sure about this time...
+	
+	//Produce pulses and add them to the waveform
+	PMTPulse *pmtpulse = new SquarePMTPulse; //square PMT pulses      
+	pmtpulse->SetStepTime(fStepTimeDB);
+	pmtpulse->SetPulseMin(fPulseMinDB);
+	pmtpulse->SetPulseCharge(mcphotoelectron->GetCharge());
+	pmtpulse->SetPulseWidth(fPulseWidthDB);
+	pmtpulse->SetPulseOffset(fPulseOffsetDB);
+	pmtpulse->SetPulseStartTime(TimePhoton); //also sets end time according to the pulse width
+	pmtwf.fPulse.push_back(pmtpulse);
+	PulseDuty += pmtpulse->GetPulseEndTime()-pmtpulse->GetPulseStartTime();
+      } // end mcphotoelectron loop: all pulses produces for this PMT
       
-      for (int i=0; i < mcpmt->GetMCPhotonCount(); i++)  {
-	if (time > mcpmt->GetMCPhoton(i)->GetHitTime())
-	  time = mcpmt->GetMCPhoton(i)->GetHitTime();
-	charge += mcpmt->GetMCPhoton(i)->GetCharge();
+      //Sort pulses in time order
+      std::sort(pmtwf.fPulse.begin(),pmtwf.fPulse.end(),Cmp_PMTPulse_TimeAscending);
+      
+      
+      //Sample the PMT waveform to look for photoelectron hits and create a new MCPMTSample
+      //for every one of them, regarless they cross threshold. A flag is raised if the threshold
+      //is crossed
+      while (pmtwf.fPulse.size()>0){
+	
+	double TimeNow = pmtwf.fPulse[0]->GetPulseStartTime();
+	double LastPulseTime = pmtwf.fPulse[pmtwf.fPulse.size()-1]->GetPulseEndTime();
+	int NextPulse=0;
+	double wfheight = 0.0;
+	float NoiseAmpl = fNoiseAmplDB/sqrt(PulseDuty/fStepTimeDB);
+	float qfuzz=0.0;
+
+	
+	//Check if the waveform crosses the threshold
+	//	TRandom3 random;
+	while( qfuzz < fTriggerThresholdDB && TimeNow < LastPulseTime){
+	  wfheight =  pmtwf.GetHeight(TimeNow); //height of the pulse at this step
+	  //	  qfuzz = wfheight+NoiseAmpl*random->Gaus(); //add gaussian noise
+	  qfuzz = wfheight; // FIXME: add gaussian noise
+	  
+	  // move forward in time by step or if we're at baseline move ahead to next pulse
+	  if (wfheight==0.0){
+	    NextPulse = pmtwf.GetNext(TimeNow);
+	    if (NextPulse>0)
+	      {TimeNow = pmtwf.fPulse[NextPulse]->GetPulseStartTime();}
+	    else
+	      {TimeNow= LastPulseTime+1.;}
+	  }
+	  else{
+	    TimeNow += fStepTimeDB;
+	  }
+	}
+	
+	//If this PMT crosses the threshold set the hit time as the time when it crosses the
+	//threshold and set the flag to true. If doesn't, set the hit time to the starting time
+	//of the pulse.
+	double HitStartTime = pmtwf.fPulse[0]->GetPulseStartTime();
+	bool IsAboveThreshold = false;
+	if (TimeNow < LastPulseTime){
+	  IsAboveThreshold = true;
+	  HitStartTime = TimeNow;
+	}
+	
+	//Integrate charge and create a new PMT in the event
+	double IntegratedCharge = 0.;
+	double TimeStartSample = HitStartTime - fGDelayDB; //start before several steps before thresholds
+	double TimeEndSample = TimeStartSample+fSamplingTimeDB;
+	double TimeEndIntegration = TimeStartSample+fIntTimeDB;
+	
+	unsigned int ipulse=0;
+	while (ipulse < pmtwf.fPulse.size() && pmtwf.fPulse[ipulse]->GetPulseStartTime()<TimeEndSample){
+	  IntegratedCharge+=pmtwf.fPulse[ipulse]->Integrate(TimeStartSample,TimeEndIntegration); //Fixme: create a function in PMTWaveForm that performs the integration
+	  ipulse++;
+	}
+
+	//Go until the last pulse in the sampling window to start over again
+	while (ipulse < pmtwf.fPulse.size() && pmtwf.fPulse[ipulse]->GetPulseStartTime()<TimeEndSample ) ipulse++;
+	
+	//Set PMT observables and save it as a new PMT object in the event
+	DS::PMT* mcpmtsample = mc->AddNewMCPMTSampled();
+	mcpmtsample->SetID(mcpmt->GetID());
+	mcpmtsample->SetCharge(IntegratedCharge);
+	mcpmtsample->SetTime(HitStartTime);
+	mcpmtsample->SetAboveThreshold(IsAboveThreshold);
+
+	std::cout<<"PMT ID:"<<mcpmt->GetID()<<" "<<mcpmtsample->GetID()<<std::endl;
+	std::cout<<"PMT Charge:"<<IntegratedCharge<<" "<<mcpmtsample->GetCharge()<<std::endl;
+	std::cout<<"PMT Time:"<<HitStartTime<<" "<<mcpmtsample->GetTime()<<std::endl;
+	std::cout<<"PMT AboveThreshold:"<<IsAboveThreshold<<" "<<mcpmtsample->IsAboveThreshold()<<std::endl;
+	
+	//Remove all the pulses whithin the sampling window
+	pmtwf.fPulse.erase(pmtwf.fPulse.begin(),pmtwf.fPulse.begin()+ipulse);
+	
+      } //end pulse sampling
+      
+      //clean up just in case
+      for (unsigned int i = 0; i<pmtwf.fPulse.size();i++){
+        delete pmtwf.fPulse[i];
       }
       
-      //pmt->SetCalibratedCharge(charge);
-      totalQ += charge;
-      
-      //charge *= fSPECharge[pmtID] * 1e12; /* convert to pC */
-      pmt->SetTime(time);
-      pmt->SetCharge(charge);
-      calibQ += charge;
-      
-    }
-  }
-  
-  ev->SetTotalCharge(totalQ);
-  //ev->SetCalibQ(calibQ);
-  
-  return Processor::OK;
-}
+    } //end PMT loop
 
+    return Processor::OK;
+
+  } //DAQProc::DSEvent
+  
 } // namespace RAT
-
