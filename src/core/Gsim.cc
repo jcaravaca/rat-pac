@@ -167,7 +167,7 @@ void Gsim::BeginOfRunAction(const G4Run* /*aRun*/) {
     MakeRun(runID);
   }
 
-  DBLinkPtr lnoise = DB::Get()->GetLink("NOISE");
+  DBLinkPtr lnoise = DB::Get()->GetLink("DAQ");
   noiseRate = lnoise->GetD("noise_rate");
 
   DBLinkPtr ldaq = DB::Get()->GetLink("DAQ");
@@ -483,6 +483,9 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
   GLG4HitPMTCollection* hitpmts = GLG4VEventAction::GetTheHitPMTCollection();
   int numPE = 0;
  
+  //These times are the times for the first and last hits in the TRIGGER PMT
+  //Noise will be produced within this time window ONLY if the trigger PMT
+  //is hit by a 'real' photon.
   double firsthittime = std::numeric_limits<double>::max();
   double lasthittime = std::numeric_limits<double>::min();
 
@@ -513,22 +516,30 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
         AddMCPhoton(rat_mcpmt, a_pmt->GetPhoton(i), false, NULL);
       }
 
-      /** Update event start and end time */
-      double hittime = a_pmt->GetPhoton(i)->GetTime();
-      if (hittime < firsthittime) {
-        firsthittime = hittime;
-        if (i != 0) {
-          detail << "Gsim: " << i
-                 << "th photon has earliest hit time" << newline;
-        }
-      }
-      if (hittime > lasthittime) {
-        lasthittime = hittime;
+      /** Update event start and end time ONLY for the trigger PMT*/
+      //type==0 for the trigger PMT
+      if(rat_mcpmt->GetType()==0){
+	double hittime = a_pmt->GetPhoton(i)->GetTime();
+	if (hittime < firsthittime) {
+	  firsthittime = hittime;
+	  if (i != 0) {
+	    detail << "Gsim: " << i
+		   << "th photon has earliest hit time" << newline;
+	  }
+	}
+	if (hittime > lasthittime) {
+	  lasthittime = hittime;
+	}
       }
     }
-  }
+  }// end hit PMTs loop
   mc->SetNumPE(numPE);
-  
+
+  //Remapping: when adding more PMTs the pointers get scrambled and we need to remap
+  for (int ipmt=0; ipmt<mc->GetMCPMTCount(); ipmt++){
+    mcpmtObjects[mc->GetMCPMT(ipmt)->GetID()] = mc->GetMCPMT(ipmt);
+  }
+    
   /**
    * Add noise hits
    *
@@ -542,6 +553,8 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
   int noiseHits = \
     static_cast<int>(floor(CLHEP::RandPoisson::shoot(detectorWideRate)));
 
+  //Fixme(?): It creates noise for all the PMTs randomly but we have different
+  //types of PMTs and hence maybe different noise rates
   for (int ihit=0; ihit<noiseHits; ihit++) {
     GLG4HitPhoton* hit = new GLG4HitPhoton();
     int pmtid = static_cast<int>(G4UniformRand() * npmts);
@@ -550,12 +563,14 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
     hit->SetCount(1);
     //hit->SetIsNoise();
     // Add the PMT if it did not register a "real" hit
+
     if (!mcpmtObjects.count(pmtid)) {
       DS::MCPMT* rat_mcpmt = mc->AddNewMCPMT();
       mcpmtObjects[pmtid] = rat_mcpmt;
       rat_mcpmt->SetID(pmtid);
       rat_mcpmt->SetType(fPMTInfo->GetType(pmtid));
     }
+
     AddMCPhoton(mcpmtObjects[pmtid], hit, true, (StoreOpticalTrackID ? exinfo : NULL));
   }
 }
@@ -586,7 +601,7 @@ void Gsim::AddMCPhoton(DS::MCPMT* rat_mcpmt, const GLG4HitPhoton* photon,
     rat_mcphoton->SetTrackID(-1);
   }
   rat_mcphoton->SetHitTime(photon->GetTime());
-  rat_mcphoton->SetFrontEndTime(fPMTTime[fPMTInfo->GetModel(rat_mcpmt->GetID())]->PickTime(photon->GetTime()));
+  rat_mcphoton->SetFrontEndTime(photon->GetTime());
   rat_mcphoton->SetCharge(fPMTCharge[fPMTInfo->GetModel(rat_mcpmt->GetID())]->PickCharge());
 }
 

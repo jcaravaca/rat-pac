@@ -40,14 +40,14 @@ PDFPMTTime::PDFPMTTime(string pmt_model) {
 PDFPMTTime::~PDFPMTTime() {}
 
 double PDFPMTTime::PickTime(double time) const {
-    double rval = G4UniformRand();
-    for (size_t i = 1; i < fTime.size(); i++) {
-        if (rval <= fTimeProbCumu[i]) {
-            return fCableDelay + (rval - fTimeProbCumu[i-1])*(fTime[i]-fTime[i-1])/(fTimeProbCumu[i]-fTimeProbCumu[i-1]) + fTime[i-1]; //linear interpolation
-        }
+  double rval = G4UniformRand();
+  for (size_t i = 1; i < fTime.size(); i++) {
+    if (rval <= fTimeProbCumu[i]) {
+      return fCableDelay + (rval - fTimeProbCumu[i-1])*(fTime[i]-fTime[i-1])/(fTimeProbCumu[i]-fTimeProbCumu[i-1]) + fTime[i-1]; //linear interpolation
     }
-    Log::Die("Sans cosmis ray bit flips, cannot get here");
-    return 0.0;
+  }
+  Log::Die("Sans cosmis ray bit flips, cannot get here");
+  return 0.0;
 }
   
 } // namespace RAT

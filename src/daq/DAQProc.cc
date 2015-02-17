@@ -5,6 +5,8 @@
 #include <RAT/DetectorConstruction.hh>
 #include <RAT/PMTPulse.hh>
 #include <RAT/PMTWaveform.hh>
+#include <CLHEP/Random/RandGauss.h>
+#include "TRandom3.h"
 
 using namespace std;
 
@@ -112,11 +114,11 @@ namespace RAT {
 
 	
 	//Check if the waveform crosses the threshold
-	//	TRandom3 random;
+	TRandom3 random;
 	while( qfuzz < fTriggerThresholdDB && TimeNow < LastPulseTime){
 	  wfheight =  pmtwf.GetHeight(TimeNow); //height of the pulse at this step
-	  //	  qfuzz = wfheight+NoiseAmpl*random->Gaus(); //add gaussian noise
-	  qfuzz = wfheight; // FIXME: add gaussian noise
+	  //	  qfuzz = wfheight+NoiseAmpl*random.Gaus(); //add gaussian noise
+          qfuzz = wfheight+NoiseAmpl*CLHEP::RandGauss::shoot();
 	  
 	  // move forward in time by step or if we're at baseline move ahead to next pulse
 	  if (wfheight==0.0){
@@ -163,11 +165,6 @@ namespace RAT {
 	mcpmtsample->SetTime(HitStartTime);
 	mcpmtsample->SetAboveThreshold(IsAboveThreshold);
 
-	std::cout<<"PMT ID:"<<mcpmt->GetID()<<" "<<mcpmtsample->GetID()<<std::endl;
-	std::cout<<"PMT Charge:"<<IntegratedCharge<<" "<<mcpmtsample->GetCharge()<<std::endl;
-	std::cout<<"PMT Time:"<<HitStartTime<<" "<<mcpmtsample->GetTime()<<std::endl;
-	std::cout<<"PMT AboveThreshold:"<<IsAboveThreshold<<" "<<mcpmtsample->IsAboveThreshold()<<std::endl;
-	
 	//Remove all the pulses whithin the sampling window
 	pmtwf.fPulse.erase(pmtwf.fPulse.begin(),pmtwf.fPulse.begin()+ipulse);
 	

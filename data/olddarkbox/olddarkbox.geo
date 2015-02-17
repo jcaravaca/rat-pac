@@ -47,26 +47,27 @@
   mother: "inner",
   type: "box",
   position: [-180.0, 0.0, 0.0],
+//  size: [3.,66.7,47.6], //mm, half-lenght
   size: [31.8,66.7,47.6], //mm, half-lenght
   material: "acrylic_uvt", //acrylic_uvt
   color: [0.1, 0.3, 0.8, 0.1],
 }
 
-{
-  name: "GEO",
-  index: "source",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  invisible: 0, // omitted for visualization
-  mother: "inner",
-  type: "tube",
-  position: [-212.0, 0.0, 0.0],
-  rotation:  [0.0, 90.0, 0.0],
-  r_max: 12.7,
-  size_z: 1.5, //half height
-  material: "strontium", //strontium
-  color: [0.1, 1.0, 0.3, 0.8],
-}
+// {
+//   name: "GEO",
+//   index: "source",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "inner",
+//   type: "tube",
+//   position: [-212.0, 0.0, 0.0],
+//   rotation:  [0.0, 90.0, 0.0],
+//   r_max: 12.7,
+//   size_z: 1.5, //half height
+//   material: "strontium", //strontium
+//   color: [0.1, 1.0, 0.3, 0.8],
+// }
 
 {
   name: "GEO",

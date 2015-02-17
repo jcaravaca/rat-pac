@@ -58,14 +58,14 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/olddarkbox_Sr90_closer_daq.root"
+/rat/procset file "../results/olddarkbox_elec3ev_noise.root"
 #########################################
 
 ##### GENERATORS #################
 ###ELECTRON GUN
-# /generator/add combo gun2:point
-# /generator/vtx/set e- 1.0 0 0 0 1.0 1.0
-# /generator/pos/set -212.0 0 0
+/generator/add combo gun2:point
+/generator/vtx/set e- 1.0 0 0 0 3.0 3.0
+/generator/pos/set -212.0 0 0
 
 ###PHOTON GUN
 #/generator/add combo gun:point:poisson
@@ -81,10 +81,10 @@
 #/generator/rate/set 1000
 
 ###RADIACTIVE SOURCE DECAY0
-/generator/add combo decay0:fill:uniform
-/generator/vtx/set backg Sr90 //Sr90, Bi210
-/generator/pos/set -212.0 0 0 #Position of the container of the source i.e. inner
-/generator/pos/set source
+# /generator/add combo decay0:point:uniform
+# /generator/vtx/set backg Bi210 //Sr90, Bi210
+# /generator/pos/set -212.0 0 0 #Position of the container of the source i.e. inner
+#/generator/pos/set source
 
 ###RADIACTIVE SOURCE DECAYCHAIN
 #/generator/add decaychain 90Sr:fill:uniform
@@ -98,4 +98,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 10000
+/run/beamOn 1000

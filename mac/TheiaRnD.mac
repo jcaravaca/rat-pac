@@ -59,14 +59,14 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/TheiaRnD_gun_novessel_cubicpmt_water.root"
+/rat/procset file "../results/TheiaRnD_elec3ev_noise.root"
 #########################################
 
 ##### GENERATORS #################
 ###ELECTRON GUN
-# /generator/add combo gun2:point
-# /generator/vtx/set e- 0 0 -1.0 0 10.0 10.0
-# /generator/pos/set 0 0 422.0
+ /generator/add combo gun2:point
+ /generator/vtx/set e- 0 0 -1.0 0 3.0 3.0
+ /generator/pos/set 0 0 422.0
 
 ###PHOTON GUN
 #/generator/add combo gun:point
@@ -77,10 +77,10 @@
 #/generator/rate/set 1
 
 ###RADIACTIVE SOURCE DECAY0
-/generator/add combo decay0:fill:uniform
-/generator/vtx/set backg Bi210
-/generator/pos/set 0 0 423.0
-/generator/pos/set source
+# /generator/add combo decay0:fill:uniform
+# /generator/vtx/set backg Bi210
+# /generator/pos/set 0 0 423.0
+# /generator/pos/set source
 
 ###RADIACTIVE SOURCE DECAYCHAIN
 #/generator/add decaychain 90Sr:fill:uniform
