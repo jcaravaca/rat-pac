@@ -535,11 +535,17 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
   }// end hit PMTs loop
   mc->SetNumPE(numPE);
 
+  //  std::cout<<" Remapping... "<<std::endl;
+  
   //Remapping: when adding more PMTs the pointers get scrambled and we need to remap
   for (int ipmt=0; ipmt<mc->GetMCPMTCount(); ipmt++){
     mcpmtObjects[mc->GetMCPMT(ipmt)->GetID()] = mc->GetMCPMT(ipmt);
   }
-    
+  for (int ipmt=0; ipmt<mc->GetMCPMTCount(); ipmt++){
+    //    std::cout<<mcpmtObjects[mc->GetMCPMT(ipmt)->GetID()]->GetID()<<std::endl;
+  }
+  //  std::cout<<" Passed remapping "<<std::endl;
+  
   /**
    * Add noise hits
    *
@@ -547,31 +553,57 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
    * to last photon hits.
    */
   double noiseWindowWidth = lasthittime - firsthittime;
+  if(noiseWindowWidth<0) noiseWindowWidth = 0.;
   size_t npmts = fPMTInfo->GetPMTCount();
   double channelRate = noiseRate * noiseWindowWidth;
   double detectorWideRate = channelRate * npmts / channelEfficiency;
   int noiseHits = \
     static_cast<int>(floor(CLHEP::RandPoisson::shoot(detectorWideRate)));
 
+  // std::cout<<" noiseWindowWidth "<<noiseWindowWidth;
+  // std::cout<<" npmts "<<npmts;
+  // std::cout<<" channelRate "<<channelRate;
+  // std::cout<<" detectorWideRate "<<detectorWideRate;
+  // std::cout<<" noiseHits "<<noiseHits;
+  // std::cout<<std::endl;
+  
   //Fixme(?): It creates noise for all the PMTs randomly but we have different
   //types of PMTs and hence maybe different noise rates
   for (int ihit=0; ihit<noiseHits; ihit++) {
+
+    std::cout<<" Adding noise... "<<std::endl;
+
     GLG4HitPhoton* hit = new GLG4HitPhoton();
     int pmtid = static_cast<int>(G4UniformRand() * npmts);
     hit->SetPMTID(pmtid);
     hit->SetTime(firsthittime + G4UniformRand() * noiseWindowWidth);
     hit->SetCount(1);
+
+    std::cout<<" Set hit "<<pmtid<<" "<<hit->GetTime()<<std::endl;
+
     //hit->SetIsNoise();
     // Add the PMT if it did not register a "real" hit
 
     if (!mcpmtObjects.count(pmtid)) {
+
+      std::cout<<" Not hit in the PMT "<<std::endl;
+
       DS::MCPMT* rat_mcpmt = mc->AddNewMCPMT();
       mcpmtObjects[pmtid] = rat_mcpmt;
       rat_mcpmt->SetID(pmtid);
       rat_mcpmt->SetType(fPMTInfo->GetType(pmtid));
+
+      std::cout<<" Created new pure noise PMT "<<std::endl;
+
     }
 
+    std::cout<<" Adding noise photon... "<<std::endl;
+    std::cout<<" "<<mcpmtObjects[pmtid]->GetID()<<std::endl;
+
     AddMCPhoton(mcpmtObjects[pmtid], hit, true, (StoreOpticalTrackID ? exinfo : NULL));
+
+    std::cout<<" DONE "<<std::endl;
+
   }
 }
 

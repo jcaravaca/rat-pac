@@ -69,21 +69,21 @@
 //   color: [0.1, 1.0, 0.3, 0.8],
 // }
 
-{
-  name: "GEO",
-  index: "pmt_trig",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  mother: "inner",
-  type: "pmtarray",
-  pmt_model: "fast_test",// r7081_hqe, r11780_hqe, fast_test
-  pmt_detector_type: "idpmt",
-  sensitive_detector: "/mydet/pmt/inner",
-  efficiency_correction: 1.027,
-  pos_table: "PMTINFO_TRIGGER",
-  orientation: "point",
-  orient_point: [-180.0, 0.0, 0.0],
-}
+// {
+//   name: "GEO",
+//   index: "pmt_trig",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   mother: "inner",
+//   type: "pmtarray",
+//   pmt_model: "fast_test",// r7081_hqe, r11780_hqe, fast_test
+//   pmt_detector_type: "idpmt",
+//   sensitive_detector: "/mydet/pmt/inner",
+//   efficiency_correction: 1.027,
+//   pos_table: "PMTINFO_TRIGGER",
+//   orientation: "point",
+//   orient_point: [-180.0, 0.0, 0.0],
+// }
 
 {
   name: "GEO",

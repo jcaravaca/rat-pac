@@ -58,13 +58,13 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/olddarkbox_elec3ev_noise.root"
+/rat/procset file "../results/olddarkbox_elec2ev_noise.root"
 #########################################
 
 ##### GENERATORS #################
 ###ELECTRON GUN
 /generator/add combo gun2:point
-/generator/vtx/set e- 1.0 0 0 0 3.0 3.0
+/generator/vtx/set e- 1.0 0 0 0 2.0 2.0
 /generator/pos/set -212.0 0 0
 
 ###PHOTON GUN
