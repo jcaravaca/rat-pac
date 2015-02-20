@@ -47,11 +47,24 @@
   mother: "inner",
   type: "box",
   position: [-180.0, 0.0, 0.0],
-//  size: [3.,66.7,47.6], //mm, half-lenght
-  size: [31.8,66.7,47.6], //mm, half-lenght
-  material: "acrylic_uvt", //acrylic_uvt
+  size: [0.5,66.7,47.6], //mm, half-lenght 31.8
+  material: "water", //acrylic_uvt_good
   color: [0.1, 0.3, 0.8, 0.1],
 }
+
+// {
+//   name: "GEO",
+//   index: "ruler",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "inner",
+//   type: "box",
+//   position: [0.0, 0.0, 0.0],
+//   size: [150.,30.,30.0], //mm, half-lenght
+//   material: "air", //acrylic_uvt
+//   color: [0.1, 0.3, 0.8, 0.1],
+// }
 
 // {
 //   name: "GEO",
