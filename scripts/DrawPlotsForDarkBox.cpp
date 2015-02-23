@@ -16,8 +16,9 @@
 #include<RAT/DS/MCPMT.hh>
 #include<RAT/DSReader.hh>
 #include<RAT/DS/Root.hh>
+#include <RAT/DB.hh>
 
-#define NORM_ATT 7.0
+#define NORM_ATT 1.e-3/1.4
 
 // std::vector<std::string> processes;
 
@@ -62,9 +63,11 @@ int main(int argc, char **argv){
   char **appargv = NULL;
   
   TApplication dummy("App", &appargc, appargv);
-
-
   ParseArgs(argc, argv);
+  
+  RAT::DB *db = RAT::DB::Get();
+  db->Load("../data/OPTICS.ratdb");
+
   
   TH1F* h_MCPMT_charge = new TH1F("h_MCPMT_charge","h_MCPMT_charge",100,0,20);
   TH1F* h_procinit = new TH1F("h_procinit","h_procinit",1,0,1);
@@ -72,10 +75,11 @@ int main(int argc, char **argv){
   TH1F* h_procinit_gm = new TH1F("h_procinit_gm","h_procinit_gm",1,0,1);
   TH1F* h_proclast_gm = new TH1F("h_proclast_gm","h_proclast_gm",1,0,1);
   TH1F* h_MCPMT_isdh = new TH1F("h_MCPMT_isdh","h_MCPMT_isdh",2,0,2);
-  TH1F* h_MCPMT_time = new TH1F("h_MCPMT_time","h_MCPMT_time",100,1,2);
+  TH1F* h_MCPMT_time = new TH1F("h_MCPMT_time","h_MCPMT_time",100,1,5);
   TH1F* h_ntracks = new TH1F("h_ntracks","h_ntracks",100,0,5000);
-  TH1F* h_ncp = new TH1F("h_ncp","h_ncp",100,0,1000);
+  TH1F* h_ncp = new TH1F("h_ncp","h_ncp",300,0,3000);
   TH1F* h_npe = new TH1F("h_npe","h_npe",10,0,10);
+  TH1F* h_ph_length = new TH1F("h_ph_length","h_ph_length",300,0,6000);
   TH1F* h_cp_length = new TH1F("h_cp_length","h_cp_length",300,0,6000);
   TH1F* h_cp_ke = new TH1F("h_cp_ke","h_cp_ke",300,0,3e-5);
   TH1F* h_cp_wl = new TH1F("h_cp_wl","h_cp_wl",300,0,1000);
@@ -84,20 +88,18 @@ int main(int argc, char **argv){
   //  Init();
 
   RAT::DSReader *dsreader = new RAT::DSReader(fInputFile);
-  RAT::DS::Root *rds = dsreader->GetDS();
-  TTree *t = dsreader->GetT();
-
-  int nentries = t->GetEntries();
+  int nentries = dsreader->GetT()->GetEntries();
   std::cout<<" Number of entries: "<<nentries<<std::endl;
+  for(int ievt=0; ievt<nentries;++ievt){
 
+    RAT::DS::Root *rds = dsreader->GetEvent(ievt);
+    RAT::DS::MC *mc = rds->GetMC();
 
-  //Init event loop
-  for (int ievt = 0; ievt < nentries; ievt++) {
 
     if(ievt%(100) == 0) std::cout<<" Entry "<<ievt<<std::endl;
     
-    t->GetEntry(ievt);
-    RAT::DS::MC *mc = rds->GetMC();
+
+
     //    RAT::DS::EV *ev = rds->GetEV(0);
 
     //Init PMT loop
@@ -137,6 +139,7 @@ int main(int argc, char **argv){
 	h_procinit_gm->Fill(f_step->GetProcess().c_str(),1.);
 	h_proclast_gm->Fill(l_step->GetProcess().c_str(),1.);
 	h_ph_last->Fill(l_step->GetEndpoint().x());
+	h_ph_length->Fill(track->GetLength());
 	if(f_step->GetProcess() == "Cerenkov"){
 	  ncerphotons++;
 	  h_cp_length->Fill(track->GetLength());
@@ -163,35 +166,40 @@ int main(int argc, char **argv){
   }//end entry loop
   
 
-  //Get attenuation from json file
-  Json::Value root;   // will contains the root value after parsing.
-  Json::Reader reader;
+  RAT::DBLinkPtr lAcrylic = db->GetLink("OPTICS", "acrylic_berkeley");
+  std::vector<double> abs_x = lAcrylic->GetDArray("ABSLENGTH_value1");
+  std::vector<double> abs_y = lAcrylic->GetDArray("ABSLENGTH_value2");
+  TGraph *gAtt = new TGraph(abs_x.size(),&abs_x[0],&abs_y[0]);
+  for (int i=0;i<gAtt->GetN();i++) gAtt->GetY()[i] *= NORM_ATT;
+ 
+  RAT::DBLinkPtr lPC = db->GetLink("OPTICS", "photocathode_R7081_hqe");
+  std::vector<double> qeff_x = lPC->GetDArray("EFFICIENCY_value1");
+  std::vector<double> qeff_y = lPC->GetDArray("EFFICIENCY_value2");
+  TGraph *gQEff = new TGraph(qeff_x.size(),&qeff_x[0],&qeff_y[0]);
+  gQEff->SetLineColor(kOrange);
+  gQEff->SetLineStyle(2);
+  gQEff->SetLineWidth(2);
 
-  std::ifstream att("acry_att_spectrum.json");
-  bool parsingSuccessful = reader.parse( att, root, false );
-  if ( !parsingSuccessful ){
-    // report to the user the failure and their locations in the document.
-    std::cout  << reader.getFormatedErrorMessages()
-  	       << "\n";
-  }
-  
-  const Json::Value json_att_x = root["ABSLENGTH_value1"];
-  const Json::Value json_att_y = root["ABSLENGTH_value2"];
-  const int npoints_att = json_att_x.size();
-    
-  //Convert to array
-  double vatt_x[npoints_att];
-  for ( int index = 0; index < npoints_att; ++index ){
-    vatt_x[index] = json_att_x[index].asDouble();
-    //   std::cout<<att_x[index]<<std::endl;
-  }
-  double vatt_y[npoints_att];
-  for ( int index = 0; index < npoints_att; ++index ){
-    vatt_y[index] = NORM_ATT*json_att_y[index].asDouble();
-    //    std::cout<<vatt_y[index]<<std::endl;
-  }
+ 
+  TGraph *gB1 = new TGraph("../data/TheiaRnD/Acrylic_b1.csv","%lg %*lg %lg",",");
+  TGraph *gB2 = new TGraph("../data/TheiaRnD/Acrylic_b2.csv","%lg %*lg %lg",",");
+  TGraph *gB3 = new TGraph("../data/TheiaRnD/Acrylic_b3.csv","%lg %*lg %lg",",");
+  TGraph *gB4 = new TGraph("../data/TheiaRnD/Acrylic_b4.csv","%lg %*lg %lg",",");
+  TGraph *gB5 = new TGraph("../data/TheiaRnD/Acrylic_b5.csv","%lg %*lg %lg",",");
+  TGraph *gB6 = new TGraph("../data/TheiaRnD/Acrylic_b6.csv","%lg %*lg %lg",",");
+  TGraph *gB7 = new TGraph("../data/TheiaRnD/Acrylic_b7.csv","%lg %*lg %lg",",");
+  TGraph *gB8 = new TGraph("../data/TheiaRnD/Acrylic_b8.csv","%lg %*lg %lg",",");
+  gB1->SetLineColor(2);
+  gB2->SetLineColor(3);
+  gB3->SetLineColor(4);
+  gB4->SetLineColor(5);
+  gB5->SetLineColor(6);
+  gB6->SetLineColor(7);
+  gB7->SetLineColor(8);
+  gB8->SetLineColor(9);
 
-  TGraph *gAtt = new TGraph(npoints_att,vatt_x,vatt_y);
+
+
 
 
 
@@ -201,7 +209,7 @@ int main(int argc, char **argv){
   TCanvas *c_charge = new TCanvas("c_charge","c_charge",1400,600);
   c_charge->Divide(2,1);
   c_charge->cd(1);
-  t->Draw("ds.ev.pmt.charge>>test(100,0,20)");
+  dsreader->GetT()->Draw("ds.ev.pmt.charge>>test(100,0,20)");
   c_charge->cd(2);
   h_MCPMT_charge->Draw();
   //Process
@@ -239,9 +247,21 @@ int main(int argc, char **argv){
   c_cp->cd(2);
   h_cp_length->GetYaxis()->SetRangeUser(0.,600.);
   h_cp_length->Draw();
+  h_ph_length->SetLineColor(kRed);
+  h_ph_length->Draw("same");
   c_cp->cd(3);
+  h_cp_wl->Scale(1e-4);
   h_cp_wl->Draw();
   gAtt->Draw("same");
+  gB1->Draw("same");
+  gB2->Draw("same");
+  gB3->Draw("same");
+  gB4->Draw("same");
+  gB5->Draw("same");
+  gB6->Draw("same");
+  gB7->Draw("same");
+  gB8->Draw("same");
+  gQEff->Draw("same");
   //  h_npe->Draw();
   //  h_cp_ke->Draw();
   c_cp->cd(4);
@@ -251,15 +271,18 @@ int main(int argc, char **argv){
   //DRAW TABLE
   double ph_total = h_cp_length->GetEntries();
   double ph_att = h_cp_length->Integral(0,(int)100.*300./6000.);
-  double ph_hitpmt = h_cp_length->Integral((int)600.*300./6000.,(int)800.*300./6000.);
+  //  double ph_hitpmt = h_cp_length->Integral((int)600.*300./6000.,(int)850.*300./6000.); //OLDDB
+  //  double ph_hitpmt_total = h_ph_last->Integral((int)(100.+4000)*500./8000.,(int)(220.+4000)*500./8000.); //OLDDB
+  double ph_hitpmt_total = h_cp_length->Integral((int)580.*300./6000.,(int)1000.*300./6000.); //NEWDB
   double ph_elec = h_MCPMT_isdh->GetEntries();
   std::cout<<" # Cherenkov photons: "<<ph_total<<" (in "<<ph_total/nentries<<" per event)"<<std::endl;
   std::cout<<" # photons attenuated: "<<ph_att<<" ("<<ph_att/ph_total*100<<"\%)"<<std::endl;
-  std::cout<<" # photons hitting PC: "<<ph_hitpmt<<" ("<<ph_hitpmt/ph_total*100<<"\%)"<<std::endl;
-  std::cout<<" # photo-electrons: "<<ph_elec<<" ("<<ph_elec/ph_hitpmt*100<<"\%)"<<std::endl;
+  std::cout<<" # photons hitting PC: "<<ph_hitpmt_total<<" ("<<ph_hitpmt_total/ph_total*100<<"\%)"<<std::endl;
+  std::cout<<" # photo-electrons: "<<ph_elec<<" ("<<ph_elec/ph_hitpmt_total*100<<"\%)"<<std::endl;
   std::cout<<" 0 photo-electrons: "<<h_npe->GetBinContent(1)<<" ("<<h_npe->GetBinContent(1)/nentries*100<<"\%)"<<std::endl;
   std::cout<<" 1 photo-electrons: "<<h_npe->GetBinContent(2)<<" ("<<h_npe->GetBinContent(2)/nentries*100<<"\%)"<<std::endl;
   std::cout<<" Multi photo-electrons: "<<h_npe->Integral(3,10)<<" ("<<h_npe->Integral(3,10)/nentries*100<<"\%)"<<std::endl;
+  std::cout<<" QEff: "<<ph_elec/ph_hitpmt_total*100<<"\%"<<std::endl;
   
   new TBrowser;
   dummy.Run();
@@ -269,10 +292,12 @@ int main(int argc, char **argv){
 
 
 void ParseArgs(int argc, char **argv){
-  //  int nargs = 1;
-  // if(argc<(nargs*2+1))
-  //   exit(1);
+  bool exist_inputfile = false;
   for(int i = 1; i < argc; i++){
-    if(std::string(argv[i]) == "-i") fInputFile = argv[++i];
+    if(std::string(argv[i]) == "-i") {fInputFile = argv[++i]; exist_inputfile=true;}
+  }
+  if(!exist_inputfile){
+    std::cerr<<" Specify input file with option: '-i'"<<std::endl;
+    exit(0);
   }
 }

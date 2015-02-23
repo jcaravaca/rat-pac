@@ -621,6 +621,30 @@ elemprop: [0.0703d, 0.558d, 0.3717d],
 
 {
 name: "MATERIAL",
+index: "acrylic_berkeley",
+valid_begin : [0, 0],
+valid_end : [0, 0],
+density: 1.14d,
+nelements: 3,
+nmaterials: 0,
+elements: ["Hydrogen", "Carbon", "Oxygen"],
+elemprop: [0.0703d, 0.558d, 0.3717d],
+}
+
+{
+name: "MATERIAL",
+index: "acrylic_berkeley_test",
+valid_begin : [0, 0],
+valid_end : [0, 0],
+density: 1.14d,
+nelements: 3,
+nmaterials: 0,
+elements: ["Hydrogen", "Carbon", "Oxygen"],
+elemprop: [0.0703d, 0.558d, 0.3717d],
+}
+
+{
+name: "MATERIAL",
 index: "acrylic_polycast",
 valid_begin : [0, 0],
 valid_end : [0, 0],

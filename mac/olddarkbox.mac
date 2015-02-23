@@ -58,7 +58,7 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/olddarkbox_elec0p5ev_vessel1mm_water.root"
+/rat/procset file "../results/olddarkbox_elec0p5ev_nonoise.root"
 #########################################
 
 ##### GENERATORS #################
