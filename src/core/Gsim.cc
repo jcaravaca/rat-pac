@@ -492,8 +492,9 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
   // Get the PMT type for IDPMTs. Then in the loop,
   // increment numPE only when the PE is in an IDPMT.
   //Map ID-INDEX for later noise calculation
-  std::map<int, int> mcpmtObjects;
+  std::map<int, int> pmtMap;
 
+  //Loop over hit PMTs
   for (int ipmt=0; ipmt<hitpmts->GetEntries(); ipmt++) {
     GLG4HitPMT* a_pmt= hitpmts->GetPMT(ipmt);
     a_pmt->SortTimeAscending();
@@ -501,8 +502,8 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
     // Create and initialize a RAT DS::MCPMT 
     // note that GLG4HitPMTs are given IDs which are their index
     DS::MCPMT* rat_mcpmt = mc->AddNewMCPMT();
-    //    mcpmtObjects[a_pmt->GetID()] = rat_mcpmt;
-    mcpmtObjects[a_pmt->GetID()] = mc->GetMCPMTCount()-1; //at this point the size represent the index
+    //    pmtMap[a_pmt->GetID()] = rat_mcpmt;
+    pmtMap[a_pmt->GetID()] = mc->GetMCPMTCount()-1; //at this point the size represent the index
     rat_mcpmt->SetID(a_pmt->GetID());
     rat_mcpmt->SetType(fPMTInfo->GetType(a_pmt->GetID()));
 
@@ -536,23 +537,12 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
   }// end hit PMTs loop
   mc->SetNumPE(numPE);
 
-  //  std::cout<<" Remapping... "<<std::endl;
-  
-  //Remapping: when adding more PMTs the pointers get scrambled and we need to remap
-  //  for (int ipmt=0; ipmt<mc->GetMCPMTCount(); ipmt++){
-  //    mcpmtObjects[mc->GetMCPMT(ipmt)->GetID()] = mc->GetMCPMT(ipmt);
-  //  }
-
-  //  for (int ipmt=0; ipmt<mc->GetMCPMTCount(); ipmt++){
-    //    std::cout<<mcpmtObjects[mc->GetMCPMT(ipmt)->GetID()]->GetID()<<std::endl;
-  //  }
-  //  std::cout<<" Passed remapping "<<std::endl;
-  
   /**
    * Add noise hits
    *
    * Generate noise hits in a `noise window' which extends from the first
-   * to last photon hits.
+   * to last photon hits in the TRIGGER PMT. (Fixme: might want to add noise
+   * within the whole event window)
    */
   double noiseWindowWidth = lasthittime - firsthittime;
   if(noiseWindowWidth<0) noiseWindowWidth = 0.;
@@ -570,6 +560,7 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
     std::cout<<" noiseHits "<<noiseHits;
     std::cout<<std::endl;
   }
+  mc->SetNumDark(noiseHits);
   
   //Fixme(?): It creates noise for all the PMTs randomly but we have different
   //types of PMTs and hence maybe different noise rates
@@ -582,16 +573,16 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
     hit->SetCount(1);
 
     // Add the PMT if it did not register a "real" hit
-    if (!mcpmtObjects.count(pmtid)) {
+    if (!pmtMap.count(pmtid)) {
       //      std::cout<<" No hit in the PMT "<<std::endl;
       DS::MCPMT* rat_mcpmt = mc->AddNewMCPMT();
-      mcpmtObjects[pmtid] = mc->GetMCPMTCount()-1;
+      pmtMap[pmtid] = mc->GetMCPMTCount()-1;
       rat_mcpmt->SetID(pmtid);
       rat_mcpmt->SetType(fPMTInfo->GetType(pmtid));
       //      std::cout<<" Created new pure noise PMT "<<std::endl;
     }
 
-    AddMCPhoton(mc->GetMCPMT(mcpmtObjects[pmtid]), hit, true, (StoreOpticalTrackID ? exinfo : NULL));
+    AddMCPhoton(mc->GetMCPMT(pmtMap[pmtid]), hit, true, (StoreOpticalTrackID ? exinfo : NULL));
 
   }
 }

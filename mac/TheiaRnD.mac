@@ -59,7 +59,7 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/TheiaRnD_dechain90Sr_nonoise.root"
+/rat/procset file "../results/TheiaRnD_dechain90Sr_noise.root"
 #########################################
 
 ##### GENERATORS #################
