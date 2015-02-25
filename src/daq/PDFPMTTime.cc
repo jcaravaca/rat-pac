@@ -46,7 +46,7 @@ double PDFPMTTime::PickTime(double time) const {
       return fCableDelay + (rval - fTimeProbCumu[i-1])*(fTime[i]-fTime[i-1])/(fTimeProbCumu[i]-fTimeProbCumu[i-1]) + fTime[i-1]; //linear interpolation
     }
   }
-  Log::Die("Sans cosmis ray bit flips, cannot get here");
+  Log::Die("PMTTime: Sans cosmis ray bit flips, cannot get here");
   return 0.0;
 }
   

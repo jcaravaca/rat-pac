@@ -20,42 +20,8 @@
 
 #define NORM_ATT 1.e-3/1.4
 
-// std::vector<std::string> processes;
-
-// void Init(){
-
-//   processes.push_back("start");
-//   processes.push_back("eIoni");
-//   processes.push_back("Cerenkov");
-//   processes.push_back("Attenuation");
-//   processes.push_back("eBrem");
-//   processes.push_back("phot");
-//   processes.push_back("Transportation");
-//   processes.push_back("msc");
-//   processes.push_back("G4FastSimulationManagerProcess");
-//   processes.push_back("compt");
-//   processes.push_back("Reemission");
-  
-// }
-
-
-// int parse_process(std::string name){
-
-//   for(int iproc=0; iproc<processes.size(); iproc++){
-//     if(name==processes[iproc]) return iproc;
-//     //std::cout<< name <<" "<< processes[iproc] <<std::endl;
-//   }
-  
-//   //If no return
-//   std::cerr<<" Process "<< name << " not found" << std::endl;
-//   exit(0);
-  
-// }
-
-
 char * fInputFile = NULL;
 void ParseArgs(int argc, char **argv);
-
 
 int main(int argc, char **argv){
 
@@ -85,51 +51,25 @@ int main(int argc, char **argv){
   TH1F* h_cp_wl = new TH1F("h_cp_wl","h_cp_wl",300,0,1000);
   TH1F* h_ph_last = new TH1F("h_ph_last","h_ph_last",500,-4000,4000);
 
-  //  Init();
-
   RAT::DSReader *dsreader = new RAT::DSReader(fInputFile);
   int nentries = dsreader->GetT()->GetEntries();
   std::cout<<" Number of entries: "<<nentries<<std::endl;
   for(int ievt=0; ievt<nentries;++ievt){
 
+    if(ievt%(100) == 0) std::cout<<" Entry "<<ievt<<std::endl;
     RAT::DS::Root *rds = dsreader->GetEvent(ievt);
     RAT::DS::MC *mc = rds->GetMC();
 
-
-    if(ievt%(100) == 0) std::cout<<" Entry "<<ievt<<std::endl;
-    
-
-
-    //    RAT::DS::EV *ev = rds->GetEV(0);
-
-    //Init PMT loop
-    //    int npmts = ev->GetPMTCount();
-    //    std::cout<<" Number of PMTs in Event "<<ievt<<": "<<npmts<<std::endl;
-    
-    // for (int ipmt = 0; ipmt < npmts; ipmt++) {
-    //   RAT::DS::PMT *pmt = ev->GetPMT(ipmt);
-    // }
-    
+    //Init track loop
     int ntracks = mc->GetMCTrackCount();
     int ncerphotons = 0; //number of cerenkov photons
     h_ntracks->Fill(ntracks);
     //    std::cout<<" Number of tracks in Event "<<ievt<<": "<<ntracks<<std::endl;
-
-    //Init track loop
     for (int itr = 0; itr < ntracks; itr++) {
       
       RAT::DS::MCTrack *track = mc->GetMCTrack(itr);
       RAT::DS::MCTrackStep *f_step = track->GetMCTrackStep(0);
       RAT::DS::MCTrackStep *l_step = track->GetLastMCTrackStep();
-
-      // int f_step_parsed = parse_process(f_step->GetProcess());
-      // int l_step_parsed = parse_process(l_step->GetProcess());
-
-      // std::cout<<" F_Step Process: "<<f_step->GetProcess()<<" "<<f_step_parsed<<std::endl;
-      // std::cout<<" Last Process: "<<l_step->GetProcess()<<" "<<last_parsed<<std::endl;
-
-      // h_procinit->Fill(f_step_parsed);
-      // h_proclast->Fill(l_step_parsed);
 
       //Fill histograms
       h_procinit->Fill(f_step->GetProcess().c_str(),1.);
@@ -147,9 +87,11 @@ int main(int argc, char **argv){
 	  h_cp_wl->Fill(1.24/(f_step->GetKE()*1.e3));
 	}
       }
-    }//end track loop
+    }
     h_ncp->Fill(ncerphotons);
+    //end track loop
 
+    
     //Init MCPMT loop
     h_npe->Fill(mc->GetNumPE());
     for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {

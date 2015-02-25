@@ -44,7 +44,7 @@ double PDFPMTCharge::PickCharge() const {
             return (rval - fChargeProbCumu[i-1])*(fCharge[i]-fCharge[i-1])/(fChargeProbCumu[i]-fChargeProbCumu[i-1]) + fCharge[i-1]; //linear interpolation
         }
     }
-    Log::Die("Sans cosmis ray bit flips, cannot get here");
+    Log::Die("PMTCharge: Sans cosmis ray bit flips, cannot get here");
     return 0.0;
 }
 

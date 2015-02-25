@@ -9,14 +9,18 @@ noise_rate: 0.0d, //dark hits rate
 
 //Front End specifications
 sampling_time: 410.0d, //full gate for grouping hits in a single integration
-int_time: 60.0d, //short integration time in ns (`SAMPLE')
-pulse_width: 15.0, //PMT pulse width in ns for square pulses
+int_time: 60.0d, //integration time in ns (`SAMPLE')
+//pulse_width: 15.0, //PMT pulse width in ns for square pulses
+pulse_width: 0.22, //PMT pulse width in log(ns) for real pulses
 pulse_offset: 0.0, //PMT pulse offset in mV
 step_time: 0.1, //stepping time for PMT waveforms
-pulse_min: 0.001, //minimum pulse height to consider (in ADC counts!)
-noise_amplitude: 0.61, //amplitude of high frequency noise in adc counts
+//pulse_min: 0.001, //minimum pulse height to consider (in ADC counts!)
+pulse_min: 0.01, //minimum pulse height to consider
+noise_amplitude: 0.61d, //amplitude of high frequency noise in adc counts
 gate_delay: 10.0d, //time before discriminator fires that sampling gate opens
-trigger_threshold: 2.0 //PMT threshold to issue a trigger in mV
-
+trigger_threshold: 2.0, //PMT threshold to issue a trigger in mV
+pulse_mean: 2.727, //PMT pulse mean in log(ns) (for lognormal shape only)
+pulse_type: 1 //0=square pulses, 1=realistic pulses
+              //must change pulse_width depending on selection 
 
 }

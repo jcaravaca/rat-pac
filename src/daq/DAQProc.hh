@@ -28,6 +28,8 @@ protected:
   float fNoiseAmplDB; ///< width of noise in adc counts
   double fGDelayDB; ///< time before discriminator fires that sampling gate opens
   double fTriggerThresholdDB; ///< time before discriminator fires that sampling gate opens
+  int fPulseTypeDB; ///< Pulse type: 0=square pulses, 1=real pulses
+  float fPulseMeanDB; ///< mean of a PMT pulse in ns (only real pulses)
 
   DBLinkPtr fLdaq;
 

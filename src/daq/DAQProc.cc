@@ -4,9 +4,8 @@
 #include <G4ThreeVector.hh>
 #include <RAT/DetectorConstruction.hh>
 #include <RAT/PMTPulse.hh>
-#include <RAT/PMTWaveform.hh>
+#include <RAT/DS/PMTWaveform.hh>
 #include <CLHEP/Random/RandGauss.h>
-#include "TRandom3.h"
 
 using namespace std;
 
@@ -16,8 +15,8 @@ namespace RAT {
 					 const PMTPulse *b)
   {
     double atime = a->GetPulseStartTime();
-   double btime = b->GetPulseStartTime();
-   return atime < btime;
+    double btime = b->GetPulseStartTime();
+    return atime < btime;
   }
   
   DAQProc::DAQProc() : Processor("daq") {
@@ -41,9 +40,14 @@ namespace RAT {
     fNoiseAmplDB = fLdaq->GetD("noise_amplitude");
     //PMT thresholds
     fTriggerThresholdDB = fLdaq->GetD("trigger_threshold");
-
+    //Pulse type: 0=square pulses, 1=real pulses
+    fPulseTypeDB = fLdaq->GetI("pulse_type");
+    //mean of a PMT pulse in ns
+    fPulseMeanDB = fLdaq->GetD("pulse_mean");
+ 
     
     detail << "DAQProc: DAQ constants loaded" << newline;
+    detail << "  PMT Pulse type: " << (fPulseTypeDB==0 ? "square" : "realistic") << newline;
     detail << dformat("  PMT Pulse Width: ....................... %5.1f ns\n", fPulseWidthDB);
     detail << dformat("  PMT Pulse Offset: ...................... %5.1f ADC Counts\n", fPulseOffsetDB);
     detail << dformat("  Min PMT Pulse Height: .................. %5.1f mV\n", fPulseMinDB);
@@ -53,7 +57,8 @@ namespace RAT {
     detail << dformat("  Channel Gate Delay: .................... %5.1f ns\n", fGDelayDB);
     detail << dformat("  Hi Freq. Channel Noise: ................ %6.2f adc counts\n", fNoiseAmplDB);
     detail << dformat("  PMT Trigger threshold: ......................... %5.1f mV\n", fTriggerThresholdDB);
-    
+    detail << dformat("  PMT Pulse Mean: ........................ %5.1f\n", fPulseMeanDB);
+
     fEventCounter = 0;
   }
   
@@ -68,16 +73,18 @@ namespace RAT {
                          // we really should warn the user what is taking place
     }
 
-     
+
     //Loop through the PMTs in the MC generated event
     for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
       
       DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
       
-      //For each PMT loop over hit photons and create a square waveform for each of them
-      PMTWaveform pmtwf;
+      //For each PMT loop over hit photons and create a waveform for each of them
+      DS::PMTWaveform pmtwf;
+      pmtwf.SetStepTime(fStepTimeDB);
       double TimePhoton;
       double PulseDuty=0.0;
+
       for (size_t iph=0; iph < mcpmt->GetMCPhotonCount(); iph++) {
 	
 	DS::MCPhoton *mcphotoelectron = mcpmt->GetMCPhoton(iph);
@@ -85,21 +92,32 @@ namespace RAT {
 	TimePhoton = mcphotoelectron->GetHitTime(); //fixme: not sure about this time...
 	
 	//Produce pulses and add them to the waveform
-	PMTPulse *pmtpulse = new SquarePMTPulse; //square PMT pulses      
+	PMTPulse *pmtpulse;
+	if (fPulseTypeDB==0){
+            pmtpulse = new SquarePMTPulse; //square PMT pulses
+	}
+	else{
+	  pmtpulse = new RealPMTPulse; //real PMT pulses shape
+	}
+	
+	pmtpulse->SetPulseMean(fPulseMeanDB);
 	pmtpulse->SetStepTime(fStepTimeDB);
 	pmtpulse->SetPulseMin(fPulseMinDB);
 	pmtpulse->SetPulseCharge(mcphotoelectron->GetCharge());
 	pmtpulse->SetPulseWidth(fPulseWidthDB);
 	pmtpulse->SetPulseOffset(fPulseOffsetDB);
-	pmtpulse->SetPulseStartTime(TimePhoton); //also sets end time according to the pulse width
+	pmtpulse->SetPulseStartTime(TimePhoton); //also sets end time according to the pulse width and the pulse mean
 	pmtwf.fPulse.push_back(pmtpulse);
-	PulseDuty += pmtpulse->GetPulseEndTime()-pmtpulse->GetPulseStartTime();
+	PulseDuty += pmtpulse->GetPulseEndTime() - pmtpulse->GetPulseStartTime();
+
       } // end mcphotoelectron loop: all pulses produces for this PMT
       
       //Sort pulses in time order
       std::sort(pmtwf.fPulse.begin(),pmtwf.fPulse.end(),Cmp_PMTPulse_TimeAscending);
-      
-      
+
+      //At this point the PMT waveform is defined for the whole event for this PMT so save it
+      mcpmt->SetWaveform(pmtwf);
+
       //Sample the PMT waveform to look for photoelectron hits and create a new MCPMTSample
       //for every one of them, regarless they cross threshold. A flag is raised if the threshold
       //is crossed
@@ -112,12 +130,9 @@ namespace RAT {
 	float NoiseAmpl = fNoiseAmplDB/sqrt(PulseDuty/fStepTimeDB);
 	float qfuzz=0.0;
 
-	
 	//Check if the waveform crosses the threshold
-	TRandom3 random;
 	while( qfuzz < fTriggerThresholdDB && TimeNow < LastPulseTime){
 	  wfheight =  pmtwf.GetHeight(TimeNow); //height of the pulse at this step
-	  //	  qfuzz = wfheight+NoiseAmpl*random.Gaus(); //add gaussian noise
           qfuzz = wfheight+NoiseAmpl*CLHEP::RandGauss::shoot();
 	  
 	  // move forward in time by step or if we're at baseline move ahead to next pulse
@@ -138,7 +153,7 @@ namespace RAT {
 	//of the pulse.
 	double HitStartTime = pmtwf.fPulse[0]->GetPulseStartTime();
 	bool IsAboveThreshold = false;
-	if (TimeNow < LastPulseTime){
+	if (TimeNow < LastPulseTime){ //means that we have crossed threshold in the time window
 	  IsAboveThreshold = true;
 	  HitStartTime = TimeNow;
 	}
@@ -156,7 +171,9 @@ namespace RAT {
 	}
 
 	//Go until the last pulse in the sampling window to start over again
-	while (ipulse < pmtwf.fPulse.size() && pmtwf.fPulse[ipulse]->GetPulseStartTime()<TimeEndSample ) ipulse++;
+	while (ipulse < pmtwf.fPulse.size() && pmtwf.fPulse[ipulse]->GetPulseStartTime()<TimeEndSample ) {
+	  ipulse++;
+	}
 	
 	//Set PMT observables and save it as a new PMT object in the event
 	DS::PMT* mcpmtsample = mc->AddNewMCPMTSampled();

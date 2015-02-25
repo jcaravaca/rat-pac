@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cmath>
 #include <algorithm>
 #include <vector>
@@ -82,7 +83,7 @@ void RealPMTPulse::SetPulseStartTime(double time)
     fStartTime = time;
     double EndTime = fStartTime + exp(fPulseMean - fPulseWidth*fPulseWidth);
     while (GetPulseHeight(EndTime)>fPulseMin){
-        EndTime+=fStepTime;
+      EndTime+=fStepTime;
     }
     fEndTime = EndTime;
 }
@@ -107,4 +108,5 @@ float RealPMTPulse::Integrate(double time1, double time2)
     }
     return totalQ;
 }
+
 } // namespace RAT

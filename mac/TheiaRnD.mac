@@ -53,13 +53,14 @@
 /tracking/storeTrajectory 1
 
 ##### BEGIN EVENT LOOP ##################
-/rat/proc simpledaq
+/rat/proc daq
+#/rat/proc simpledaq
 /rat/proc count
 /rat/procset update 100
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/TheiaRnD_dechain90Sr_noise.root"
+/rat/procset file "../results/TheiaRnD_dechain90Sr_longrun.root"
 #########################################
 
 ##### GENERATORS #################
@@ -94,4 +95,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 1000
+/run/beamOn 1000000

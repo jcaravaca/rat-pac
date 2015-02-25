@@ -19,7 +19,7 @@
   mother: "world",
   type: "box",
   size: [762.0,762.0,508.0], //mm, half-lenght
-  material: "cardboard", //cardboard
+  material: "acrylic_black", //acrylic_black
   color: [0.5, 0.2, 0.1, 0.1],
 }
 
@@ -52,21 +52,21 @@
   orient_point: [0.0, 0.0, 400.0],
 }
 
-{
-  name: "GEO",
-  index: "trigger",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  mother: "inner",
-  type: "pmtarray",
-  pmt_model: "fast_test", //r7081_hqe, r11780_hqe, fast_test
-  pmt_detector_type: "idpmt",
-  sensitive_detector: "/mydet/pmt/inner",
-  efficiency_correction: 1.027,
-  pos_table: "PMTINFO_TRIGGER",
-  orientation: "point",
-  orient_point: [0.0, 0.0, 400.0],
-}
+// {
+//   name: "GEO",
+//   index: "trigger",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   mother: "inner",
+//   type: "pmtarray",
+//   pmt_model: "fast_test", //r7081_hqe, r11780_hqe, fast_test
+//   pmt_detector_type: "idpmt",
+//   sensitive_detector: "/mydet/pmt/inner",
+//   efficiency_correction: 1.027,
+//   pos_table: "PMTINFO_TRIGGER",
+//   orientation: "point",
+//   orient_point: [0.0, 0.0, 400.0],
+// }
 
 {
   name: "GEO",
@@ -78,7 +78,7 @@
   type: "box",
   position: [0.0, 0.0, 400.0],
   size: [20.0,20.0,20.0], //mm, half-lenght
-  material: "acrylic_uvt", //acrylic_uvt
+  material: "acrylic_berkeley", //acrylic_uvt
   color: [0.1, 0.3, 0.8, 0.1],
 }
 

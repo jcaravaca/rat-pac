@@ -14,6 +14,7 @@
 #include <vector>
 #include <RAT/DS/MCPhoton.hh>
 #include <RAT/Log.hh>
+#include <RAT/DS/PMTWaveform.hh>
 
 namespace RAT {
   namespace DS {
@@ -43,12 +44,18 @@ public:
   }
   void PruneMCPhoton() { photon.resize(0); }
  
+  /** PMT waveform */
+  PMTWaveform* GetWaveform() { return &waveform; };
+  void SetWaveform(PMTWaveform _waveform) {_waveform.SetGraph(); waveform = _waveform; };
+
   ClassDef(MCPMT, 1)
     
 protected:
   Int_t id;
   Int_t type;
   std::vector<MCPhoton> photon;
+  PMTWaveform waveform;
+
 };
 
   } // namespace DS
