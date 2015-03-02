@@ -2,7 +2,7 @@ CFLAGS = -Wall -Wno-write-strings -DSWAP_BYTES -g -fdiagnostics-show-option
 LFLAGS = -L/usr/lib -L$(ROOTSYS)/lib -L$(RATROOT)/lib
 CC= g++
 
-INCLUDES= `root-config --cflags --glibs` \
+INCLUDES= `root-config --cflags --glibs` -lGeom\
 -Iinclude \
 -Iinclude/RAT \
 -I/Users/snoplus/snoing/install/rat-pac/include \

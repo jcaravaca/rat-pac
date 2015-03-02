@@ -47,6 +47,8 @@ public:
   /** PMT waveform */
   PMTWaveform* GetWaveform() { return &waveform; };
   void SetWaveform(PMTWaveform _waveform) {_waveform.SetGraph(); waveform = _waveform; };
+  void AddDigitizedWaveform(std::vector<int> _digitwaveform) {fDigitWaveForm = _digitwaveform;};
+  std::vector<int> GetDigitizedWaveform() {return fDigitWaveForm;};
 
   ClassDef(MCPMT, 1)
     
@@ -55,7 +57,8 @@ protected:
   Int_t type;
   std::vector<MCPhoton> photon;
   PMTWaveform waveform;
-
+  std::vector<int> fDigitWaveForm;
+  
 };
 
   } // namespace DS

@@ -34,12 +34,18 @@ public:
   virtual void SetAboveThreshold(bool _AboveThreshold) { this->AboveThreshold=_AboveThreshold; }
   virtual bool IsAboveThreshold() { return AboveThreshold; }
 
+  /** Digitzed and sampled waveform */
+  virtual void SetWaveform(std::vector<int> _waveform) {fWaveform = _waveform; }
+  virtual std::vector<int> GetWaveform() { return fWaveform; }
+
+  
   ClassDef(PMT, 1);
 
 protected:
   Int_t id;
   Float_t charge;
   Float_t time;
+  std::vector<int> fWaveform;
   bool AboveThreshold;
 };
 

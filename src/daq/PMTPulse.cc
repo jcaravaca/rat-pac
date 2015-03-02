@@ -69,7 +69,8 @@ float RealPMTPulse::GetPulseHeight(double time)
     float norm=fPulseCharge*exp(fPulseMean); //Orebi Gann normalization
     double delta_t = (time-fStartTime);
     if (delta_t > 1.0) {
-        height = fPulseOffset - (1.*norm/(delta_t))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
+      //      height = fPulseOffset - (1.*norm/(delta_t))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
+      height = fPulseOffset - 0.5*fPulseCharge*(1./(delta_t*fPulseWidth*sqrt(2*3.14159)))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
     }
     else{
         height = -1.0E-33; //non-zero at start time

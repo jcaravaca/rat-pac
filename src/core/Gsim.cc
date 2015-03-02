@@ -481,6 +481,7 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
 
   /** PMT and noise simulation */
   GLG4HitPMTCollection* hitpmts = GLG4VEventAction::GetTheHitPMTCollection();
+  hitpmts->Print(std::cout);
   int numPE = 0;
  
   //These times are the times for the first and last hits in the TRIGGER PMT
@@ -582,6 +583,8 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
       //      std::cout<<" Created new pure noise PMT "<<std::endl;
     }
 
+    std::cout<<" Dark hit time: "<<hit->GetTime()<<" "<<hit->GetPMTID()<<" "<<hit->GetKineticEnergy()<<std::endl;
+    
     AddMCPhoton(mc->GetMCPMT(pmtMap[pmtid]), hit, true, (StoreOpticalTrackID ? exinfo : NULL));
 
   }
@@ -603,6 +606,7 @@ void Gsim::AddMCPhoton(DS::MCPMT* rat_mcpmt, const GLG4HitPhoton* photon,
     photon->GetPolarization(x,y,z);
     rat_mcphoton->SetPolarization(TVector3(x,y,z));
     rat_mcphoton->SetTrackID(photon->GetTrackID());
+
   }
   else {
     // default values
@@ -611,10 +615,12 @@ void Gsim::AddMCPhoton(DS::MCPMT* rat_mcpmt, const GLG4HitPhoton* photon,
     rat_mcphoton->SetMomentum(TVector3(0,0,0));
     rat_mcphoton->SetPolarization(TVector3(0,0,0));
     rat_mcphoton->SetTrackID(-1);
+
   }
   rat_mcphoton->SetHitTime(photon->GetTime());
   rat_mcphoton->SetFrontEndTime(photon->GetTime());
   rat_mcphoton->SetCharge(fPMTCharge[fPMTInfo->GetModel(rat_mcpmt->GetID())]->PickCharge());
+
 }
 
 void Gsim::SetStoreParticleTraj(const G4String& particleName,

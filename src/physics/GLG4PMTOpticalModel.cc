@@ -252,6 +252,7 @@ GLG4PMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep)
 
   // get weight and time
   time= fastTrack.GetPrimaryTrack()->GetGlobalTime();  // "global" is correct
+  // std::cout<<" Global Time "<<time<<std::endl;
   weight= (G4int)( fastTrack.GetPrimaryTrack()->GetWeight() );
 
   // get n_glass, _n2, _k2, etc., for this wavelength

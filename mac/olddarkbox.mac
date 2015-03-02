@@ -51,21 +51,21 @@
 /tracking/storeTrajectory 1
 
 ##### BEGIN EVENT LOOP ##################
-/rat/proc simpledaq
-#/rat/proc daq
+#/rat/proc simpledaq
+/rat/proc daq
 /rat/proc count
-/rat/procset update 10
+/rat/procset update 100
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/olddarkbox_elec0p5ev_nonoise.root"
+/rat/procset file "../results/olddarkbox_90Y_thin_daq.root"
 #########################################
 
 ##### GENERATORS #################
 ###ELECTRON GUN
-/generator/add combo gun2:point
-/generator/vtx/set e- 1.0 0 0 0 0.5 0.5
-/generator/pos/set -212.0 0 0
+# /generator/add combo gun2:point
+# /generator/vtx/set e- 1.0 0 0 0 2. 2. #0.5 0.5
+# /generator/pos/set -183.0 0.0 0.0
 
 ###PHOTON GUN
 #/generator/add combo gun:point:poisson
@@ -87,8 +87,8 @@
 #/generator/pos/set source
 
 ###RADIACTIVE SOURCE DECAYCHAIN
-#/generator/add decaychain 90Sr:fill:uniform
-#/generator/pos/set 0 0 22.0
+/generator/add decaychain 90Y:point:uniform
+/generator/pos/set -183.0 0.0 0.0
 #/generator/pos/set source
 
 ###SOLAR NEUTRINOS
@@ -98,4 +98,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 1000
+/run/beamOn 10000

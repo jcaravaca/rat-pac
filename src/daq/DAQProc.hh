@@ -5,6 +5,7 @@
 #include <RAT/DS/PMT.hh>
 #include <RAT/DB.hh>
 #include <CLHEP/Random/RandGeneral.h>
+#include <RAT/Digitizer.hh>
 
 namespace RAT {
 
@@ -33,6 +34,15 @@ protected:
 
   DBLinkPtr fLdaq;
 
+  //Digitizer
+  double fOffSetDB;
+  double fVHigh;
+  double fVLow;
+  double fResistance;
+  int fNBits;
+    
+  Digitizer fDigitizer;
+  
 };
 
 

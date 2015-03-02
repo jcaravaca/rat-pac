@@ -3,6 +3,7 @@
 #include<fstream>
 
 #include<TH1F.h>
+#include<TH2F.h>
 #include<TFile.h>
 #include<TTree.h>
 #include<TCanvas.h>
@@ -43,8 +44,11 @@ int main(int argc, char **argv){
   TH1F* h_MCPMT_isdh = new TH1F("h_MCPMT_isdh","h_MCPMT_isdh",2,0,2);
   TH1F* h_MCPMT_time = new TH1F("h_MCPMT_time","h_MCPMT_time",100,1,5);
   TH1F* h_ntracks = new TH1F("h_ntracks","h_ntracks",100,0,5000);
-  TH1F* h_ncp = new TH1F("h_ncp","h_ncp",300,0,3000);
-  TH1F* h_npe = new TH1F("h_npe","h_npe",10,0,10);
+  TH1F* h_ncp = new TH1F("h_ncp","h_ncp",500,0,5000);
+  TH1F* h_npe = new TH1F("h_npe","h_npe",500,0,500);
+  TH1F* h_e_length = new TH1F("h_e_length","h_e_length",200,0,200); //generated e- length
+  TH2F* h_e_lengthvsnph = new TH2F("h_e_lengthvsnph","h_e_lengthvsnph",100,0,5000,100,0,100);
+  TH2F* h_e_lengthvsnpe = new TH2F("h_e_lengthvsnpe","h_e_lengthvsnpe",100,0,100,100,0,100);
   TH1F* h_ph_length = new TH1F("h_ph_length","h_ph_length",300,0,6000);
   TH1F* h_cp_length = new TH1F("h_cp_length","h_cp_length",300,0,6000);
   TH1F* h_cp_ke = new TH1F("h_cp_ke","h_cp_ke",300,0,3e-5);
@@ -62,6 +66,7 @@ int main(int argc, char **argv){
 
     //Init track loop
     int ntracks = mc->GetMCTrackCount();
+    double elength = 0; //generated e- length
     int ncerphotons = 0; //number of cerenkov photons
     h_ntracks->Fill(ntracks);
     //    std::cout<<" Number of tracks in Event "<<ievt<<": "<<ntracks<<std::endl;
@@ -75,7 +80,8 @@ int main(int argc, char **argv){
       h_procinit->Fill(f_step->GetProcess().c_str(),1.);
       h_proclast->Fill(l_step->GetProcess().c_str(),1.);
 
-      if(track->GetPDGCode() == 22 || track->GetPDGCode() == 0){ //gamma or optical photon
+      if(track->GetPDGCode() == 11) elength+=track->GetLength();
+      else if(track->GetPDGCode() == 22 || track->GetPDGCode() == 0){ //gamma or optical photon
 	h_procinit_gm->Fill(f_step->GetProcess().c_str(),1.);
 	h_proclast_gm->Fill(l_step->GetProcess().c_str(),1.);
 	h_ph_last->Fill(l_step->GetEndpoint().x());
@@ -88,6 +94,9 @@ int main(int argc, char **argv){
 	}
       }
     }
+    h_e_length->Fill(elength);
+    h_e_lengthvsnph->Fill(ncerphotons,elength);
+    h_e_lengthvsnpe->Fill(mc->GetNumPE(),elength);
     h_ncp->Fill(ncerphotons);
     //end track loop
 
@@ -151,7 +160,7 @@ int main(int argc, char **argv){
   TCanvas *c_charge = new TCanvas("c_charge","c_charge",1400,600);
   c_charge->Divide(2,1);
   c_charge->cd(1);
-  dsreader->GetT()->Draw("ds.ev.pmt.charge>>test(100,0,20)");
+  dsreader->GetT()->Draw("ds.ev.pmt.charge>>test(100,0,100)");
   c_charge->cd(2);
   h_MCPMT_charge->Draw();
   //Process
@@ -181,6 +190,18 @@ int main(int argc, char **argv){
   c_ntracks->cd(1);
   h_ntracks->Draw();
   c_ntracks->cd(2);
+  //Generated electrons
+  TCanvas *c_e = new TCanvas("c_e","c_e",1400,1400);
+  c_e->Divide(2,2);
+  c_e->cd(1);
+  h_e_length->Draw();
+  c_e->cd(2);
+  h_npe->Draw();
+  c_e->cd(3);
+  h_e_lengthvsnph->Draw("colz");
+  c_e->cd(4);
+  h_e_lengthvsnpe->Draw("colz");
+  //  h_cp_ke->Draw();
   //Cerenkov photons
   TCanvas *c_cp = new TCanvas("c_cp","c_cp",1400,1400);
   c_cp->Divide(2,2);
@@ -204,8 +225,6 @@ int main(int argc, char **argv){
   gB7->Draw("same");
   gB8->Draw("same");
   gQEff->Draw("same");
-  //  h_npe->Draw();
-  //  h_cp_ke->Draw();
   c_cp->cd(4);
   h_ph_last->Draw();
 
@@ -217,6 +236,8 @@ int main(int argc, char **argv){
   //  double ph_hitpmt_total = h_ph_last->Integral((int)(100.+4000)*500./8000.,(int)(220.+4000)*500./8000.); //OLDDB
   double ph_hitpmt_total = h_cp_length->Integral((int)580.*300./6000.,(int)1000.*300./6000.); //NEWDB
   double ph_elec = h_MCPMT_isdh->GetEntries();
+  std::cout<<" # e- sttopped at acrylic: "<<h_e_length->Integral(0,20)<<std::endl;
+  std::cout<<" # e- sttopped at PMT: "<<h_e_length->Integral(20,50)<<std::endl;
   std::cout<<" # Cherenkov photons: "<<ph_total<<" (in "<<ph_total/nentries<<" per event)"<<std::endl;
   std::cout<<" # photons attenuated: "<<ph_att<<" ("<<ph_att/ph_total*100<<"\%)"<<std::endl;
   std::cout<<" # photons hitting PC: "<<ph_hitpmt_total<<" ("<<ph_hitpmt_total/ph_total*100<<"\%)"<<std::endl;
