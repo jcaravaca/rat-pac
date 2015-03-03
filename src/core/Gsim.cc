@@ -481,7 +481,7 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
 
   /** PMT and noise simulation */
   GLG4HitPMTCollection* hitpmts = GLG4VEventAction::GetTheHitPMTCollection();
-  hitpmts->Print(std::cout);
+  //  hitpmts->Print(std::cout); //print out
   int numPE = 0;
  
   //These times are the times for the first and last hits in the TRIGGER PMT

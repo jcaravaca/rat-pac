@@ -46,11 +46,11 @@ int main(int argc, char **argv){
   TH1F* h_ntracks = new TH1F("h_ntracks","h_ntracks",100,0,5000);
   TH1F* h_ncp = new TH1F("h_ncp","h_ncp",500,0,5000);
   TH1F* h_npe = new TH1F("h_npe","h_npe",500,0,500);
-  TH1F* h_e_length = new TH1F("h_e_length","h_e_length",200,0,200); //generated e- length
-  TH2F* h_e_lengthvsnph = new TH2F("h_e_lengthvsnph","h_e_lengthvsnph",100,0,5000,100,0,100);
-  TH2F* h_e_lengthvsnpe = new TH2F("h_e_lengthvsnpe","h_e_lengthvsnpe",100,0,100,100,0,100);
-  TH1F* h_ph_length = new TH1F("h_ph_length","h_ph_length",300,0,6000);
-  TH1F* h_cp_length = new TH1F("h_cp_length","h_cp_length",300,0,6000);
+  TH1F* h_e_length = new TH1F("h_e_length","h_e_length",100,0,10); //e- flight path
+  TH2F* h_e_lengthvsnph = new TH2F("h_e_lengthvsnph","h_e_lengthvsnph",100,0,200,100,0,10);
+  TH2F* h_e_lengthvsnpe = new TH2F("h_e_lengthvsnpe","h_e_lengthvsnpe",15,0,15,100,0,10);
+  TH1F* h_ph_length = new TH1F("h_ph_length","h_ph_length",200,0,200);
+  TH1F* h_cp_length = new TH1F("h_cp_length","h_cp_length",200,0,200);
   TH1F* h_cp_ke = new TH1F("h_cp_ke","h_cp_ke",300,0,3e-5);
   TH1F* h_cp_wl = new TH1F("h_cp_wl","h_cp_wl",300,0,1000);
   TH1F* h_ph_last = new TH1F("h_ph_last","h_ph_last",500,-4000,4000);

@@ -138,15 +138,11 @@ namespace RAT {
       //Sort pulses in time order
       std::sort(pmtwf.fPulse.begin(),pmtwf.fPulse.end(),Cmp_PMTPulse_TimeAscending);
 
-      //Add electronic noise to the wave form
-      //      pmtwf.GenerateElectronicNoise(fNoiseAmplDB);
-
       //At this point the PMT waveform is defined for the whole event for this PMT, so save it
       mcpmt->SetWaveform(pmtwf);
 
-      //Add electronic noise and digitize waveform
+      //Digitize waveform (electronic noise is added by the digitizer) and save it
       fDigitizer.DigitizeWaveForm(pmtwf);
-      //Save it
       mcpmt->AddDigitizedWaveform(fDigitizer.GetDigitizedWaveform());
       DigitizedWaveforms[mcpmt->GetID()] = fDigitizer.GetDigitizedWaveform();
       
@@ -175,7 +171,7 @@ namespace RAT {
 	  pmt->SetID(mc->GetMCPMT(imcpmt)->GetID());
 	  pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
 	  pmt->SetWaveform(fDigitizer.SampleWaveform(DigitizedWaveforms[imcpmt],&isample)); //it is defined by the sample that crosses threshold
-	  pmt->SetCharge(fDigitizer.GetChargeForSample(DigitizedWaveforms[imcpmt]));
+	  pmt->SetCharge(fDigitizer.IntegrateCharge(DigitizedWaveforms[imcpmt]));
 	}
       }//end sampling
       DigitizedWaveforms[imcpmt].clear(); //prune for next round of PMTs

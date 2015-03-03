@@ -68,14 +68,23 @@ float RealPMTPulse::GetPulseHeight(double time)
     float height;
     float norm=fPulseCharge*exp(fPulseMean); //Orebi Gann normalization
     double delta_t = (time-fStartTime);
-    if (delta_t > 1.0) {
-      //      height = fPulseOffset - (1.*norm/(delta_t))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
-      height = fPulseOffset - 0.5*fPulseCharge*(1./(delta_t*fPulseWidth*sqrt(2*3.14159)))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
+
+    // if (delta_t > 1.0) {
+    //   //      height = fPulseOffset - (1.*norm/(delta_t))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
+    //   height = fPulseOffset - (fPulseCharge/(delta_t*fPulseWidth*sqrt(2*3.14159)))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
+    // }
+    // else{
+    //     height = -1.0E-33; //non-zero at start time
+    // }
+
+    if (delta_t != 0.0) {
+      height = fPulseOffset - (fPulseCharge/(delta_t*fPulseWidth*sqrt(2*3.14159)))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
     }
     else{
-        height = -1.0E-33; //non-zero at start time
+      height = -1.0E-50; //non-zero at start time
     }
-    height *= -1.0;  //we use positive-going PMT pulses...
+
+    //    height *= -1.0;  //we use positive-going PMT pulses...
     return height;
 }
 
@@ -83,7 +92,7 @@ void RealPMTPulse::SetPulseStartTime(double time)
 {
     fStartTime = time;
     double EndTime = fStartTime + exp(fPulseMean - fPulseWidth*fPulseWidth);
-    while (GetPulseHeight(EndTime)>fPulseMin){
+    while (GetPulseHeight(EndTime)<fPulseMin){
       EndTime+=fStepTime;
     }
     fEndTime = EndTime;

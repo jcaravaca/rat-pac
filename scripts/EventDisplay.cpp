@@ -1,5 +1,6 @@
 #include<iostream>
 #include<fstream>
+#include<string>
 
 #include<TH1F.h>
 #include<TFile.h>
@@ -15,6 +16,10 @@
 #include<TMarker.h>
 #include<TMath.h>
 #include<TGeoBBox.h>
+#include<TGeoManager.h>
+#include<TGeoMaterial.h>
+#include<TGeoMedium.h>
+#include<TGeoVolume.h>
 
 #include<RAT/DS/MC.hh>
 #include<RAT/DS/MCTrack.hh>
@@ -25,15 +30,20 @@
 #include <RAT/DB.hh>
 
 #define DEBUG false
-#define DRAWEVENT true
-#define XCOOR 762.0 // 500.//762.0, 
-#define YCOOR 762.0 // 250.//762.0
-#define ZCOOR 508.0 // 250.//508.0
+#define DRAWPMTS false
+#define DRAWOLDDARKBOX true
+#define XSIDE 500.0 // 500.//762.0, 
+#define YSIDE 250.0 // 250.//762.0
+#define ZSIDE 250.0 // 250.//508.0
+#define XPOS 0.0
+#define YPOS 0.0
+#define ZPOS 0.0
 
 
 
 char *fInputFile = NULL;
 int fEvent = 0;
+char *fOpt = "foo";
 void ParseArgs(int argc, char **argv);
 
 
@@ -69,18 +79,19 @@ public:
   void DisplayEvent(int);
   void LoadEvent(int);
   void DumpEventInfo(int);
+  void DrawGeometry();
+  bool IsCerenkov();
+
 protected:
   
   std::map<int,Color_t> ParticleColor;
+  std::map<int,int> ParticleWidth;
   RAT::DSReader *dsreader;
   RAT::DS::Root *rds;
   RAT::DS::MC *mc;
   int nevents;
-  std::vector<TGraph2D> tracks;
+  std::map<int,bool> hitpmts;
   std::vector<TPolyLine3D> pl_tracks;
-  std::vector<TGraph> tracks_xz;
-  std::vector<TGraph> tracks_xy;
-  std::vector<TGraph> tracks_yz;
   std::vector<TGraph> PMTWaveforms;
   std::vector<TGraph> PMTDigitizedWaveforms;
   std::map< int, std::vector<int> > vPMTDigitizedWaveforms;
@@ -108,21 +119,37 @@ protected:
   int G4Fast;
   int epothers;
 
+  //Geometry
+  TGeoVolume *vworld;
+  std::map<int, TGeoBBox* > bpmt;
+  std::map<int, TGeoVolume* > vpmt;
+
 };
 
 
 EventDisplay::EventDisplay(char *_inputfile){
   
   OpenFile(_inputfile);
+  //Set canvas
   canvas_event = new TCanvas("canvas_event", "Event", 800, 800);
   canvas_event->Divide(2,2);
+  canvas_event->cd(1)->SetPad(0.,0.3,1.,1.);
+  canvas_event->cd(2)->SetPad(0.99,0.99,1.,1.);
+  canvas_event->cd(3)->SetPad(0.,0.,0.5,0.3);
+  canvas_event->cd(4)->SetPad(0.5,0.,1.,0.3);
 
-  //Set pdg-color mapping
+  //Particle track mapping
   ParticleColor[11]=kGreen;
   ParticleColor[22]=kRed;
   ParticleColor[13]=kOrange;
   ParticleColor[211]=kOrange;
   ParticleColor[0]=kBlue;
+
+  ParticleWidth[11]=1;
+  ParticleWidth[22]=1;
+  ParticleWidth[13]=2;
+  ParticleWidth[211]=2;
+  ParticleWidth[0]=1;
 
   //Init
   nelectrons=0;
@@ -145,7 +172,39 @@ EventDisplay::EventDisplay(char *_inputfile){
   epatt = 0;
   G4Fast = 0;
   epothers = 0;
-   
+
+  //Geometry
+  new TGeoManager("box", "poza1");
+  TGeoMaterial *mat = new TGeoMaterial("Al", 26.98,13,2.7);
+  TGeoMedium *med = new TGeoMedium("MED",1,mat);
+  
+  double pos_temp[] = {XPOS,YPOS,ZPOS};
+  TGeoBBox *bworld = new TGeoBBox(XSIDE,YSIDE,ZSIDE, pos_temp);
+  vworld = new TGeoVolume("world",bworld,med);
+  //  vworld->SetLineColor(0);
+  gGeoManager->SetTopVolume(vworld);
+  TGeoBBox *btarget;
+  if(DRAWOLDDARKBOX){
+    pos_temp[0] = -180.0; pos_temp[1] = 0.0; pos_temp[2] = 0.0;
+    btarget = new TGeoBBox(2.5,66.7,47.6,pos_temp);
+  } else{
+    pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 200.0;
+    btarget = new TGeoBBox(20.0,20.0,10.0,pos_temp);
+  }
+  TGeoVolume *vtarget = new TGeoVolume("target",btarget,med);
+  vtarget->SetLineWidth(3);
+  vtarget->SetLineColor(kCyan);
+  vworld->AddNode(vtarget,1);
+  if(DRAWPMTS){
+    for(int pmtID=0; pmtID<16; pmtID++){
+      pos_temp[0] = 75.0-50.0*(pmtID%4); pos_temp[1] = 75.0-50.0*(pmtID/4); pos_temp[2] = 100.0;
+      bpmt[pmtID] = new TGeoBBox(25.4/2.,25.4/2.,25.4/2.,pos_temp);
+      vpmt[pmtID] = new TGeoVolume(Form("PMT%i",pmtID),bpmt[pmtID],med);
+      vpmt[pmtID]->SetLineWidth(2);
+      vworld->AddNode(vpmt[pmtID],1);
+    }
+  }
+  
 };
 
 void EventDisplay::OpenFile(char *_inputfile){
@@ -159,7 +218,7 @@ void EventDisplay::OpenFile(char *_inputfile){
 
 void EventDisplay::LoadEvent(int ievt){
 
-  std::cout<<"Loading event "<<ievt<<"......."<<std::endl;
+  if(DEBUG) std::cout<<"Loading event "<<ievt<<"......."<<std::endl;
 
   //Initialize
   //Objects
@@ -188,224 +247,139 @@ void EventDisplay::LoadEvent(int ievt){
   epatt = 0;
   G4Fast = 0;
   epothers = 0;
-
-  //Tracks
-  tracks.clear();
   pl_tracks.clear();
-  tracks_xz.clear();
-  tracks_xy.clear();
-  tracks_yz.clear();
-
-  //  if(DRAWEVENT){
-
-  for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++){
-    npe[mc->GetMCPMT(ipmt)->GetID()] = mc->GetMCPMT(ipmt)->GetMCPhotonCount();
-  }
-  
-    for (int itr = 0; itr < mc->GetMCTrackCount(); itr++) {
-      
-      RAT::DS::MCTrack *mctrack = mc->GetMCTrack(itr);
-      //Create new track
-      tracks.resize(tracks.size()+1);
-      pl_tracks.resize(pl_tracks.size()+1);
-      tracks_xz.resize(tracks_xz.size()+1);
-      tracks_xy.resize(tracks_xy.size()+1);
-      tracks_yz.resize(tracks_yz.size()+1);
-      //Set PDGcode color code
-      tracks.back().SetLineColor(ParticleColor[mctrack->GetPDGCode()]);
-      pl_tracks.back().SetLineColor(ParticleColor[mctrack->GetPDGCode()]);
-      tracks_xz.back().SetLineColor(ParticleColor[mctrack->GetPDGCode()]);
-      tracks_xy.back().SetLineColor(ParticleColor[mctrack->GetPDGCode()]);
-      tracks_yz.back().SetLineColor(ParticleColor[mctrack->GetPDGCode()]);
-      //Measure electron length
-      if(mctrack->GetPDGCode()==11) elength += mctrack->GetLength();
-      //Count particles
-      if(mctrack->GetPDGCode()==11) nelectrons++;
-      else if(mctrack->GetPDGCode()==0) ncherenkovphotons++;
-      else if(mctrack->GetPDGCode()==22) notherphotons++;
-      else if(mctrack->GetPDGCode()==13) nmuons++;
-      else nothers++;
-      //Count processes
-      RAT::DS::MCTrackStep *firststep = mctrack->GetMCTrackStep(0);
-      RAT::DS::MCTrackStep *laststep = mctrack->GetLastMCTrackStep();
-      double last_pos[3];
-      laststep->GetEndpoint().GetXYZ(last_pos);
-      //      if (itr>=10 && itr<11) std::cout<<" Last pos: "<<last_pos[0]<<" "<<last_pos[1]<<" "<<last_pos[2]<<" "<<std::endl;
-      if(firststep->GetProcess()=="Cerenkov") ipcherenkov++;
-      else if(firststep->GetProcess()=="start") ipstart++;
-      else if(firststep->GetProcess()=="eBrem") ipbrems++;
-      else if(firststep->GetProcess()=="eIoni") ipeioni++;
-      else if(firststep->GetProcess()=="phot") ipphoto++;
-      else {
-	ipothers++;
-	if (DEBUG) std::cout<<" First proc: "<<firststep->GetProcess().c_str()<<std::endl;
-      }
-      if(laststep->GetProcess()=="Cerenkov") epcherenkov++;
-      else if(laststep->GetProcess()=="start") epstart++;
-      else if(laststep->GetProcess()=="eBrem") epbrems++;
-      else if(laststep->GetProcess()=="eIoni") epeioni++;
-      else if(laststep->GetProcess()=="phot") epphoto++;
-      else if(laststep->GetProcess()=="Attenuation") epatt++;
-      else if(laststep->GetProcess()=="G4FastSimulationManagerProcess") G4Fast++;
-      else {
-	epothers++;
-	if (DEBUG) std::cout<<" Last proc: "<<laststep->GetProcess().c_str()<<std::endl;
-      }
-      
-      //Loop over all the steps
-      int nsteps = mctrack->GetMCTrackStepCount();
-      for (int istep = 0; istep < nsteps; istep++) {
-	
-	RAT::DS::MCTrackStep *step = mctrack->GetMCTrackStep(istep);
-	const TVector3 *endpointstep = &step->GetEndpoint();
-	double temp_pos[3];
-	endpointstep->GetXYZ(temp_pos);
-	tracks.back().SetPoint(istep,temp_pos[0],temp_pos[1],temp_pos[2]);
-	pl_tracks.back().SetPoint(istep,temp_pos[0],temp_pos[1],temp_pos[2]);
-	tracks_xz.back().SetPoint(istep,temp_pos[0],temp_pos[2]);
-	tracks_xy.back().SetPoint(istep,temp_pos[0],temp_pos[1]);
-	tracks_yz.back().SetPoint(istep,temp_pos[1],temp_pos[2]);
-
-      } //end step loop
-      
-    } //end track loop
-    
-    //} end if
-    
   PMTWaveforms.clear();
   PMTDigitizedWaveforms.clear();
-  PMTDigitizedWaveforms.resize(mc->GetMCPMTCount());
 
+
+  //Load tracks
+  for (int itr = 0; itr < mc->GetMCTrackCount(); itr++) {
+    
+    RAT::DS::MCTrack *mctrack = mc->GetMCTrack(itr);
+    //Create new track
+    pl_tracks.resize(pl_tracks.size()+1);
+    //Set PDGcode color code
+    pl_tracks.back().SetLineColor(ParticleColor[mctrack->GetPDGCode()]);
+    pl_tracks.back().SetLineWidth(ParticleWidth[mctrack->GetPDGCode()]);
+    //Measure electron length
+    if(mctrack->GetPDGCode()==11) elength += mctrack->GetLength();
+    //Count particles
+    if(mctrack->GetPDGCode()==11) nelectrons++;
+    else if(mctrack->GetPDGCode()==0) ncherenkovphotons++;
+    else if(mctrack->GetPDGCode()==22) notherphotons++;
+    else if(mctrack->GetPDGCode()==13) nmuons++;
+    else {
+      nothers++;
+      if (DEBUG) std::cout<<" Unknown particle: "<<mctrack->GetPDGCode()<<std::endl;
+    }
+    //Count processes
+    RAT::DS::MCTrackStep *firststep = mctrack->GetMCTrackStep(0);
+    RAT::DS::MCTrackStep *laststep = mctrack->GetLastMCTrackStep();
+    double last_pos[3];
+    laststep->GetEndpoint().GetXYZ(last_pos);
+    //      if (itr>=10 && itr<11) std::cout<<" Last pos: "<<last_pos[0]<<" "<<last_pos[1]<<" "<<last_pos[2]<<" "<<std::endl;
+    if(firststep->GetProcess()=="Cerenkov") ipcherenkov++;
+    else if(firststep->GetProcess()=="start") ipstart++;
+    else if(firststep->GetProcess()=="eBrem") ipbrems++;
+    else if(firststep->GetProcess()=="eIoni") ipeioni++;
+    else if(firststep->GetProcess()=="phot") ipphoto++;
+    else {
+      ipothers++;
+      if (DEBUG) std::cout<<" Unknown first proc: "<<firststep->GetProcess().c_str()<<std::endl;
+    }
+    if(laststep->GetProcess()=="Cerenkov") epcherenkov++;
+    else if(laststep->GetProcess()=="start") epstart++;
+    else if(laststep->GetProcess()=="eBrem") epbrems++;
+    else if(laststep->GetProcess()=="eIoni") epeioni++;
+    else if(laststep->GetProcess()=="phot") epphoto++;
+    else if(laststep->GetProcess()=="Attenuation") epatt++;
+    else if(laststep->GetProcess()=="G4FastSimulationManagerProcess") G4Fast++;
+    else {
+      epothers++;
+      if (DEBUG) std::cout<<" Unknown last proc: "<<laststep->GetProcess().c_str()<<std::endl;
+    }
+    
+    //Loop over all the steps
+    int nsteps = mctrack->GetMCTrackStepCount();
+    for (int istep = 0; istep < nsteps; istep++) {
+      
+      RAT::DS::MCTrackStep *step = mctrack->GetMCTrackStep(istep);
+      const TVector3 *endpointstep = &step->GetEndpoint();
+      double temp_pos[3];
+      endpointstep->GetXYZ(temp_pos);
+      pl_tracks.back().SetPoint(istep,temp_pos[0],temp_pos[1],temp_pos[2]);
+      
+    } //end step loop
+    
+  } //end track loop
+
+  
+  //Load photoelectrons
+  for (int ipmt = 0; ipmt < 16; ipmt++)
+    hitpmts[ipmt] = false; //clear
+  
+  for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++){
+    int pmtID = mc->GetMCPMT(ipmt)->GetID();
+    npe[pmtID] = mc->GetMCPMT(ipmt)->GetMCPhotonCount();
+    hitpmts[pmtID] = false;
+    if(npe[pmtID] != 0) hitpmts[pmtID] = true;
+  }
+
+  
+  //Load waveforms
+  PMTDigitizedWaveforms.resize(mc->GetMCPMTCount());
+  int ymax_d=0.; //yaxis max limit digital
+  int ymin_d=9999999.; //yaxis min limit digital
+  double ymax=0.; //yaxis max limit analogue
+  double ymin=9999999.; //yaxis min limit analogue
+  double ymax_temp=0.;
+  double ymin_temp=0.;
+  double xmax_temp=0.;//dummy
+  double xmin_temp=0.;//dummy
   for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
     RAT::DS::MCPMT *mcpmt = mc->GetMCPMT(ipmt);
     PMTWaveforms.push_back(mcpmt->GetWaveform()->GetGraph());
     vPMTDigitizedWaveforms[ipmt] = mcpmt->GetDigitizedWaveform();
+    //Compute graph limits
+    PMTWaveforms[ipmt].ComputeRange(xmin_temp,ymin_temp,xmax_temp,ymax_temp);
+    ymax = TMath::Max(ymax,ymax_temp);
+    ymin = TMath::Min(ymin,ymin_temp);
+    ymax = (ymax == 0)? 0.1:ymax;
 
     //Set digitized graphs
-    for(int isample=0; isample<vPMTDigitizedWaveforms[ipmt].size(); isample++)
+    for(int isample=0; isample<vPMTDigitizedWaveforms[ipmt].size(); isample++){
       PMTDigitizedWaveforms[ipmt].SetPoint(isample,isample,vPMTDigitizedWaveforms[ipmt][isample]);
       //      std::cout<<isample<<" "<<vPMTDigitizedWaveforms[ipmt][isample]<<std::endl;
+      ymax_d = TMath::Max(ymax_d,vPMTDigitizedWaveforms[ipmt][isample]);
+      ymin_d = TMath::Min(ymin_d,vPMTDigitizedWaveforms[ipmt][isample]);
+    }
     
-
+    if(DEBUG) std::cout<<" analogue limits "<<ymax<<" "<<ymin<<std::endl;
+    if(DEBUG) std::cout<<" digital limits "<<ymax_d<<" "<<ymin_d<<std::endl;
+    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(2.0*ymin,1.2*ymax);
+    PMTDigitizedWaveforms[ipmt].GetYaxis()->SetRangeUser(0.99*ymin_d,1.01*ymax_d);
 
   }
-
-
-
   
   if(DEBUG) std::cout<<"LOADED! "<<std::endl;
 
 }
 
+//Draw experiment geometry in canvas
+void EventDisplay::DrawGeometry(){
 
+  canvas_event->cd(1);
 
-void EventDisplay::DisplayEvent(int ievt){
-
-  LoadEvent(ievt);
-
-  if(DRAWEVENT){
-    // //Draw tracks
-    // canvas_event->cd(1);
-    // tracks_xz[0].Draw("AL");
-    // tracks_xz[0].GetXaxis()->SetLimits(-XCOOR,XCOOR);
-    // tracks_xz[0].GetYaxis()->SetRangeUser(-ZCOOR,ZCOOR);
-    // tracks_xz[0].GetXaxis()->SetTitle("X");
-    // tracks_xz[0].GetYaxis()->SetTitle("Z");
-    // for (int itr = 0; itr < mc->GetMCTrackCount(); itr++){
-    //   tracks_xz[itr].Draw("LINE same");
-    // }
-    // canvas_event->cd(2);
-    // tracks_yz[0].Draw("AL");
-    // tracks_yz[0].GetXaxis()->SetLimits(-YCOOR,YCOOR);
-    // tracks_yz[0].GetYaxis()->SetRangeUser(-ZCOOR,ZCOOR);
-    // tracks_yz[0].GetXaxis()->SetTitle("Z");
-    // tracks_yz[0].GetYaxis()->SetTitle("Y");
-    // for (int itr = 0; itr < mc->GetMCTrackCount(); itr++){
-    //   tracks_yz[itr].Draw("LINE same");
-    // }
-    // canvas_event->cd(3);
-    // tracks_xy[0].Draw("AL");
-    // tracks_xy[0].GetXaxis()->SetLimits(-XCOOR,XCOOR);
-    // tracks_xy[0].GetYaxis()->SetRangeUser(-YCOOR,YCOOR);
-    // tracks_xy[0].GetXaxis()->SetTitle("X");
-    // tracks_xy[0].GetYaxis()->SetTitle("Y");
-    // for (int itr = 0; itr < mc->GetMCTrackCount(); itr++){
-    //   tracks_xy[itr].Draw("LINE same");
-    // }
-    canvas_event->cd(1)->SetPad(0.,0.3,1.,1.);
-    canvas_event->cd(2)->SetPad(0.99,0.99,1.,1.);
-    canvas_event->cd(3)->SetPad(0.,0.,0.5,0.3);
-    canvas_event->cd(4)->SetPad(0.5,0.,1.,0.3);
-    canvas_event->cd(1);
-    double pos_temp[] = {0,0,150.0};
-    TGeoBBox *bworld = new TGeoBBox(300,300,100, pos_temp);
-    bworld->Draw("");
-    pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 200.0;
-    TGeoBBox *btarget = new TGeoBBox(20.0,20.0,10.0,pos_temp);
-    btarget->Draw("same");
-    std::vector<TGeoBBox*> bpmt; bpmt.resize(16);
-    for(int ipmt=0; ipmt<bpmt.size(); ipmt++){
-      pos_temp[0] = 75.0-50.0*(ipmt%4); pos_temp[1] = 75.0-50.0*(ipmt/4); pos_temp[2] = 100.0;
-      bpmt[ipmt] = new TGeoBBox(25.4/2.,25.4/2.,25.4/2.,pos_temp);
-      bpmt[ipmt]->Draw("same");
-    }
-    pl_tracks[0].Draw("LINE");
-    // tracks[0].GetXaxis()->SetLimits(-XCOOR,XCOOR);
-    // tracks[0].GetYaxis()->SetLimits(-YCOOR,YCOOR);
-    // tracks[0].GetZaxis()->SetRangeUser(-ZCOOR,ZCOOR);
-    for (int itr = 0; itr < mc->GetMCTrackCount(); itr++) {
-      //for (int itr = 10; itr < 11; itr++) {
-      pl_tracks[itr].Draw("LINE same");
+  //Highlight PMT if was hit
+  if(DRAWPMTS){
+    for(int pmtID=0; pmtID<16; pmtID++){
+      vpmt[pmtID]->SetLineColor(1);
+      if(hitpmts[pmtID]) vpmt[pmtID]->SetLineColor(kRed);
     }
   }
+  vworld->Draw("");
+  //  vworld->Draw("ogl");
   
-  if(mc->GetMCPMTCount()>0){
-    //    canvas_event->cd(6)->SetPad(0.99,0.99,1.,1.);
-    canvas_event->cd(3);
-    //    canvas_event->cd(5)->SetPad(0,0,1.,0.25);
-    PMTWaveforms[0].GetXaxis()->SetLimits(0.,50.);
-    PMTWaveforms[0].Draw("AP");
-    PMTWaveforms[0].GetXaxis()->SetTitle("t(ns)");
-    PMTWaveforms[0].GetYaxis()->SetTitle("V");
-    double ymax=0.;
-    double ymin=9999999.;
-    double ymax_temp=0.;
-    double ymin_temp=0.;//dummy
-    double xmax_temp=0.;//dummy
-    double xmin_temp=0.;//dummy
-    for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
-      PMTWaveforms[ipmt].SetLineColor(ipmt+1);
-      PMTWaveforms[ipmt].Draw("LINE same");
-      PMTWaveforms[ipmt].ComputeRange(xmin_temp,xmax_temp,ymin_temp,ymax_temp);
-      ymax = TMath::Max(ymax,ymax_temp);
-      ymin = TMath::Min(ymin,ymin_temp);
-    }
-    PMTWaveforms[0].GetYaxis()->SetRangeUser(ymin,0.6*ymax);
-
-    canvas_event->cd(4);
-    PMTDigitizedWaveforms[0].Draw("AP");
-    PMTDigitizedWaveforms[0].GetXaxis()->SetTitle("sample");
-    PMTDigitizedWaveforms[0].GetYaxis()->SetTitle("ADC counts");
-    for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
-      PMTDigitizedWaveforms[ipmt].SetLineColor(ipmt+1);
-      PMTDigitizedWaveforms[ipmt].Draw("LINE same");
-      PMTDigitizedWaveforms[ipmt].ComputeRange(xmin_temp,xmax_temp,ymin_temp,ymax_temp);
-      ymax = TMath::Max(ymax,ymax_temp);
-    }
-    PMTDigitizedWaveforms[0].GetYaxis()->SetRangeUser(ymin,1.1*ymax);
-
-  }
-
-
-
-  
-  //Wait for user action
-  canvas_event->Modified();
-  canvas_event->Update();
-  DumpEventInfo(ievt);
-  canvas_event->WaitPrimitive();
-
-
 }
 
 void EventDisplay::DumpEventInfo(int ievt){
@@ -434,7 +408,7 @@ void EventDisplay::DumpEventInfo(int ievt){
   std::cout<<"Number of others: "<<epothers<<std::endl;
   std::cout<<std::endl;
   std::cout<<"        TRACKS        "<<std::endl;
-  std::cout<<"Number of tracks: "<<tracks.size()<<std::endl;
+  std::cout<<"Number of tracks: "<<pl_tracks.size()<<std::endl;
   std::cout<<"Number of electrons: "<<nelectrons<<std::endl;
   std::cout<<"Number of cherenkov photons: "<<ncherenkovphotons<<std::endl;
   std::cout<<"Number of photons: "<<notherphotons<<std::endl;
@@ -445,16 +419,68 @@ void EventDisplay::DumpEventInfo(int ievt){
   std::cout<<" Number of Waveforms "<<mc->GetMCPMTCount()<<std::endl;
   std::cout<<"***********************************"<<std::endl;
   std::cout<<std::endl;
-  std::cout<<std::endl;
   std::cout<<" Press any key to go to next event "<<std::endl;
 
 }
 
 
+void EventDisplay::DisplayEvent(int ievt){
+
+  if(DEBUG) std::cout<<"Display canvas 1 "<<std::endl;
+
+  canvas_event->cd(1);
+  DrawGeometry();
+  pl_tracks[0].Draw("LINE");
+  for (int itr = 0; itr < mc->GetMCTrackCount(); itr++) {
+    pl_tracks[itr].Draw("LINE same");
+  }
+  
+  if(mc->GetMCPMTCount()>0){
+
+    if(DEBUG) std::cout<<"Display canvas 2 "<<std::endl;
+
+    canvas_event->cd(3);
+    PMTWaveforms[0].GetXaxis()->SetLimits(0.,50.);
+    PMTWaveforms[0].Draw("AP");
+    PMTWaveforms[0].GetXaxis()->SetTitle("t(ns)");
+    PMTWaveforms[0].GetYaxis()->SetTitle("V");
+    for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
+      PMTWaveforms[ipmt].SetLineColor(ipmt+1);
+      PMTWaveforms[ipmt].Draw("LINE same");
+    }
+
+    if(DEBUG) std::cout<<"Display canvas 3 "<<std::endl;
+
+    canvas_event->cd(4);
+    PMTDigitizedWaveforms[0].Draw("AP");
+    PMTDigitizedWaveforms[0].GetXaxis()->SetTitle("sample");
+    PMTDigitizedWaveforms[0].GetYaxis()->SetTitle("ADC counts");
+    for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
+      PMTDigitizedWaveforms[ipmt].SetLineColor(ipmt+1);
+      PMTDigitizedWaveforms[ipmt].Draw("LINE same");
+      //      PMTDigitizedWaveforms[ipmt].ComputeRange(xmin_temp,xmax_temp,ymin_temp,ymax_temp);
+    }
+
+  }
+
+  
+  //Wait for user action
+  canvas_event->Modified();
+  canvas_event->Update();
+  canvas_event->WaitPrimitive();
+
+
+}
+
+bool EventDisplay::IsCerenkov(){
+
+  return ncherenkovphotons>0;
+  
+}
+
 int main(int argc, char **argv){
 
   //Init
-  //  gSystem->Load("libGeom");
   int appargc = 0;
   char **appargv = NULL;
   TApplication dummy_app("App", &appargc, appargv);
@@ -467,7 +493,13 @@ int main(int argc, char **argv){
   int dummy_val = 0;
   
   for(int ievt=fEvent; ievt<nevents ; ievt++){
+    ed->LoadEvent(ievt);
+    ed->DumpEventInfo(ievt);
+    if(DEBUG) std::cout<<" After Dump Event "<<std::endl;
+    if(std::string(fOpt) == "cerenkov" && !ed->IsCerenkov()) continue;
+    if(DEBUG) std::cout<<" After Cerenkov Check "<<std::endl;
     ed->DisplayEvent(ievt);
+    if(DEBUG) std::cout<<" After Display Event "<<std::endl;
   }
   
   dummy_app.Run();
@@ -482,10 +514,17 @@ void ParseArgs(int argc, char **argv){
   for(int i = 1; i < argc; i++){
     if(std::string(argv[i]) == "-i") {fInputFile = argv[++i]; exist_inputfile=true;}
     if(std::string(argv[i]) == "-e") {fEvent = std::stoi(argv[++i]);}
+    if(std::string(argv[i]) == "-o") {fOpt = argv[++i];}
   }
   if(!exist_inputfile){
     std::cerr<<" Specify input file with option: '-i'"<<std::endl;
     exit(0);
   }
-  
+  if(DEBUG){
+    std::cout<<" Input file "<<fInputFile<<std::endl;
+    std::cout<<" Event "<<fEvent<<std::endl;
+    std::cout<<" Option "<<fOpt<<std::endl;
+  }
+
+    
 }

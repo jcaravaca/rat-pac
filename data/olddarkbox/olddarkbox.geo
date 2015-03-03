@@ -19,7 +19,6 @@
   mother: "world",
   type: "box",
   size: [500.0,250.0,250.0], //mm, half-lenght
-//  size: [2000.0,2000.0,2000.0], //mm, half-lenght
   material: "acrylic_black", //cardboard
   color: [0.5, 0.2, 0.1, 0.1],
 }
@@ -33,9 +32,22 @@
   mother: "darkbox",
   type: "box",
   size: [480.0,230.0,230.0], //mm, half-lenght
-//  size: [1500.0,1500.0,1500.1], //mm, half-lenght
   material: "air",
   color: [0.0, 0.0, 0.0, 0.1],
+}
+
+{
+  name: "GEO",
+  index: "base",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "inner",
+  type: "box",
+  position: [-225.0, 0.0, -75.0],
+  size: [50.0,150.0,50.0], //mm, half-lenght
+  material: "styrofoam",
+  color: [1.0, 1.0, 1.0, 1.0],
 }
 
 {
@@ -47,7 +59,8 @@
   mother: "inner",
   type: "box",
   position: [-180.0, 0.0, 0.0],
-  size: [2.5,66.7,47.6], //mm, half-lenght 31.8
+  rotation:  [45.0, 0.0, 0.0],
+  size: [2.5,25.4,25.4], //mm, half-lenght
   material: "acrylic_berkeley", //acrylic_uvt_good
   color: [0.1, 0.3, 0.8, 0.1],
 }
@@ -60,27 +73,42 @@
 //   invisible: 0, // omitted for visualization
 //   mother: "inner",
 //   type: "box",
-//   position: [0.0, 0.0, 0.0],
-//   size: [150.,30.,30.0], //mm, half-lenght
+//   position: [-172.75, 0.0, 0.0],
+//   size: [4.75,30.,30.0], //mm, half-lenght
 //   material: "air", //acrylic_uvt
 //   color: [0.1, 0.3, 0.8, 0.1],
 // }
 
-// {
-//   name: "GEO",
-//   index: "source",
-//   valid_begin: [0, 0],
-//   valid_end: [0, 0],
-//   invisible: 0, // omitted for visualization
-//   mother: "inner",
-//   type: "tube",
-//   position: [-183.0, 0.0, 0.0],
-//   rotation:  [0.0, 90.0, 0.0],
-//   r_max: 12.7,
-//   size_z: 1.5, //half height
-//   material: "strontium", //strontium
-//   color: [0.1, 1.0, 0.3, 0.8],
-// }
+{
+  name: "GEO",
+  index: "envelope",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "inner",
+  type: "tube",
+  position: [-183.5, 0.0, 0.0],
+  rotation:  [0.0, 90.0, 0.0],
+  r_max: 12.808,
+  size_z: 1.587, //half height
+  material: "acrylic_black", //strontium
+  color: [0.1, 1.0, 0.3, 0.8],
+}
+
+{
+  name: "GEO",
+  index: "source",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "envelope",
+  type: "tube",
+  position: [0.0, 0.0, 0.254],
+  r_max: 3.175,
+  size_z: 1.333, //half height
+  material: "strontium", //strontium
+  color: [0.1, 1.0, 1.0, 0.8],
+}
 
 // {
 //   name: "GEO",

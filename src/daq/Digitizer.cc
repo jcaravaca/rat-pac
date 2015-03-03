@@ -11,22 +11,28 @@ namespace RAT {
   
   void Digitizer::GenerateElectronicNoise(DS::PMTWaveform pmtwf) {
     
+    //*** deprecated
+    //Sort pulses in time order
+    //    std::sort(fPulse.begin(),fPulse.end(),Cmp_PMTPulse_TimeAscending);
+    // double starttime = pmtwf.fPulse.front()->GetPulseStartTime();
+    // double endtime = pmtwf.fPulse.back()->GetPulseEndTime();
+    // if(starttime-endtime < fSamplingWindow) endtime = starttime + fSamplingWindow;
+    //    int nsamples = (endtime - starttime)/fStepTime;
+    // double PulseDuty=0.0;
+    // for(int ipulse = 0; ipulse<pmtwf.fPulse.size(); ipulse++)
+    //   PulseDuty +=  pmtwf.fPulse[ipulse]->GetPulseEndTime() - pmtwf.fPulse[ipulse]->GetPulseStartTime();
+    // float NoiseAmpl = fNoiseAmpl/sqrt(PulseDuty/fStepTime);
+    //    std::cout<<starttime<<" "<<endtime<<" "<<nsamples<<" "<<PulseDuty<<" "<<NoiseAmpl<<std::endl;
+    //*********
+    
     //Sort pulses in time order
     //    std::sort(fPulse.begin(),fPulse.end(),Cmp_PMTPulse_TimeAscending);
     double starttime = pmtwf.fPulse.front()->GetPulseStartTime();
     double endtime = pmtwf.fPulse.back()->GetPulseEndTime();
     if(starttime-endtime < fSamplingWindow) endtime = starttime + fSamplingWindow;
     int nsamples = (endtime - starttime)/fStepTime;
-
-    double PulseDuty=0.0;
-    for(int ipulse = 0; ipulse<pmtwf.fPulse.size(); ipulse++)
-      PulseDuty +=  pmtwf.fPulse[ipulse]->GetPulseEndTime() - pmtwf.fPulse[ipulse]->GetPulseStartTime();
-
-    float NoiseAmpl = fNoiseAmpl/sqrt(PulseDuty/fStepTime);
-    //    std::cout<<starttime<<" "<<endtime<<" "<<nsamples<<" "<<PulseDuty<<" "<<NoiseAmpl<<std::endl;
-
-    //  int nsamples = (int)fEventTime/fStepTime;
     fNoise.resize(nsamples);
+    float NoiseAmpl = fNoiseAmpl;
     for(int istep=0; istep<nsamples ;istep++){
       fNoise[istep] = NoiseAmpl*CLHEP::RandGauss::shoot();
     }
@@ -42,33 +48,34 @@ namespace RAT {
     if(starttime-endtime < fSamplingWindow) endtime = starttime + fSamplingWindow;
     int nsamples = (endtime - starttime)/fStepTime;
     int nADCs = 1 << fNBits; //Calculate the number of adc counts
-    int adcpervolt = nADCs/(fVhigh - fVlow);
+    double adcpervolt = nADCs/(fVhigh - fVlow);
     double charge = 0.;
 
-    //    std::cout<<starttime<<" "<<endtime<<" "<<nsamples<<" "<<nADCs<<" "<<std::endl;
+    //    std::cout<<starttime<<" "<<endtime<<" "<<nsamples<<" "<<nADCs<<" "<<adcpervolt<<std::endl;
     
     double currenttime = starttime;
     double volt = 0.;
-    int digitvolt = 0.;
+    int adcs = 0.;
     for(int isample = 0; isample<nsamples; isample++){
-      volt = pmtwf.GetHeight(currenttime)+fNoise[isample]; //add electronic noise
-      volt = volt*fResistance/fStepTime*1e-3; //convert to voltage
-      digitvolt = round((volt + fOffset)*adcpervolt); //digitize: V->ADC
-      charge += pmtwf.GetHeight(currenttime)+fNoise[isample];
+      charge = pmtwf.GetHeight(currenttime)*fStepTime;
+      volt = charge*fResistance/fStepTime; //convert to voltage
+      volt = volt + fNoise[isample]; //add electronic noise
+      adcs = round((volt - fVlow + fOffset)*adcpervolt); //digitize: V->ADC
+      //      charge += (pmtwf.GetHeight(currenttime)+fNoise[isample])*fStepTime; //not used, just for sanity check
 
       //Manage voltage saturation
-      if(digitvolt<0) digitvolt = 0;
-      else if(digitvolt>=nADCs) digitvolt = nADCs - 1;
+      if(adcs<0) adcs = 0;
+      else if(adcs>=nADCs) adcs = nADCs - 1;
       
       //Save sample
-      fDigitWaveForm.push_back(digitvolt);
-      //      std::cout<<volt<<" "<<digitvolt<<" "<<pmtwf.GetHeight(currenttime)<<" "<<fNoise[isample]<<std::endl;
+      fDigitWaveForm.push_back(adcs);
+      //      std::cout<<isample<<" "<<volt<<" "<<adcs<<" "<<pmtwf.GetHeight(currenttime)<<" "<<fNoise[isample]<<std::endl;
 
       //Step on time
       currenttime+=fStepTime;
     }
 
-    //    std::cout<<"PMT integrated charge "<<charge<<std::endl;
+    //    std::cout<<"Analogue integrated charge "<<charge<<std::endl;
     
     
   }
@@ -92,19 +99,19 @@ namespace RAT {
 
   }
 
-  double Digitizer::GetChargeForSample(std::vector<int> completewaveform){
+  double Digitizer::IntegrateCharge(std::vector<int> digitizedwaveform){
 
     int nADCs = 1 << fNBits; //Calculate the number of adc counts
     double voltsperadc = (fVhigh - fVlow)/(double)nADCs;
-    int charge = 0;
+    double charge = 0;
     int start_sample = 0;
-    while(start_sample<completewaveform.size()){
-      charge += completewaveform[start_sample];
+    while(start_sample<digitizedwaveform.size()){
+      charge += ((double)digitizedwaveform[start_sample]*voltsperadc + fVlow)*fStepTime/fResistance; //ADC to charge
       start_sample++;
     }
-    charge *= voltsperadc*fStepTime/fResistance*1e3; //volts to pC
-    //    std::cout<<" charge "<<charge<<std::endl;
+    //    std::cout<<" Digitized integrated charge "<<charge<<std::endl;
 
+    charge=abs(charge); //pulses are negative so covert to positive charge
     return charge;
   }
   

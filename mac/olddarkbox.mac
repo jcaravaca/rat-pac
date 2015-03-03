@@ -1,9 +1,8 @@
-/glg4debug/glg4param omit_muon_processes  1.0
+#/glg4debug/glg4param omit_muon_processes  1.0
 /glg4debug/glg4param omit_hadronic_processes  1.0
 
 /rat/db/set DETECTOR experiment "olddarkbox"
 /rat/db/set DETECTOR geo_file "olddarkbox/olddarkbox.geo"
-#/rat/db/set DAQ noise_flag 0 #Set no noise
 
 /run/initialize
 
@@ -58,7 +57,7 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/olddarkbox_90Y_thin_daq.root"
+/rat/procset file "../results/olddarkbox_90Y_real.root"
 #########################################
 
 ##### GENERATORS #################
@@ -68,10 +67,9 @@
 # /generator/pos/set -183.0 0.0 0.0
 
 ###PHOTON GUN
-#/generator/add combo gun:point:poisson
-# one photon
-#/generator/vtx/set opticalphoton 3.0e-6 0 0
-#/generator/pos/set -150.0 0 0
+# /generator/add combo gun2:point
+# /generator/vtx/set opticalphoton 1.0 0 0 0 3.0e-6 3.0e-6 //3eV
+# /generator/pos/set -183.5 0.0 0.0
 #/generator/rate/set 1000
 
 ##isotropic events (mom direction = 0,0,0) with 3.103 eV with 1000 photons
@@ -87,9 +85,9 @@
 #/generator/pos/set source
 
 ###RADIACTIVE SOURCE DECAYCHAIN
-/generator/add decaychain 90Y:point:uniform
-/generator/pos/set -183.0 0.0 0.0
-#/generator/pos/set source
+/generator/add decaychain 90Y:fill:uniform
+/generator/pos/set -183.5 0.0 0.0
+/generator/pos/set source
 
 ###SOLAR NEUTRINOS
 #/generator/add solar pep:nue
@@ -98,4 +96,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 10000
+/run/beamOn 250000

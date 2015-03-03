@@ -27,7 +27,7 @@ namespace RAT {
     virtual void DigitizeWaveForm(DS::PMTWaveform);
     virtual std::vector<int> GetDigitizedWaveform(){return fDigitWaveForm;};
     virtual std::vector<int> SampleWaveform(std::vector<int>, int*);
-    virtual double GetChargeForSample(std::vector<int>);
+    virtual double IntegrateCharge(std::vector<int>);
     
   protected:
     
