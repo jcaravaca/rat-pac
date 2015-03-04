@@ -61,7 +61,7 @@
   position: [-180.0, 0.0, 0.0],
   rotation:  [45.0, 0.0, 0.0],
   size: [2.5,25.4,25.4], //mm, half-lenght
-  material: "acrylic_berkeley", //acrylic_uvt_good
+  material: "acrylic_berkeley",
   color: [0.1, 0.3, 0.8, 0.1],
 }
 
@@ -120,7 +120,7 @@
 //   pmt_model: "fast_test",// r7081_hqe, r11780_hqe, fast_test
 //   pmt_detector_type: "idpmt",
 //   sensitive_detector: "/mydet/pmt/inner",
-//   efficiency_correction: 1.027,
+//   efficiency_correction: 1.0,
 //   pos_table: "PMTINFO_TRIGGER",
 //   orientation: "point",
 //   orient_point: [-180.0, 0.0, 0.0],
@@ -136,7 +136,7 @@
   pmt_model: "r7081_hqe",// r7081_hqe, r11780_hqe, fast_test
   pmt_detector_type: "idpmt",
   sensitive_detector: "/mydet/pmt/inner",
-  efficiency_correction: 1.027,
+  efficiency_correction: 1.0, //1.027,
   pos_table: "PMTINFO",
   orientation: "point",
   orient_point: [-180.0, 0.0, 0.0],

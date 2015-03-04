@@ -85,12 +85,13 @@ void PMTWaveform::SetGraph()
   std::sort(fPulse.begin(),fPulse.end(),Cmp_PMTPulse_TimeAscending);
 
   double height=0.;
-  int nsteps = (int)(fPulse.back()->GetPulseEndTime() - fPulse.front()->GetPulseStartTime())/fStepTime;
+  double StepTime=0.1;
+  int nsteps = (int)(fPulse.back()->GetPulseEndTime() - fPulse.front()->GetPulseStartTime())/StepTime;
   //  int nsteps = (int)fEventTime/fStepTime;
   //  std::cout<<" nsteps "<<nsteps<<" Start Time "<<fPulse.front()->GetPulseStartTime()<<" End Time "<<fPulse.back()->GetPulseEndTime()<<std::endl;
   double time=0.;
   for(int istep=-1; istep<=nsteps ;istep++){
-    time = istep*fStepTime + fPulse.front()->GetPulseStartTime();
+    time = istep*StepTime + fPulse.front()->GetPulseStartTime();
     height = GetHeight(time);
     gwaveform.SetPoint(istep+2,time,height);
     //    std::cout<<" istep "<<istep<<" time "<<time<<" height "<<height<<std::endl;

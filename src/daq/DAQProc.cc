@@ -139,6 +139,7 @@ namespace RAT {
       std::sort(pmtwf.fPulse.begin(),pmtwf.fPulse.end(),Cmp_PMTPulse_TimeAscending);
 
       //At this point the PMT waveform is defined for the whole event for this PMT, so save it
+      //only for drawing purposes
       mcpmt->SetWaveform(pmtwf);
 
       //Digitize waveform (electronic noise is added by the digitizer) and save it

@@ -21,8 +21,8 @@ noise_amplitude: 1.0d, //0.3d amplitude of high frequency noise in mV
 //Digitizer
 nbits: 14, //number of bits
 step_time: 2.0d, //0.1 time resolution in ns
-volt_high: 500.0d, //upper voltage limit in mV
-volt_low: -500.0d, //lower voltage limit in mV
+volt_high: 1000.0d, //upper voltage limit in mV
+volt_low: -1000.0d, //lower voltage limit in mV
 offset: 0.0d, //voltage offset in mV
 resistance: 50.0d, //resistance of the output circuit in Ohms
 sampling_time: 100.0d, //full gate for grouping hits in a single integration in ns

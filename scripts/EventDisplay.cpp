@@ -348,7 +348,7 @@ void EventDisplay::LoadEvent(int ievt){
 
     //Set digitized graphs
     for(int isample=0; isample<vPMTDigitizedWaveforms[ipmt].size(); isample++){
-      PMTDigitizedWaveforms[ipmt].SetPoint(isample,isample,vPMTDigitizedWaveforms[ipmt][isample]);
+      PMTDigitizedWaveforms[ipmt].SetPoint(isample,isample*2.0,(vPMTDigitizedWaveforms[ipmt][isample] - 8200.)/330.);
       //      std::cout<<isample<<" "<<vPMTDigitizedWaveforms[ipmt][isample]<<std::endl;
       ymax_d = TMath::Max(ymax_d,vPMTDigitizedWaveforms[ipmt][isample]);
       ymin_d = TMath::Min(ymin_d,vPMTDigitizedWaveforms[ipmt][isample]);
@@ -356,7 +356,8 @@ void EventDisplay::LoadEvent(int ievt){
     
     if(DEBUG) std::cout<<" analogue limits "<<ymax<<" "<<ymin<<std::endl;
     if(DEBUG) std::cout<<" digital limits "<<ymax_d<<" "<<ymin_d<<std::endl;
-    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(2.0*ymin,1.2*ymax);
+    //    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(2.0*ymin,1.2*ymax);
+    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(-1.5,0.5);
     PMTDigitizedWaveforms[ipmt].GetYaxis()->SetRangeUser(0.99*ymin_d,1.01*ymax_d);
 
   }
@@ -447,6 +448,8 @@ void EventDisplay::DisplayEvent(int ievt){
     for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
       PMTWaveforms[ipmt].SetLineColor(ipmt+1);
       PMTWaveforms[ipmt].Draw("LINE same");
+      PMTDigitizedWaveforms[ipmt].SetLineColor(kRed);
+      PMTDigitizedWaveforms[ipmt].Draw("LINE same");
     }
 
     if(DEBUG) std::cout<<"Display canvas 3 "<<std::endl;
@@ -456,7 +459,7 @@ void EventDisplay::DisplayEvent(int ievt){
     PMTDigitizedWaveforms[0].GetXaxis()->SetTitle("sample");
     PMTDigitizedWaveforms[0].GetYaxis()->SetTitle("ADC counts");
     for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
-      PMTDigitizedWaveforms[ipmt].SetLineColor(ipmt+1);
+      //      PMTDigitizedWaveforms[ipmt].SetLineColor(ipmt+1);
       PMTDigitizedWaveforms[ipmt].Draw("LINE same");
       //      PMTDigitizedWaveforms[ipmt].ComputeRange(xmin_temp,xmax_temp,ymin_temp,ymax_temp);
     }
