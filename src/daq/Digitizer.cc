@@ -103,7 +103,7 @@ namespace RAT {
 
     int nADCs = 1 << fNBits; //Calculate the number of adc counts
     double voltsperadc = (fVhigh - fVlow)/(double)nADCs;
-    double charge = 0;
+    double charge = 0.;
     int start_sample = 0;
     while(start_sample<digitizedwaveform.size()){
       charge += ((double)digitizedwaveform[start_sample]*voltsperadc + fVlow)*fStepTime/fResistance; //ADC to charge
@@ -111,7 +111,7 @@ namespace RAT {
     }
     //    std::cout<<" Digitized integrated charge "<<charge<<std::endl;
 
-    charge=abs(charge); //pulses are negative so covert to positive charge
+    charge=std::abs(charge); //pulses are negative so covert to positive charge
     return charge;
   }
   
