@@ -57,7 +57,7 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/olddarkbox_90Sr_real_acryberk_lqe.root"
+/rat/procset file "../results/olddarkbox_90Y_real_acryberk_lqe.root"
 #########################################
 
 ##### GENERATORS #################
@@ -85,7 +85,7 @@
 #/generator/pos/set source
 
 ###RADIACTIVE SOURCE DECAYCHAIN
-/generator/add decaychain 90Sr:fill:uniform
+/generator/add decaychain 90Y:fill:uniform
 /generator/pos/set -183.5 0.0 0.0
 /generator/pos/set source
 
@@ -96,4 +96,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 1000000
+/run/beamOn 100000
