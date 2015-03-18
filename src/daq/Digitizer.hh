@@ -2,7 +2,7 @@
 #define __RAT_Digitizer__
 
 #include <map>
-#include <RAT/DS/PMTWaveForm.hh>
+#include <RAT/DS/PMTWaveform.hh>
 
 namespace RAT {
   
