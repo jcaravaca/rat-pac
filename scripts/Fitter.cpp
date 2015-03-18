@@ -64,10 +64,10 @@ protected:
   std::map<int, char*> fMCFiles; //0->90Sr, 1->90Y
   std::map<int, char*> fDATAFiles; //0->Backgrounds, 1-> Cerenkov
   std::string f_log; //log filename
-  bool exist_srfile = false;
-  bool exist_yfile = false;
-  bool exist_datafile = false;
-  bool exist_bkgfile = false;
+  bool exist_srfile;
+  bool exist_yfile;
+  bool exist_datafile;
+  bool exist_bkgfile;
   time_t time_now;
   tm *time_local;
 
@@ -87,6 +87,10 @@ Fitter::Fitter(int argc, char **argv){
   //Init
   if(BATCH) gROOT->SetBatch();
   nlikestep = 0;
+  exist_srfile = false;
+  exist_yfile = false;
+  exist_datafile = false;
+  exist_bkgfile = false;
   
   //Get time
   time_now = time(0);
@@ -200,8 +204,8 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
   }
   fgeo_used.close();
   //Run simulation
-  system(Form("rat ../mac/olddarkbox_90Sr.mac &> %s", f_log.c_str())); //Run 90Sr
-  system(Form("rat ../mac/olddarkbox_90Y.mac &> %s", f_log.c_str())); //Run 90Y
+  system(Form("rat ../mac/olddarkbox_90Sr.mac >> %s 2>&1", f_log.c_str())); //Run 90Sr
+  system(Form("rat ../mac/olddarkbox_90Y.mac >> %s 2>&1", f_log.c_str())); //Run 90Y
 
   //Read file and extract PDFs
   fMCFiles[0] = "../results/olddarkbox_90Sr_fitter.root"; //signal - strontium
