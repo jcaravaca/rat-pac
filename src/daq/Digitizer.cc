@@ -172,16 +172,19 @@ namespace RAT {
 
   void Digitizer::Clear(){
 
-    for(auto &it : fDigitWaveForm){
-      it.second.clear();
+    for(std::map<int, std::vector<int> >::iterator it = fDigitWaveForm.begin(); it!=fDigitWaveForm.end(); it++){
+      it->second.clear();
     }
-    for(auto &it : fNoise){
-      it.second.clear();
+    for(std::map<int, std::vector<double> >::iterator it = fNoise.begin(); it!=fNoise.end(); it++){
+      it->second.clear();
     }
-    
-    // for(int ich=0; ich<2;ich++){//FIXME: iterate through channels
-    //   fDigitWaveForm[ich].clear();
-    //   fNoise[ich].clear();
+
+    //Nicer but not compatible with C++<11
+    // for(auto &it : fDigitWaveForm){
+    //   it.second.clear();
+    // }
+    // for(auto &it : fNoise){
+    //   it.second.clear();
     // }
 
   }
