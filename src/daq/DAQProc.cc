@@ -73,6 +73,19 @@ namespace RAT {
 
     fEventCounter = 0;
   }
+
+  
+  void DAQProc::SetS(std::string param, std::string value)
+  {
+    if(param=="trigger")
+      fTriggerType = value;
+
+    if(fTriggerType!="allpmts" && fTriggerType!="triggerpmt"){
+      std::cerr<<"DAQ: "<<fTriggerType<<" option unknown... EXIT "<<std::endl;
+      exit(0);
+    }
+  }
+
   
   Processor::Result DAQProc::DSEvent(DS::Root *ds) {
     //This processor build waveforms for each PMT in the MC generated event, sample them and
@@ -97,7 +110,7 @@ namespace RAT {
     fDigitizer.SetSampleDelay((int)fGDelayDB);
     
     //Loop through the PMTs in the MC generated event
-    std::map< int, std::vector<int> > DigitizedWaveforms; //ID-Waveform map
+    //    std::map< int, std::vector<int> > DigitizedWaveforms; //ID-Waveform map
     for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++){
 
       DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
@@ -106,7 +119,7 @@ namespace RAT {
       DS::PMTWaveform pmtwf;
       pmtwf.SetStepTime(fStepTimeDB);
       double TimePhoton;
-      double PulseDuty=0.0;
+      //      double PulseDuty=0.0;
 
       for (size_t iph=0; iph < mcpmt->GetMCPhotonCount(); iph++) {
 	
@@ -131,7 +144,7 @@ namespace RAT {
 	pmtpulse->SetPulseOffset(fPulseOffsetDB);
 	pmtpulse->SetPulseStartTime(TimePhoton); //also sets end time according to the pulse width and the pulse mean
 	pmtwf.fPulse.push_back(pmtpulse);
-	PulseDuty += pmtpulse->GetPulseEndTime() - pmtpulse->GetPulseStartTime();
+	//	PulseDuty += pmtpulse->GetPulseEndTime() - pmtpulse->GetPulseStartTime();
 
       } // end mcphotoelectron loop: all pulses produces for this PMT
       
@@ -143,11 +156,11 @@ namespace RAT {
       mcpmt->SetWaveform(pmtwf);
 
       //Digitize waveform (electronic noise is added by the digitizer) and save it
-      fDigitizer.DigitizeWaveForm(pmtwf);
-      mcpmt->AddDigitizedWaveform(fDigitizer.GetDigitizedWaveform());
-      DigitizedWaveforms[mcpmt->GetID()] = fDigitizer.GetDigitizedWaveform();
+      fDigitizer.AddChannel(mcpmt->GetID(),pmtwf);
+      //      mcpmt->AddDigitizedWaveform(fDigitizer.GetDigitizedWaveform());
+      //      DigitizedWaveform[mcpmt->GetID()] = fDigitizer.GetDigitizedWaveform();
       
-      fDigitizer.Clear(); //Might want to define different channels instead of clearing the digitizer
+      //      fDigitizer.Clear(); //Might want to define different channels instead of clearing the digitizer
 
     } //end pmt loop
 
@@ -159,74 +172,79 @@ namespace RAT {
     
 
     
-    //So far the trigger condition correspond to any PMT crossing threshold. In the future
-    //we'll change it to only the trigger PMT crosses threshold. When trigger condition fulfilled
-    //create a new PMT in the event. If no PMT, no new event.
+    //So far the trigger condition correspond to any PMT crossing threshold. In the
+    //future we'll change it to only the trigger PMT crosses threshold. When trigger
+    //condition fulfilled create a new PMT in the event. If no PMT, no new event.
+
+    //First trigger type: store all PMTs crossing threshold
     DS::EV *ev = ds->AddNewEV(); //Remove it if no PMT cross threshold
     ev->SetID(fEventCounter);
-    for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
-      int nsamples = DigitizedWaveforms[imcpmt].size();
-      for(int isample=0; isample<nsamples; isample++){
-	if (DigitizedWaveforms[imcpmt][isample]>fTriggerThresholdDB){ //hit above threshold!
-	  DS::PMT* pmt = ev->AddNewPMT();
-	  pmt->SetID(mc->GetMCPMT(imcpmt)->GetID());
-	  pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
-	  pmt->SetWaveform(fDigitizer.SampleWaveform(DigitizedWaveforms[imcpmt],&isample)); //it is defined by the sample that crosses threshold
-	  pmt->SetCharge(fDigitizer.IntegrateCharge(DigitizedWaveforms[imcpmt]));
-	}
-      }//end sampling
-      DigitizedWaveforms[imcpmt].clear(); //prune for next round of PMTs
-    }//end PMT loop
-
-    
-    if(ev->GetPMTCount()>0){ //got at least one PMT above threshold
+    if(fTriggerType=="allpmts"){
+      for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++){
+	int pmtID = mc->GetMCPMT(imcpmt)->GetID();
+	//Sample digitized waveform and look for triggers
+	int nsamples = fDigitizer.GetNSamples(pmtID);
+	std::vector<int> DigitizedWaveform = fDigitizer.GetDigitizedWaveform(pmtID);
+	for(int isample=0; isample<nsamples; isample++){
+	  if (DigitizedWaveform[isample]>fTriggerThresholdDB){ //hit above threshold!
+	    DS::PMT* pmt = ev->AddNewPMT();
+	    pmt->SetID(pmtID);
+	    pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
+	    pmt->SetWaveform(fDigitizer.SampleWaveform(DigitizedWaveform,isample)); //it is defined by the sample that crosses threshold
+	    pmt->SetCharge(fDigitizer.IntegrateCharge(DigitizedWaveform));
+	    isample = fDigitizer.GoToEndOfSample(isample); //go forward towards the end of the sampling window
+	  }//end if above trigger
+	}//end sampling
+	DigitizedWaveform.clear(); //prune for next round of PMTs
+      }//end PMT loop
+    fDigitizer.Clear();
+    }
+    //Second trigger type: when trigger PMT detects a hit above threshold store
+    //hits in ALL the PMTs
+    else if(fTriggerType=="triggerpmt"){
+      //Identify the trigger PMT
+      int triggerID=-1;
+      for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {      
+	DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
+	if(mcpmt->GetType() == 0) triggerID = mcpmt->GetID();
+      }
+      //If trigger PMT has been hit, sample its waveform and check if it crosses
+      //threshold
+      if(triggerID>-1){
+	int nsamples = fDigitizer.GetNSamples(triggerID);
+	std::vector<int> DigitizedTriggerWaveform = fDigitizer.GetDigitizedWaveform(triggerID);
+	for(int isample=0; isample<nsamples; isample++){
+	  if (DigitizedTriggerWaveform[isample]>fTriggerThresholdDB){ //hit above threshold!
+	    //Read ALL PMTs
+	    for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++){
+	      int pmtID = mc->GetMCPMT(imcpmt)->GetID();
+	      DS::PMT* pmt = ev->AddNewPMT();
+	      pmt->SetID(pmtID);
+	      pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
+	      pmt->SetWaveform(fDigitizer.SampleWaveform(fDigitizer.GetDigitizedWaveform(pmtID), isample)); //it is defined by the sample that crosses threshold
+	      pmt->SetCharge(fDigitizer.IntegrateCharge(fDigitizer.GetDigitizedWaveform(pmtID)));
+	    } //end reading PMTs
+	  } //end if above threshold
+	  isample = fDigitizer.GoToEndOfSample(isample); //go forward towards the end of the sampling window
+	}//end sampling
+	DigitizedTriggerWaveform.clear(); //prune for next round of PMTs
+      } //end if hit trigger PMT
+      fDigitizer.Clear();
+    } //end if second type of trigger
+	
+    //If got at least one PMT above threshold move forward one event so it is not
+    //overwritten by the next one
+    if(ev->GetPMTCount()>0){
       fEventCounter++;
     }
+    //FIXME
     // else{
     //   std::cout<<"Prune event"<<fEventCounter<<" "<<ds->GetEVCount()<<std::endl;
     //   ds->PruneEV(fEventCounter);
     // }
-
-    /*
-    //Identify the trigger PMT by type and fill the ID
-    int triggerID=-1;
-    for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
-      
-      DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
-      if(mcpmt->GetType() == 0) triggerID = mcpmt->GetID();
-
-    }
-
-    //If trigger PMT is hit, sample its waveform and check if it crosses threshold
-    if(triggerID!=-1){
-
-      int nsamples = DigitizedWaveforms[triggerID].size();
-      for(int isample=0; isample<nsamples; isample++){
-	if (DigitizedWaveforms[triggerID][isample]>fTriggerThresholdDB){ //hit above threshold!
-
-	  DS::EV *ev = ds->AddNewEV();
-	  ev->SetID(fEventCounter);
-	  fEventCounter++;
-
-	  for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
-	    DS::PMT* pmt = ev->AddNewPMT();
-	    pmt->SetWaveform(fDigitizer->GetSamplingWindow(DigitizedWaveforms[imcpmt],isample)); //it is defined by the sample that crosses threshold
-	  }
-	  
-	}
-
-	DigitizedWaveforms[imcpmt].clear();
-
-      }
-
-
-    }
-
-
-
     
     /*      
-      //Sample the PMT waveform to look for photoelectron hits and create a new MCPMTSample
+    //Sample the PMT waveform to look for photoelectron hits and create a new MCPMTSample
       //for every one of them, regarless they cross threshold. A flag is raised if the threshold
       //is crossed
       double TimeNow = 0.;

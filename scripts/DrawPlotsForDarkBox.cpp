@@ -20,6 +20,8 @@
 #include <RAT/DB.hh>
 
 #define NORM_ATT 1.e-3/1.4
+#define NPMTs 2
+#define LOOPTRACKS false
 
 char * fInputFile = NULL;
 void ParseArgs(int argc, char **argv);
@@ -35,7 +37,14 @@ int main(int argc, char **argv){
   db->Load("../data/OPTICS.ratdb");
 
   
-  TH1F* h_MCPMT_charge = new TH1F("h_MCPMT_charge","h_MCPMT_charge",100,0,20);
+  std::vector<TH1F*> h_MCPMT_charge; //MC charge
+  std::vector<TH1F*> h_charge; //Measured charge
+  for(int ih=0; ih<NPMTs; ih++){
+    h_MCPMT_charge.push_back(new TH1F(Form("h_mcpmt_charge_%i",ih),"h_mcpmt_charge",100,0,20));
+    h_charge.push_back(new TH1F(Form("h_charge_%i",ih),"h_charge",100,0,20));
+  }
+  TH1F* h_charge_total = new TH1F("h_charge_total","h_charge_total",100,0,20);
+  
   TH1F* h_procinit = new TH1F("h_procinit","h_procinit",1,0,1);
   TH1F* h_proclast = new TH1F("h_proclast","h_proclast",1,0,1);
   TH1F* h_procinit_gm = new TH1F("h_procinit_gm","h_procinit_gm",1,0,1);
@@ -54,7 +63,6 @@ int main(int argc, char **argv){
   TH1F* h_cp_ke = new TH1F("h_cp_ke","h_cp_ke",300,0,3e-5);
   TH1F* h_cp_wl = new TH1F("h_cp_wl","h_cp_wl",300,0,1000);
   TH1F* h_ph_last = new TH1F("h_ph_last","h_ph_last",500,-4000,4000);
-  TH1F* h_charge = new TH1F("h_charge","h_charge",150,0,100); //e- flight path
   TH2F* h_qvspe = new TH2F("h_qvspe","h_qvspe",100,0,100,150,0,100);
 
   RAT::DSReader *dsreader = new RAT::DSReader(fInputFile);
@@ -62,7 +70,7 @@ int main(int argc, char **argv){
   std::cout<<" Number of entries: "<<nentries<<std::endl;
   for(int ientry=0; ientry<nentries;++ientry){
 
-    if(ientry%(1000) == 0) std::cout<<" Entry "<<ientry<<std::endl;
+    if(ientry%(10000) == 0) std::cout<<" Entry "<<ientry<<std::endl;
     RAT::DS::Root *rds = dsreader->GetEvent(ientry);
     RAT::DS::MC *mc = rds->GetMC();
 
@@ -71,51 +79,51 @@ int main(int argc, char **argv){
     int ntracks = mc->GetMCTrackCount();
     double elength = 0; //generated e- length
     int ncerphotons = 0; //number of cerenkov photons
-    h_ntracks->Fill(ntracks);
-    //    std::cout<<" Number of tracks in Event "<<ientry<<": "<<ntracks<<std::endl;
-    for (int itr = 0; itr < ntracks; itr++) {
-      
-      RAT::DS::MCTrack *track = mc->GetMCTrack(itr);
-      RAT::DS::MCTrackStep *f_step = track->GetMCTrackStep(0);
-      RAT::DS::MCTrackStep *l_step = track->GetLastMCTrackStep();
-
-      //Fill histograms
-      h_procinit->Fill(f_step->GetProcess().c_str(),1.);
-      h_proclast->Fill(l_step->GetProcess().c_str(),1.);
-
-      if(track->GetPDGCode() == 11) elength+=track->GetLength();
-      else if(track->GetPDGCode() == 22 || track->GetPDGCode() == 0){ //gamma or optical photon
-	h_procinit_gm->Fill(f_step->GetProcess().c_str(),1.);
-	h_proclast_gm->Fill(l_step->GetProcess().c_str(),1.);
-	h_ph_last->Fill(l_step->GetEndpoint().x());
-	h_ph_length->Fill(track->GetLength());
-	if(f_step->GetProcess() == "Cerenkov"){
-	  ncerphotons++;
-	  h_cp_length->Fill(track->GetLength());
-	  h_cp_ke->Fill(f_step->GetKE());
-	  h_cp_wl->Fill(1.24/(f_step->GetKE()*1.e3));
+    if(LOOPTRACKS){
+      h_ntracks->Fill(ntracks);
+      //    std::cout<<" Number of tracks in Event "<<ientry<<": "<<ntracks<<std::endl;
+      for (int itr = 0; itr < ntracks; itr++) {
+	RAT::DS::MCTrack *track = mc->GetMCTrack(itr);
+	RAT::DS::MCTrackStep *f_step = track->GetMCTrackStep(0);
+	RAT::DS::MCTrackStep *l_step = track->GetLastMCTrackStep();
+	
+	//Fill histograms
+	h_procinit->Fill(f_step->GetProcess().c_str(),1.);
+	h_proclast->Fill(l_step->GetProcess().c_str(),1.);
+	
+	if(track->GetPDGCode() == 11) elength+=track->GetLength();
+	else if(track->GetPDGCode() == 22 || track->GetPDGCode() == 0){ //gamma or optical photon
+	  h_procinit_gm->Fill(f_step->GetProcess().c_str(),1.);
+	  h_proclast_gm->Fill(l_step->GetProcess().c_str(),1.);
+	  h_ph_last->Fill(l_step->GetEndpoint().x());
+	  h_ph_length->Fill(track->GetLength());
+	  if(f_step->GetProcess() == "Cerenkov"){
+	    ncerphotons++;
+	    h_cp_length->Fill(track->GetLength());
+	    h_cp_ke->Fill(f_step->GetKE());
+	    h_cp_wl->Fill(1.24/(f_step->GetKE()*1.e3));
+	  }
 	}
       }
+      //end track loop
+      h_e_length->Fill(elength);
+      h_e_lengthvsnph->Fill(ncerphotons,elength);
+      h_e_lengthvsnpe->Fill(mc->GetNumPE(),elength);
+      h_ncp->Fill(ncerphotons);
     }
-    //end track loop
-    h_e_length->Fill(elength);
-    h_e_lengthvsnph->Fill(ncerphotons,elength);
-    h_e_lengthvsnpe->Fill(mc->GetNumPE(),elength);
-    h_ncp->Fill(ncerphotons);
-
-
+    
     //***********MC
     //MCPMT loop
     h_npe->Fill(mc->GetNumPE());
     for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
       RAT::DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
-      for (int i=0; i < mcpmt->GetMCPhotonCount(); i++){
-	h_MCPMT_isdh->Fill(mcpmt->GetMCPhoton(i)->IsDarkHit());
-	h_MCPMT_charge->Fill(mcpmt->GetMCPhoton(i)->GetCharge());
-	h_MCPMT_time->Fill(mcpmt->GetMCPhoton(i)->GetHitTime());
+      int pmtid = mcpmt->GetID();
+      for (int iph=0; iph < mcpmt->GetMCPhotonCount(); iph++){
+	h_MCPMT_isdh->Fill(mcpmt->GetMCPhoton(iph)->IsDarkHit());
+	h_MCPMT_charge[pmtid]->Fill(mcpmt->GetMCPhoton(iph)->GetCharge());
+	h_MCPMT_time->Fill(mcpmt->GetMCPhoton(iph)->GetHitTime());
 	// std::cout<<" IsDarkHit "<< i << mcpmt->GetMCPhoton(i)->isDarkHit <<std::endl;
       }
-      
     }
     //end MCPMT loop
 
@@ -127,16 +135,21 @@ int main(int argc, char **argv){
       RAT::DS::EV *ev = rds->GetEV(ievt);
 
       double totalcharge = 0.;
-      for(int ipmt=0; ipmt<ev->GetPMTCount() ;ipmt++)
-	totalcharge += ev->GetPMT(ipmt)->GetCharge();
+      double charge = 0.;
+      for(int ipmt=0; ipmt<ev->GetPMTCount(); ipmt++){
+	int pmtid = ev->GetPMT(ipmt)->GetID();
+	charge = ev->GetPMT(ipmt)->GetCharge();
+	h_charge[pmtid]->Fill(charge);
+	totalcharge += charge;
+      }
       if(totalcharge!=0){
 	h_e_lengthvsq->Fill(totalcharge,elength);
-	if(elength<15) h_charge->Fill(totalcharge);
+	h_charge_total->Fill(totalcharge);
+	//if(elength<15) h_charge->Fill(totalcharge);
 	h_qvspe->Fill(mc->GetNumPE(),totalcharge);
       }
     }
     
-
        
   }//end entry loop
   
@@ -181,14 +194,18 @@ int main(int argc, char **argv){
   
   //DRAW PLOTS
   //Charge
-  TCanvas *c_charge = new TCanvas("c_charge","c_charge",1400,600);
-  c_charge->Divide(2,1);
-  c_charge->cd(1);
-  dsreader->GetT()->Draw("ds.ev.pmt.charge>>test(150,0,100)");
-  h_charge->SetLineColor(kRed);
-  h_charge->Draw("same");
-  c_charge->cd(2);
-  h_MCPMT_charge->Draw();
+  TCanvas *c_charge = new TCanvas("c_charge","c_charge",1400,1400);
+  c_charge->Divide(2,2);
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    c_charge->cd(ipmt);
+    h_charge[ipmt]->Draw("");
+  }
+  // c_charge->cd(1);
+  // dsreader->GetT()->Draw("ds.ev.pmt.charge>>test(150,0,100)");
+  // h_charge->SetLineColor(kRed);
+  // h_charge->Draw("");
+  // c_charge->cd(2);
+  // h_MCPMT_charge->Draw("same");
   //Process
   TCanvas *c_process = new TCanvas("c_process","c_process",1400,600);
   c_process->Divide(2,1);

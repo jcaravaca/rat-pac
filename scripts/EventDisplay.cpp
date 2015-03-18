@@ -32,9 +32,9 @@
 #define DEBUG false
 #define DRAWPMTS false
 #define DRAWOLDDARKBOX true
-#define XSIDE 500.0 // 500.//762.0, 
-#define YSIDE 250.0 // 250.//762.0
-#define ZSIDE 250.0 // 250.//508.0
+#define XSIDE 762.0 // 500.//762.0, 
+#define YSIDE 762.0 // 250.//762.0
+#define ZSIDE 508.0 // 250.//508.0
 #define XPOS 0.0
 #define YPOS 0.0
 #define ZPOS 0.0
@@ -81,6 +81,7 @@ public:
   void DumpEventInfo(int);
   void DrawGeometry();
   bool IsCerenkov();
+  bool IsPE();
 
 protected:
   
@@ -185,8 +186,10 @@ EventDisplay::EventDisplay(char *_inputfile){
   gGeoManager->SetTopVolume(vworld);
   TGeoBBox *btarget;
   if(DRAWOLDDARKBOX){
-    pos_temp[0] = -180.0; pos_temp[1] = 0.0; pos_temp[2] = 0.0;
-    btarget = new TGeoBBox(2.5,66.7,47.6,pos_temp);
+    // pos_temp[0] = -180.0; pos_temp[1] = 0.0; pos_temp[2] = 0.0;
+    // btarget = new TGeoBBox(2.5,66.7,47.6,pos_temp);
+    pos_temp[0] = -450.0; pos_temp[1] = 0.0; pos_temp[2] = -300.0;
+    btarget = new TGeoBBox(32.0,100.0,50.0,pos_temp);
   } else{
     pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 200.0;
     btarget = new TGeoBBox(20.0,20.0,10.0,pos_temp);
@@ -481,6 +484,16 @@ bool EventDisplay::IsCerenkov(){
   
 }
 
+bool EventDisplay::IsPE(){
+
+  int npe_total = 0;
+  for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++)
+    npe_total += npe[ipmt];
+
+  return npe_total>0;
+  
+}
+
 int main(int argc, char **argv){
 
   //Init
@@ -497,10 +510,11 @@ int main(int argc, char **argv){
   
   for(int ievt=fEvent; ievt<nevents ; ievt++){
     ed->LoadEvent(ievt);
+    if(std::string(fOpt) == "cerenkov" && !ed->IsCerenkov()) continue;
+    if(std::string(fOpt) == "pe" && !ed->IsPE()) continue;
+    if(DEBUG) std::cout<<" After Cerenkov Check "<<std::endl;
     ed->DumpEventInfo(ievt);
     if(DEBUG) std::cout<<" After Dump Event "<<std::endl;
-    if(std::string(fOpt) == "cerenkov" && !ed->IsCerenkov()) continue;
-    if(DEBUG) std::cout<<" After Cerenkov Check "<<std::endl;
     ed->DisplayEvent(ievt);
     if(DEBUG) std::cout<<" After Display Event "<<std::endl;
   }

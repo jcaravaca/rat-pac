@@ -1,6 +1,7 @@
 #ifndef __RAT_DAQProc__
 #define __RAT_DAQProc__
 
+#include <string>
 #include <RAT/Processor.hh>
 #include <RAT/DS/PMT.hh>
 #include <RAT/DB.hh>
@@ -15,6 +16,7 @@ public:
   DAQProc();
   virtual ~DAQProc() { };
   virtual Processor::Result DSEvent(DS::Root *ds);
+  virtual void SetS(std::string param, std::string value);
 
 protected:
   int fEventCounter;
@@ -42,7 +44,9 @@ protected:
   int fNBits;
     
   Digitizer fDigitizer;
-  
+
+  std::string fTriggerType;
+
 };
 
 

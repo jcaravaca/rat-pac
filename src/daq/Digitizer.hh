@@ -1,6 +1,7 @@
 #ifndef __RAT_Digitizer__
 #define __RAT_Digitizer__
 
+#include <map>
 #include <RAT/DS/PMTWaveForm.hh>
 
 namespace RAT {
@@ -20,13 +21,16 @@ namespace RAT {
     virtual void SetNoiseAmplitude(double _fnoise){fNoiseAmpl=_fnoise;};
     virtual void SetSamplingWindow(double _fwindow){fSamplingWindow=_fwindow;};
     virtual void SetSampleDelay(double _fdelay){fSampleDelay=_fdelay;};
-    virtual void Clear(){fDigitWaveForm.clear(); fNoise.clear();};
+    //    virtual void Clear(){fDigitWaveForm.clear(); fNoise.clear();};
+    virtual void Clear();
     
-    virtual int GetNSamples(){return fDigitWaveForm.size();};
-    virtual void GenerateElectronicNoise(DS::PMTWaveform);
-    virtual void DigitizeWaveForm(DS::PMTWaveform);
-    virtual std::vector<int> GetDigitizedWaveform(){return fDigitWaveForm;};
-    virtual std::vector<int> SampleWaveform(std::vector<int>, int*);
+    virtual void AddChannel(int,DS::PMTWaveform);
+    virtual int GetNSamples(int ich){return fDigitWaveForm[ich].size();};
+    virtual void GenerateElectronicNoise(int,DS::PMTWaveform);
+    //    virtual void DigitizeWaveForm(DS::PMTWaveform);
+    virtual std::vector<int> GetDigitizedWaveform(int ich){return fDigitWaveForm[ich];};
+    virtual std::vector<int> SampleWaveform(std::vector<int>, int);
+    virtual int GoToEndOfSample(int);
     virtual double IntegrateCharge(std::vector<int>);
     
   protected:
@@ -40,8 +44,8 @@ namespace RAT {
     double fNoiseAmpl; //Electronic noise amplitud
     int fSamplingWindow; //Width of the sampling windows in ns
     int fSampleDelay; //Samples before crossing threshold that we will store
-    std::vector<double> fNoise; //Electronic noise non-digitized
-    std::vector<int> fDigitWaveForm; //Digitized waveform
+    std::map< int, std::vector<double> > fNoise; //Electronic noise non-digitized for each channel
+    std::map< int, std::vector<int> > fDigitWaveForm; //Digitized waveform for each channel
     
   };
     
