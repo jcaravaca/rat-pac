@@ -108,7 +108,7 @@ namespace RAT {
     fDigitizer.SetNoiseAmplitude(fNoiseAmplDB);
     fDigitizer.SetSamplingWindow(fSamplingTimeDB);
     fDigitizer.SetSampleDelay((int)fGDelayDB);
-    
+    fDigitizer.SetThreshold(fTriggerThresholdDB);
     //Loop through the PMTs in the MC generated event
     //    std::map< int, std::vector<int> > DigitizedWaveforms; //ID-Waveform map
     for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++){
@@ -156,19 +156,19 @@ namespace RAT {
       mcpmt->SetWaveform(pmtwf);
 
       //Digitize waveform (electronic noise is added by the digitizer) and save it
+      //in MCPMT object only for drawing purpose (in the future we might want to do
+      //the charge integration off-line)
       fDigitizer.AddChannel(mcpmt->GetID(),pmtwf);
-      //      mcpmt->AddDigitizedWaveform(fDigitizer.GetDigitizedWaveform());
+      mcpmt->SetDigitizedWaveform(fDigitizer.GetDigitizedWaveform(mcpmt->GetID()));
       //      DigitizedWaveform[mcpmt->GetID()] = fDigitizer.GetDigitizedWaveform();
       
-      //      fDigitizer.Clear(); //Might want to define different channels instead of clearing the digitizer
-
     } //end pmt loop
 
 
     
     //FROM HERE THE TRIGGER PROCESSOR SHOULD TAKE OVER!
     //1) Check trigger condition and divide waveforms in chunks
-    //2) Build events containing digitized waveform samples
+    //2) Build events containing digitized waveform samples and integrated charges
     
 
     
@@ -186,7 +186,7 @@ namespace RAT {
 	int nsamples = fDigitizer.GetNSamples(pmtID);
 	std::vector<int> DigitizedWaveform = fDigitizer.GetDigitizedWaveform(pmtID);
 	for(int isample=0; isample<nsamples; isample++){
-	  if (DigitizedWaveform[isample]>fTriggerThresholdDB){ //hit above threshold!
+	  if (DigitizedWaveform[isample]<fDigitizer.GetDigitizedThreshold()){ //hit above threshold! (remember the pulses are negative)
 	    DS::PMT* pmt = ev->AddNewPMT();
 	    pmt->SetID(pmtID);
 	    pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
@@ -214,18 +214,21 @@ namespace RAT {
 	int nsamples = fDigitizer.GetNSamples(triggerID);
 	std::vector<int> DigitizedTriggerWaveform = fDigitizer.GetDigitizedWaveform(triggerID);
 	for(int isample=0; isample<nsamples; isample++){
-	  if (DigitizedTriggerWaveform[isample]>fTriggerThresholdDB){ //hit above threshold!
+
+	  //	  std::cout<<" SAMPLE "<<isample<<" "<<DigitizedTriggerWaveform[isample]<<" "<<fDigitizer.GetDigitizedThreshold()<<std::endl;
+	  
+	  if (DigitizedTriggerWaveform[isample]<fDigitizer.GetDigitizedThreshold()){ //hit above threshold! (remember the pulses are negative)
 	    //Read ALL PMTs
 	    for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++){
 	      int pmtID = mc->GetMCPMT(imcpmt)->GetID();
 	      DS::PMT* pmt = ev->AddNewPMT();
 	      pmt->SetID(pmtID);
 	      pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
-	      pmt->SetWaveform(fDigitizer.SampleWaveform(fDigitizer.GetDigitizedWaveform(pmtID), isample)); //it is defined by the sample that crosses threshold
+	      pmt->SetWaveform(fDigitizer.SampleWaveform(fDigitizer.GetDigitizedWaveform(pmtID), isample));
 	      pmt->SetCharge(fDigitizer.IntegrateCharge(fDigitizer.GetDigitizedWaveform(pmtID)));
 	    } //end reading PMTs
+	    isample = fDigitizer.GoToEndOfSample(isample); //go forward towards the end of the sampling window
 	  } //end if above threshold
-	  isample = fDigitizer.GoToEndOfSample(isample); //go forward towards the end of the sampling window
 	}//end sampling
 	DigitizedTriggerWaveform.clear(); //prune for next round of PMTs
       } //end if hit trigger PMT

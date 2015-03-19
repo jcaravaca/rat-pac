@@ -153,6 +153,14 @@ namespace RAT {
 
   }
 
+  //Parse threshold in volts and store it in ADC counts  
+  void Digitizer::SetThreshold(double threhold_volts){
+
+    int nADCs = 1 << fNBits; //Calculate the number of adc counts
+    double adcpervolt = nADCs/(fVhigh - fVlow);
+    fDigitizedThreshold = round((threhold_volts - fVlow + fOffset)*adcpervolt); //digitize: V->ADC
+    
+  }
   
   double Digitizer::IntegrateCharge(std::vector<int> digitizedwaveform){
 

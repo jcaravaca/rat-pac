@@ -29,6 +29,7 @@
 #include<RAT/DS/Root.hh>
 #include <RAT/DB.hh>
 
+#define DRAWTRACKS false
 #define DEBUG false
 #define DRAWPMTS false
 #define DRAWOLDDARKBOX true
@@ -351,8 +352,9 @@ void EventDisplay::LoadEvent(int ievt){
 
     //Set digitized graphs
     for(int isample=0; isample<vPMTDigitizedWaveforms[ipmt].size(); isample++){
-      PMTDigitizedWaveforms[ipmt].SetPoint(isample,isample*2.0,(vPMTDigitizedWaveforms[ipmt][isample] - 8200.)/330.);
-      //      std::cout<<isample<<" "<<vPMTDigitizedWaveforms[ipmt][isample]<<std::endl;
+      PMTDigitizedWaveforms[ipmt].SetPoint(isample,isample,vPMTDigitizedWaveforms[ipmt][isample]);
+      //      PMTDigitizedWaveforms[ipmt].SetPoint(isample,isample*2.0,(vPMTDigitizedWaveforms[ipmt][isample] - 8200.)/330.);
+      std::cout<<"Digit waveforms "<<isample<<" "<<vPMTDigitizedWaveforms[ipmt][isample]<<std::endl;
       ymax_d = TMath::Max(ymax_d,vPMTDigitizedWaveforms[ipmt][isample]);
       ymin_d = TMath::Min(ymin_d,vPMTDigitizedWaveforms[ipmt][isample]);
     }
@@ -389,9 +391,10 @@ void EventDisplay::DrawGeometry(){
 void EventDisplay::DumpEventInfo(int ievt){
 
   std::cout<<"********EVENT "<<ievt<<"********"<<std::endl;
-    std::cout<<"Number of PE"<<std::endl;
-  for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++)
-    std::cout<<"ID: "<<ipmt<<" -> "<<npe[ipmt]<<std::endl;
+  for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++){
+    if(ipmt==0) std::cout<<"Number of PE"<<std::endl;
+    std::cout<<"ID: "<<mc->GetMCPMT(ipmt)->GetID()<<" -> "<<npe[ipmt]<<std::endl;
+  }
   std::cout<<"Electron lenght: "<<elength<<" mm"<<std::endl;
   std::cout<<std::endl;
   std::cout<<"    INITIAL PROCESSES   "<<std::endl;
@@ -432,17 +435,20 @@ void EventDisplay::DisplayEvent(int ievt){
 
   if(DEBUG) std::cout<<"Display canvas 1 "<<std::endl;
 
-  canvas_event->cd(1);
-  DrawGeometry();
-  pl_tracks[0].Draw("LINE");
-  for (int itr = 0; itr < mc->GetMCTrackCount(); itr++) {
-    pl_tracks[itr].Draw("LINE same");
+  if(DRAWTRACKS){
+    canvas_event->cd(1);
+    DrawGeometry();
+    pl_tracks[0].Draw("LINE");
+    for (int itr = 0; itr < mc->GetMCTrackCount(); itr++) {
+      pl_tracks[itr].Draw("LINE same");
+    }
+    
   }
   
   if(mc->GetMCPMTCount()>0){
-
+    
     if(DEBUG) std::cout<<"Display canvas 2 "<<std::endl;
-
+    
     canvas_event->cd(3);
     PMTWaveforms[0].GetXaxis()->SetLimits(0.,50.);
     PMTWaveforms[0].Draw("AP");
@@ -451,8 +457,8 @@ void EventDisplay::DisplayEvent(int ievt){
     for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
       PMTWaveforms[ipmt].SetLineColor(ipmt+1);
       PMTWaveforms[ipmt].Draw("LINE same");
-      PMTDigitizedWaveforms[ipmt].SetLineColor(kRed);
-      PMTDigitizedWaveforms[ipmt].Draw("LINE same");
+      //      PMTDigitizedWaveforms[ipmt].SetLineColor(kRed);
+      //      PMTDigitizedWaveforms[ipmt].Draw("LINE same");
     }
 
     if(DEBUG) std::cout<<"Display canvas 3 "<<std::endl;
@@ -462,7 +468,7 @@ void EventDisplay::DisplayEvent(int ievt){
     PMTDigitizedWaveforms[0].GetXaxis()->SetTitle("sample");
     PMTDigitizedWaveforms[0].GetYaxis()->SetTitle("ADC counts");
     for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
-      //      PMTDigitizedWaveforms[ipmt].SetLineColor(ipmt+1);
+      PMTDigitizedWaveforms[ipmt].SetLineColor(ipmt+1);
       PMTDigitizedWaveforms[ipmt].Draw("LINE same");
       //      PMTDigitizedWaveforms[ipmt].ComputeRange(xmin_temp,xmax_temp,ymin_temp,ymax_temp);
     }

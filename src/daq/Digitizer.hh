@@ -21,7 +21,7 @@ namespace RAT {
     virtual void SetNoiseAmplitude(double _fnoise){fNoiseAmpl=_fnoise;};
     virtual void SetSamplingWindow(double _fwindow){fSamplingWindow=_fwindow;};
     virtual void SetSampleDelay(double _fdelay){fSampleDelay=_fdelay;};
-    //    virtual void Clear(){fDigitWaveForm.clear(); fNoise.clear();};
+    virtual void SetThreshold(double);
     virtual void Clear();
     
     virtual void AddChannel(int,DS::PMTWaveform);
@@ -32,6 +32,7 @@ namespace RAT {
     virtual std::vector<int> SampleWaveform(std::vector<int>, int);
     virtual int GoToEndOfSample(int);
     virtual double IntegrateCharge(std::vector<int>);
+    virtual double GetDigitizedThreshold(){return fDigitizedThreshold;};
     
   protected:
     
@@ -42,6 +43,7 @@ namespace RAT {
     double fOffset; //Digitizer offset
     double fResistance; //Circuit resistance
     double fNoiseAmpl; //Electronic noise amplitud
+    double fDigitizedThreshold; //Trigger threshold in ADC counts
     int fSamplingWindow; //Width of the sampling windows in ns
     int fSampleDelay; //Samples before crossing threshold that we will store
     std::map< int, std::vector<double> > fNoise; //Electronic noise non-digitized for each channel

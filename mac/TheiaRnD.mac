@@ -67,7 +67,7 @@
 #Output file
 /rat/proclast outroot
 #/rat/procset file "../results/TheiaRnD_cosmics.root"
-/rat/procset file "../results/TheiaRnD_90Y_geo2_acry15mm_trigger.root"
+/rat/procset file "../results/TheiaRnD_90Y_thres10mv.root"
 #########################################
 
 ##### GENERATORS #################
@@ -98,7 +98,7 @@
 
 ###RADIACTIVE SOURCE DECAYCHAIN
 /generator/add decaychain 90Y:fill:uniform
-/generator/pos/set -483.0 0.0 -300.0
+/generator/pos/set -464.0 -25.0 -300.0
 #/generator/pos/set 0 0 423.0 #top of the box
 /generator/pos/set source
 

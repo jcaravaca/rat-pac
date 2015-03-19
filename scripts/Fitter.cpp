@@ -204,8 +204,10 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
   }
   fgeo_used.close();
   //Run simulation
-  system(Form("rat ../mac/olddarkbox_90Sr.mac >> %s 2>&1", f_log.c_str())); //Run 90Sr
-  system(Form("rat ../mac/olddarkbox_90Y.mac >> %s 2>&1", f_log.c_str())); //Run 90Y
+  // system(Form("rat ../mac/olddarkbox_90Sr.mac >> %s 2>&1", f_log.c_str())); //Run 90Sr
+  // system(Form("rat ../mac/olddarkbox_90Y.mac >> %s 2>&1", f_log.c_str())); //Run 90Y
+  system(Form("rat ../mac/olddarkbox_90Sr.mac &> %s", f_log.c_str())); //Run 90Sr
+  system(Form("rat ../mac/olddarkbox_90Y.mac &> %s", f_log.c_str())); //Run 90Y
 
   //Read file and extract PDFs
   fMCFiles[0] = "../results/olddarkbox_90Sr_fitter.root"; //signal - strontium
@@ -285,7 +287,8 @@ double Fitter::ChiSquare(const double *par){
 //Do fit
 void Fitter::DoFit(){
 
-  min = ROOT::Math::Factory::CreateMinimizer("Minuit2","Migrad");
+  min = ROOT::Math::Factory::CreateMinimizer("Minuit2","SIMPLEX");
+  //  min = ROOT::Math::Factory::CreateMinimizer("SIMPLEX","Migrad");
 
   //Set Function
   ROOT::Math::Functor f(this, &Fitter::Likelihood,4);
@@ -309,7 +312,7 @@ void Fitter::DoFit(){
   min->SetVariable(2,"Noise",1.,0.01);
   min->SetVariableLimits(2,0.,10.);
   min->SetVariable(3,"Collection Efficiency",1.,0.5);
-  min->SetVariableLimits(3,0.,10.);
+  min->SetVariableLimits(3,0.,1.);
   min->FixVariable(0); //Fix background
   min->FixVariable(1); //Fix background
   min->FixVariable(2); //Fix background
