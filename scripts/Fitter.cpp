@@ -30,7 +30,8 @@
 
 #define DEBUG false
 #define BATCH true
-#define NBINS 500
+#define NBINS 500 //500
+#define FITTER "SIMPLEX" //Migrad, SIMPLEX
 
 
 namespace TheiaRnD{
@@ -97,7 +98,7 @@ Fitter::Fitter(int argc, char **argv){
   time_local = localtime(&time_now);
 
   //Set log filename
-  //  f_log = sprintf("../logs/TheiaRnD_log_%s_%s_%s.txt",time_local->tm_mday,time_local->tm_mon,1900+time_local->tm_year);
+  //sprintf(f_log,"../logs/TheiaRnD_log_%s_%s_%s.txt",time_local->tm_mday,time_local->tm_mon,1900+time_local->tm_year);
   f_log = Form("../logs/TheiaRnD_log.txt");
   
   //Parse arguments and get pdfs
@@ -123,10 +124,11 @@ void Fitter::ParseArgs(int argc, char **argv){
   }
 }
 
-//Extract PDFs from DATA input files and populate the TH1F vectors
+//Extract PDFs from real DATA input files and populate the TH1F vectors
 void Fitter::GetDataPDFs(){
 
-  //***Get real data
+  std::cout<<" GetDataPDFs "<<std::endl;
+
   TGraph* gpdf_dt;
   TH1F* hdata;
   TH1F* hscale;
@@ -157,6 +159,8 @@ void Fitter::GetDataPDFs(){
 
 //Get MC pdfs
 void Fitter::GetMCPDFs(){
+
+  std::cout<<" GetMCPDFs "<<std::endl;
 
   GetMCPDFsWithCollEff(1.0);
 
@@ -204,10 +208,12 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
   }
   fgeo_used.close();
   //Run simulation
-  // system(Form("rat ../mac/olddarkbox_90Sr.mac >> %s 2>&1", f_log.c_str())); //Run 90Sr
-  // system(Form("rat ../mac/olddarkbox_90Y.mac >> %s 2>&1", f_log.c_str())); //Run 90Y
-  system(Form("rat ../mac/olddarkbox_90Sr.mac &> %s", f_log.c_str())); //Run 90Sr
-  system(Form("rat ../mac/olddarkbox_90Y.mac &> %s", f_log.c_str())); //Run 90Y
+  char command_90Sr[10000];
+  sprintf(command_90Sr,"rat -l ../logs/rat_TheiaRnD_90Sr_%f.log ../mac/olddarkbox_90Sr.mac >> %s 2>&1", collection_eff, f_log.c_str());
+  char command_90Y[10000];
+  sprintf(command_90Y,"rat -l ../logs/rat_TheiaRnD_90Y_%f.log ../mac/olddarkbox_90Y.mac >> %s 2>&1", collection_eff, f_log.c_str());
+  system(command_90Sr); //Run 90Sr
+  system(command_90Y); //Run 90Y
 
   //Read file and extract PDFs
   fMCFiles[0] = "../results/olddarkbox_90Sr_fitter.root"; //signal - strontium
@@ -287,8 +293,7 @@ double Fitter::ChiSquare(const double *par){
 //Do fit
 void Fitter::DoFit(){
 
-  min = ROOT::Math::Factory::CreateMinimizer("Minuit2","SIMPLEX");
-  //  min = ROOT::Math::Factory::CreateMinimizer("SIMPLEX","Migrad");
+  min = ROOT::Math::Factory::CreateMinimizer("Minuit2", FITTER);
 
   //Set Function
   ROOT::Math::Functor f(this, &Fitter::Likelihood,4);
@@ -298,11 +303,11 @@ void Fitter::DoFit(){
   // set tolerance , etc...
   //  min->SetMaxIterations(5);  // for GSL
   //  min->SetMaxFunctionCalls(1000000); // for Minuit/Minuit2 
-  min->SetMaxFunctionCalls(15); // for Minuit/Minuit2 
+  min->SetMaxFunctionCalls(1000); // for Minuit/Minuit2 
   min->SetErrorDef(0.5);
   min->SetTolerance(1.0); //Minimization will stop when the estimated vertical
                           //distance to the minimum (EDM) is less than 0.001*tolerance*SetErrDef
-  min->SetPrintLevel(1);
+  min->SetPrintLevel(3);
 
   // Set the free variables to be minimized!
   min->SetVariable(0,"90Sr",1.,0.01);
