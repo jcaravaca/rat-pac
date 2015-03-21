@@ -224,7 +224,7 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
   for(int ifile=0; ifile<fMCFiles.size(); ifile++){
     dsreader = new RAT::DSReader(fMCFiles[ifile]);
     htemp = new TH1F(Form("hpdf_mc_fit_%i",ifile),"Charge",NBINS,0,100);
-    dsreader->GetT()->Draw(Form("ds.ev.pmt.charge/1.6>>hpdf_mc_fit_%i",ifile)); //convert to PE
+    dsreader->GetT()->Draw(Form("ds.ev.pmt.charge/5.0>>hpdf_mc_fit_%i",ifile)); //convert to PE
     hpdf_mc_fit.push_back(htemp);
   }
 
@@ -316,14 +316,16 @@ void Fitter::DoFit(){
   min->SetVariableLimits(1,0.,10.);
   min->SetVariable(2,"Noise",1.,0.01);
   min->SetVariableLimits(2,0.,10.);
-  min->SetVariable(3,"Collection Efficiency",1.,0.5);
+  min->SetVariable(3,"Collection Efficiency",.5,0.5);
   min->SetVariableLimits(3,0.,1.);
-  min->FixVariable(0); //Fix background
-  min->FixVariable(1); //Fix background
+  min->FixVariable(0); //Fix 90Sr norm
+  min->FixVariable(1); //Fix 90Y norm
   min->FixVariable(2); //Fix background
+  min->FixVariable(3); //Fix collection eff
 
   //  do the minimization
-  min->Minimize();
+  //  min->Minimize();
+  GetMCPDFsWithCollEff(0.5);
 
   fMinLikelihood = min->MinValue(); //Minimum likelihood
   const double *xs = min->X();

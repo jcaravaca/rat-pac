@@ -136,7 +136,7 @@
   pmt_model: "r7081_hqe",// r7081_hqe, r11780_hqe
   pmt_detector_type: "idpmt",
   sensitive_detector: "/mydet/pmt/inner",
-  efficiency_correction: 1.0,
+  efficiency_correction: 0.500000,
   pos_table: "PMTINFO",
   orientation: "point",
   orient_point: [-180.0, 0.0, 0.0],

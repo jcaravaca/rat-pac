@@ -131,7 +131,8 @@ dynode_radius: 8.0, // mm
 dynode_top: 1.0, // mm
 wall_thickness: 2.0, // mm
 
-width: 25.4, //mm
+//width: 25.4, //mm
+width: 29.0, //mm
 photocathode_mirror_top: 3.0, //mm
 photocathode_mirror_bottom: 3.0, //mm
 
