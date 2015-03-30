@@ -2,9 +2,13 @@
 /glg4debug/glg4param omit_hadronic_processes  1.0
 
 /rat/db/set DETECTOR experiment "TheiaRnD"
-/rat/db/set DETECTOR geo_file "TheiaRnD/array_matrix.geo"
+/rat/db/set DETECTOR geo_file "TheiaRnD/pmt_array.geo"
 
 /run/initialize
+#/process/inactivate Cerenkov
+#/process/inactivate Scintillation
+#/glg4scint/off
+/glg4scint/reemission off
 
 ##### Visualization ##########################
 
@@ -66,7 +70,7 @@
 
 #Output file
 /rat/proclast outroot
-/rat/procset file "../results/TheiaRnD_cosmics3GeV_scint20mm_vessel.root"
+/rat/procset file "../results/TheiaRnD_cosmics3GeV_scint20mm_noreem.root"
 #/rat/procset file "../results/TheiaRnD_90Y_thres10mv.root"
 #########################################
 
@@ -79,7 +83,7 @@
 ###COSMIC
 /generator/add combo gun2:point
 /generator/vtx/set mu- 0 0 -1.0 0 3000.0 3000.0 //mu->100.0
-/generator/pos/set 0 0 230.0
+/generator/pos/set 0 0 280.0
 
 ###PHOTON GUN
 #/generator/add combo pbomb:point:uniform    # Photonbomb generator from fixed point, uniform in time

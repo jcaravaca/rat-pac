@@ -325,7 +325,7 @@ void Fitter::DoFit(){
 
   //  do the minimization
   //  min->Minimize();
-  GetMCPDFsWithCollEff(0.5);
+  GetMCPDFsWithCollEff(0.6);
 
   fMinLikelihood = min->MinValue(); //Minimum likelihood
   const double *xs = min->X();

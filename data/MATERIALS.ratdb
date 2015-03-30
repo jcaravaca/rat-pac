@@ -493,6 +493,20 @@ formula: "OIL",
 
 {
 name: "MATERIAL",
+index: "ppo",
+valid_begin : [0, 0],
+valid_end : [0, 0],
+density: 1.06d,
+nelements: 4,
+nmaterials: 0,
+elements: ["Carbon","Hydrogen","Nitrogen", "Oxygen",],
+elemprop: [.8142d, .0501d, .0633d, .0723d],
+formula: "FLUOR",
+mol: 1.38092d24
+}
+
+{
+name: "MATERIAL",
 index: "scintillator",
 valid_begin : [0, 0],
 valid_end : [0, 0],
@@ -529,20 +543,6 @@ elements: ["Carbon","Hydrogen"],
 elemprop: [.8563d, .1437d],
 formula: "OIL",
 mol: 1.0631d24,
-}
-
-{
-name: "MATERIAL",
-index: "ppo",
-valid_begin : [0, 0],
-valid_end : [0, 0],
-density: 1.06d,
-nelements: 4,
-nmaterials: 0,
-elements: ["Carbon","Hydrogen","Nitrogen", "Oxygen",],
-elemprop: [.8142d, .0501d, .0633d, .0723d],
-formula: "FLUOR",
-mol: 1.38092d24
 }
 
 {

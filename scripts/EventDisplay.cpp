@@ -34,7 +34,7 @@
 #include<RAT/DS/Root.hh>
 #include <RAT/DB.hh>
 
-#define DEBUG true
+#define DEBUG false
 #define DRAWTRACKS true
 #define DRAWWAVEFORMS false
 #define DRAWPMTS false
@@ -49,38 +49,15 @@
 #define ZPOS 0.0
 #define XP_XSIDE 200.0 // 250.//508.0
 #define XP_YSIDE 200.0 // 250.//508.0
-#define XP_ZPOS 116.0 // 250.//508.0
+#define XP_ZPOS 116.0 // 116.0
 
 
 
 char *fInputFile = NULL;
 int fEvent = 0;
-char *fOpt = "foo";
+char *fOpt = "NULL";
 void ParseArgs(int argc, char **argv);
 
-
-// class Track{
-  
-// public:
-//   Track(RAT::DS::MCTrack *mctrack);
-//   ~Track();
-
-// protected:
-
-//   int pdgcode;
-//   int mom;
-//   std::vector<double>step_x;
-//   std::vector<double>step_y;
-//   std::vector<double>step_z;
-  
-  
-// };
-
-// Track::Track(RAT::DS::MCTrack *mctrack){
-
-
-
-// };
 
 class EventDisplay{
 public:
@@ -97,6 +74,11 @@ public:
 
 protected:
   
+  //Maps
+  std::map<std::string,int> FirstProcessCounter; //Process name - Counter
+  std::map<std::string,int> LastProcessCounter; //Process name - Counter
+  std::map<int,std::string> ParticleName; //PDG code - Particle name
+  std::map<std::string,int> ParticleCounter; //PDG code - Counter
   std::map<int,Color_t> ParticleColor;
   std::map<int,int> ParticleWidth;
   RAT::DSReader *dsreader;
@@ -113,27 +95,6 @@ protected:
 
   double elength;
   std::map<int, int> npe; //number of photoelectrons per PMT
-  int nelectrons;
-  int ncherenkovphotons;
-  int notherphotons;
-  int nmuons;
-  int nothers;
-  int ipstart;
-  int ipcherenkov;
-  int ipbrems;
-  int ipphoto;
-  int ipeioni;
-  int ipmuioni;
-  int ipothers;
-  int epstart;
-  int epcherenkov;
-  int epbrems;
-  int epphoto;
-  int epeioni;
-  int epmuioni;
-  int epatt;
-  int G4Fast;
-  int epothers;
 
   //Geometry
   TGeoVolume *vworld;
@@ -157,42 +118,12 @@ EventDisplay::EventDisplay(char *_inputfile){
   canvas_event->cd(3)->SetPad(0.,0.,0.5,0.3);
   canvas_event->cd(4)->SetPad(0.5,0.,1.,0.3);
 
-  //Particle track mapping
-  ParticleColor[11]=kGreen;
-  ParticleColor[22]=kRed;
-  ParticleColor[13]=kOrange;
-  ParticleColor[211]=kOrange;
-  ParticleColor[0]=kBlue;
-
-  ParticleWidth[11]=1;
-  ParticleWidth[22]=1;
-  ParticleWidth[13]=2;
-  ParticleWidth[211]=2;
-  ParticleWidth[0]=1;
-
-  //Init
-  nelectrons=0;
-  ncherenkovphotons=0;
-  notherphotons=0;
-  nmuons=0;
-  nothers=0;
-  elength = 0.;
-  ipstart = 0;
-  ipcherenkov = 0;
-  ipbrems = 0;
-  ipphoto = 0;
-  ipeioni = 0;
-  ipmuioni = 0;
-  ipothers = 0;
-  epstart = 0;
-  epcherenkov = 0;
-  epbrems = 0;
-  epphoto = 0;
-  epeioni = 0;
-  ipmuioni = 0;
-  epatt = 0;
-  G4Fast = 0;
-  epothers = 0;
+  //Particle maps
+  ParticleColor[11]=kGreen;   ParticleWidth[11]=1;   ParticleName[11]="Electron";
+  ParticleColor[22]=kRed;     ParticleWidth[22]=1;   ParticleName[22] = "Standard photon";
+  ParticleColor[13]=kOrange;  ParticleWidth[13]=2;   ParticleName[13] = "Muon";
+  ParticleColor[211]=kOrange; ParticleWidth[211]=2;  ParticleName[211]= "Pi+";
+  ParticleColor[0]=kBlue;     ParticleWidth[0]=1;    ParticleName[0] = "Optical photon";
   
   //Representation plane
   hxyplane = new TH2F("hxyplane","Track intersections with XY plane",1000,-XP_XSIDE,XP_XSIDE,1000,-XP_YSIDE,XP_YSIDE);
@@ -281,28 +212,9 @@ void EventDisplay::LoadEvent(int ievt){
   //Event features
   elength=0.; //e- lenght
   //Particles
-  nelectrons=0;
-  ncherenkovphotons=0;
-  notherphotons=0;
-  nmuons=0;
-  nothers=0;
-  //Processes
-  ipstart = 0;
-  ipcherenkov = 0;
-  ipbrems = 0;
-  ipphoto = 0;
-  ipeioni = 0;
-  ipmuioni = 0;
-  ipothers = 0;
-  epstart = 0;
-  epcherenkov = 0;
-  epbrems = 0;
-  epphoto = 0;
-  epeioni = 0;
-  epmuioni = 0;
-  epatt = 0;
-  G4Fast = 0;
-  epothers = 0;
+  FirstProcessCounter.clear();
+  LastProcessCounter.clear();
+  ParticleCounter.clear();
   pl_tracks.clear();
   PMTWaveforms.clear();
   PMTDigitizedWaveforms.clear();
@@ -321,43 +233,16 @@ void EventDisplay::LoadEvent(int ievt){
     //Measure electron length
     if(mctrack->GetPDGCode()==11) elength += mctrack->GetLength();
     //Count particles
-    if(mctrack->GetPDGCode()==11) nelectrons++;
-    else if(mctrack->GetPDGCode()==0) ncherenkovphotons++;
-    else if(mctrack->GetPDGCode()==22) notherphotons++;
-    else if(mctrack->GetPDGCode()==13) nmuons++;
-    else {
-      nothers++;
-      if (DEBUG) std::cout<<" Unknown particle: "<<mctrack->GetPDGCode()<<std::endl;
-    }
+    ParticleCounter[ParticleName[mctrack->GetPDGCode()]] += 1;
     //Count processes
     RAT::DS::MCTrackStep *firststep = mctrack->GetMCTrackStep(0);
     RAT::DS::MCTrackStep *laststep = mctrack->GetLastMCTrackStep();
     double last_pos[3];
     laststep->GetEndpoint().GetXYZ(last_pos);
     //      if (itr>=10 && itr<11) std::cout<<" Last pos: "<<last_pos[0]<<" "<<last_pos[1]<<" "<<last_pos[2]<<" "<<std::endl;
-    if(firststep->GetProcess()=="Cerenkov") ipcherenkov++;
-    else if(firststep->GetProcess()=="start") ipstart++;
-    else if(firststep->GetProcess()=="eBrem") ipbrems++;
-    else if(firststep->GetProcess()=="eIoni") ipeioni++;
-    else if(firststep->GetProcess()=="muIoni") ipmuioni++;
-    else if(firststep->GetProcess()=="phot") ipphoto++;
-    else {
-      ipothers++;
-      if (DEBUG) std::cout<<" Unknown first proc: "<<firststep->GetProcess().c_str()<<std::endl;
-    }
-    if(laststep->GetProcess()=="Cerenkov") epcherenkov++;
-    else if(laststep->GetProcess()=="start") epstart++;
-    else if(laststep->GetProcess()=="eBrem") epbrems++;
-    else if(laststep->GetProcess()=="eIoni") epeioni++;
-    else if(laststep->GetProcess()=="muIoni") epmuioni++;
-    else if(laststep->GetProcess()=="phot") epphoto++;
-    else if(laststep->GetProcess()=="Attenuation") epatt++;
-    else if(laststep->GetProcess()=="G4FastSimulationManagerProcess") G4Fast++;
-    else {
-      epothers++;
-      if (DEBUG) std::cout<<" Unknown last proc: "<<laststep->GetProcess().c_str()<<std::endl;
-    }
-    
+    FirstProcessCounter[firststep->GetProcess()] += 1;
+    LastProcessCounter[laststep->GetProcess()] += 1;
+
     //Loop over all the steps
     int nsteps = mctrack->GetMCTrackStepCount();
     TVector3 top_pos(-9999.,-9999.,-9999.); //first interpolation point
@@ -369,7 +254,7 @@ void EventDisplay::LoadEvent(int ievt){
       const TVector3 endpointstep = step->GetEndpoint();
       pl_tracks.back().SetPoint(istep,endpointstep.X(),endpointstep.Y(),endpointstep.Z());
 
-      //Calculate intersection with XY plane to reconstruct circunference pattern
+      //Calculate intersection with XY plane
       // std::cout<<"step "<<istep<<" "<<top_pos.X()<<" "<<top_pos.Y()<<" "<<top_pos.Z()<<std::endl;
       // std::cout<<"step "<<istep<<" "<<bottom_pos.X()<<" "<<bottom_pos.Y()<<" "<<bottom_pos.Z()<<std::endl;
       if(mctrack->GetPDGCode()!=0 && mctrack->GetPDGCode()!=22) continue; //only for photons
@@ -481,34 +366,22 @@ void EventDisplay::DumpEventInfo(int ievt){
 
   std::cout<<"Electron lenght: "<<elength<<" mm"<<std::endl;
   std::cout<<std::endl;
-  std::cout<<"    INITIAL PROCESSES   "<<std::endl;
-  std::cout<<"Number of Start: "<<ipstart<<std::endl;
-  std::cout<<"Number of Cherenkov: "<<ipcherenkov<<std::endl;
-  std::cout<<"Number of Bremsstrahlung: "<<ipbrems<<std::endl;
-  std::cout<<"Number of Photoelectric: "<<ipphoto<<std::endl;
-  std::cout<<"Number of e- ionization: "<<ipeioni<<std::endl;
-  std::cout<<"Number of mu- ionization: "<<ipeioni<<std::endl;
-  std::cout<<"Number of others: "<<ipothers<<std::endl;
+  std::cout<<"    INITIAL PROCESSES "<<std::endl;
+  for (std::map<std::string,int>::iterator it=FirstProcessCounter.begin();it!=FirstProcessCounter.end();it++){
+    if(it->second!=0) std::cout<<it->first<<" == "<<it->second<<std::endl;
+  }
   std::cout<<std::endl;
   std::cout<<"    END PROCESSES   "<<std::endl;
-  std::cout<<"Number of Start: "<<epstart<<std::endl;
-  std::cout<<"Number of Cherenkov: "<<epcherenkov<<std::endl;
-  std::cout<<"Number of Bremsstrahlung: "<<epbrems<<std::endl;
-  std::cout<<"Number of Photoelectric: "<<epphoto<<std::endl;
-  std::cout<<"Number of e- ionization: "<<epeioni<<std::endl;
-  std::cout<<"Number of mu- ionization: "<<ipmuioni<<std::endl;
-  std::cout<<"Number of attenuation: "<<epatt<<std::endl;
-  std::cout<<"Number of others: "<<epothers<<std::endl;
+  for (std::map<std::string,int>::iterator it=LastProcessCounter.begin();it!=LastProcessCounter.end();it++){
+    if(it->second!=0) std::cout<<it->first<<" == "<<it->second<<std::endl;
+  }
   std::cout<<std::endl;
-  std::cout<<"        TRACKS        "<<std::endl;
-  std::cout<<"Number of tracks: "<<pl_tracks.size()<<std::endl;
-  std::cout<<"Number of electrons: "<<nelectrons<<std::endl;
-  std::cout<<"Number of cherenkov photons: "<<ncherenkovphotons<<std::endl;
-  std::cout<<"Number of photons: "<<notherphotons<<std::endl;
-  std::cout<<"Number of muons: "<<nmuons<<std::endl;
-  std::cout<<"Number of others: "<<nothers<<std::endl;
+  std::cout<<"    TRACKS        "<<std::endl;
+  for (std::map<std::string,int>::iterator it=ParticleCounter.begin();it!=ParticleCounter.end();it++){
+    if(it->second!=0) std::cout<<it->first<<" == "<<it->second<<std::endl;
+  }
   std::cout<<std::endl;
-  std::cout<<"        WAVEFORMS      "<<std::endl;
+  std::cout<<"    WAVEFORMS      "<<std::endl;
   std::cout<<" Number of Waveforms "<<mc->GetMCPMTCount()<<std::endl;
   std::cout<<"***********************************"<<std::endl;
   std::cout<<std::endl;
@@ -596,7 +469,7 @@ void EventDisplay::DisplayEvent(int ievt){
 
 bool EventDisplay::IsCerenkov(){
 
-  return ncherenkovphotons>0;
+  return FirstProcessCounter["Cerenkov"]>0;
   
 }
 

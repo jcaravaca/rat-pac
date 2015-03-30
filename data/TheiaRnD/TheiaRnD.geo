@@ -78,7 +78,7 @@
   type: "box",
   position: [0.0, 0.0, 400.0],
   size: [20.0,20.0,20.0], //mm, half-lenght
-  material: "acrylic_berkeley", //acrylic_uvt
+  material: "labppo_scintillator", //acrylic_berkeley
   color: [0.1, 0.3, 0.8, 0.1],
 }
 
