@@ -49,12 +49,12 @@
 #define ZPOS 0.0
 #define XP_XSIDE 200.0 // 250.//508.0
 #define XP_YSIDE 200.0 // 250.//508.0
-#define XP_ZPOS 116.0 // 116.0
+#define XP_ZPOS 110.0 // 116.0
 
 
 
 char *fInputFile = NULL;
-int fEvent = 0;
+int fEvent = -9999;
 char *fOpt = "NULL";
 void ParseArgs(int argc, char **argv);
 
@@ -497,14 +497,24 @@ int main(int argc, char **argv){
   std::cout<<" Number of events: "<<nevents<<std::endl;
   int dummy_val = 0;
   
-  for(int ievt=fEvent; ievt<nevents ; ievt++){
-    ed->LoadEvent(ievt);
-    if(std::string(fOpt) == "cerenkov" && !ed->IsCerenkov()) continue;
-    if(std::string(fOpt) == "pe" && !ed->IsPE()) continue;
+  if(fEvent==-9999){
+    for(int ievt=0; ievt<nevents ; ievt++){
+      ed->LoadEvent(ievt);
+      if(std::string(fOpt) == "cerenkov" && !ed->IsCerenkov()) continue;
+      if(std::string(fOpt) == "pe" && !ed->IsPE()) continue;
+      if(DEBUG) std::cout<<" After Cerenkov Check "<<std::endl;
+      ed->DumpEventInfo(ievt);
+      if(DEBUG) std::cout<<" After Dump Event "<<std::endl;
+      ed->DisplayEvent(ievt);
+      if(DEBUG) std::cout<<" After Display Event "<<std::endl;
+    }
+  }
+  else{
+    ed->LoadEvent(fEvent);
     if(DEBUG) std::cout<<" After Cerenkov Check "<<std::endl;
-    ed->DumpEventInfo(ievt);
+    ed->DumpEventInfo(fEvent);
     if(DEBUG) std::cout<<" After Dump Event "<<std::endl;
-    ed->DisplayEvent(ievt);
+    ed->DisplayEvent(fEvent);
     if(DEBUG) std::cout<<" After Display Event "<<std::endl;
   }
   
