@@ -503,7 +503,6 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
     // Create and initialize a RAT DS::MCPMT 
     // note that GLG4HitPMTs are given IDs which are their index
     DS::MCPMT* rat_mcpmt = mc->AddNewMCPMT();
-    //    pmtMap[a_pmt->GetID()] = rat_mcpmt;
     pmtMap[a_pmt->GetID()] = mc->GetMCPMTCount()-1; //at this point the size represent the index
     rat_mcpmt->SetID(a_pmt->GetID());
     rat_mcpmt->SetType(fPMTInfo->GetType(a_pmt->GetID()));
@@ -582,7 +581,6 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
       rat_mcpmt->SetType(fPMTInfo->GetType(pmtid));
       //      std::cout<<" Created new pure noise PMT "<<std::endl;
     }
-
     std::cout<<" Dark hit time: "<<hit->GetTime()<<" "<<hit->GetPMTID()<<" "<<hit->GetKineticEnergy()<<std::endl;
     
     AddMCPhoton(mc->GetMCPMT(pmtMap[pmtid]), hit, true, (StoreOpticalTrackID ? exinfo : NULL));
