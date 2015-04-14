@@ -40,10 +40,10 @@ int main(int argc, char **argv){
   std::vector<TH1F*> h_MCPMT_charge; //MC charge
   std::vector<TH1F*> h_charge; //Measured charge
   for(int ih=0; ih<NPMTs; ih++){
-    h_MCPMT_charge.push_back(new TH1F(Form("h_mcpmt_charge_%i",ih),"h_mcpmt_charge",100,0,20));
-    h_charge.push_back(new TH1F(Form("h_charge_%i",ih),"h_charge",100,0,20));
+    h_MCPMT_charge.push_back(new TH1F(Form("h_mcpmt_charge_%i",ih),"h_mcpmt_charge",100,0,50));
+    h_charge.push_back(new TH1F(Form("h_charge_%i",ih),"h_charge",100,0,50));
   }
-  TH1F* h_charge_total = new TH1F("h_charge_total","h_charge_total",100,0,20);
+  TH1F* h_charge_total = new TH1F("h_charge_total","h_charge_total",100,0,50);
   
   TH1F* h_procinit = new TH1F("h_procinit","h_procinit",1,0,1);
   TH1F* h_proclast = new TH1F("h_proclast","h_proclast",1,0,1);
@@ -195,9 +195,9 @@ int main(int argc, char **argv){
   //DRAW PLOTS
   //Charge
   TCanvas *c_charge = new TCanvas("c_charge","c_charge",1400,1400);
-  c_charge->Divide(2,2);
+  c_charge->Divide(3,3);
   for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    c_charge->cd(ipmt);
+    c_charge->cd(ipmt+1);
     h_charge[ipmt]->Draw("");
   }
   // c_charge->cd(1);

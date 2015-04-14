@@ -204,7 +204,7 @@ namespace RAT {
     else if(fTriggerType=="triggerpmt"){
       //Identify the trigger PMT
       int triggerID=-1;
-      for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {      
+      for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
 	DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
 	if(mcpmt->GetType() == 0) triggerID = mcpmt->GetID();
       }

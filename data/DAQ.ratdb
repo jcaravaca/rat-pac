@@ -30,7 +30,7 @@ int_time: 20.0d, //charge integration time in ns
 
 
 //Trigger and builder
-trigger_threshold: -10.0, //PMT threshold to issue a trigger mV
+trigger_threshold: -20.0, //PMT threshold to issue a trigger mV
 gate_delay: 0. //time before discriminator fires that sampling gate opens (in samples)
 
 

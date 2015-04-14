@@ -193,8 +193,8 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
 
   //Set the efficiency_correction according to fit step: we use a geometry template
   //where we subtitute the efficiency_correction for the desired value
-  ifstream fgeo_template("../data/olddarkbox/olddarkbox_template.geo"); //set template
-  ofstream fgeo_used("../data/olddarkbox/olddarkbox_fitter.geo"); //set outputfile
+  ifstream fgeo_template("./data/olddarkbox_template.geo"); //set template
+  ofstream fgeo_used("./data/olddarkbox_fitter.geo"); //set outputfile
   std::string line;
   std::string valname_template = "CE_VALUE";
   size_t len = valname_template.length();
@@ -209,15 +209,15 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
   fgeo_used.close();
   //Run simulation
   char command_90Sr[10000];
-  sprintf(command_90Sr,"rat -l ../logs/rat_TheiaRnD_90Sr_%f.log ../mac/olddarkbox_90Sr.mac >> %s 2>&1", collection_eff, f_log.c_str());
+  sprintf(command_90Sr,"rat -l ./logs/rat_TheiaRnD_90Sr_%f.log ./mac/olddarkbox_90Sr.mac >> %s 2>&1", collection_eff, f_log.c_str());
   char command_90Y[10000];
-  sprintf(command_90Y,"rat -l ../logs/rat_TheiaRnD_90Y_%f.log ../mac/olddarkbox_90Y.mac >> %s 2>&1", collection_eff, f_log.c_str());
+  sprintf(command_90Y,"rat -l ./logs/rat_TheiaRnD_90Y_%f.log .mac/olddarkbox_90Y.mac >> %s 2>&1", collection_eff, f_log.c_str());
   system(command_90Sr); //Run 90Sr
   system(command_90Y); //Run 90Y
 
   //Read file and extract PDFs
-  fMCFiles[0] = "../results/olddarkbox_90Sr_fitter.root"; //signal - strontium
-  fMCFiles[1] = "../results/olddarkbox_90Y_fitter.root"; //signal - ytrium
+  fMCFiles[0] = "./results/olddarkbox_90Sr_fitter.root"; //signal - strontium
+  fMCFiles[1] = "./results/olddarkbox_90Y_fitter.root"; //signal - ytrium
 
   RAT::DSReader *dsreader;
   TH1F *htemp;
