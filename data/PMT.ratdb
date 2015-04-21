@@ -114,6 +114,7 @@ z_origin: [ -40.0d, 0.0d, 0.0d, 40.0d, -142.0d ],
 {
 name: "PMT",
 index: "h11934",
+
 valid_begin: [0,0],
 valid_end: [0,0],
 
@@ -137,7 +138,6 @@ photocathode_mirror_top: 3.0, //mm
 photocathode_mirror_bottom: 3.0, //mm
 
 }
-
 
 {
 name: "PMT",
