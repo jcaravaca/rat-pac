@@ -89,7 +89,7 @@ namespace RAT {
   
   Processor::Result DAQProc::DSEvent(DS::Root *ds) {
     //This processor build waveforms for each PMT in the MC generated event, sample them and
-    //store each sampled piece as a MCPMTSampled.
+    //store each sampled piece as a new event
 
     DS::MC *mc = ds->GetMC();
     if(ds->ExistEV()) {  // there is already a EV branch present 
@@ -124,8 +124,8 @@ namespace RAT {
       for (size_t iph=0; iph < mcpmt->GetMCPhotonCount(); iph++) {
 	
 	DS::MCPhoton *mcphotoelectron = mcpmt->GetMCPhoton(iph);
-	//      TimePhoton = mcphotoelectron.GetFrontEndTime();
-	TimePhoton = mcphotoelectron->GetHitTime(); //fixme: not sure about this time...
+	TimePhoton = mcphotoelectron->GetFrontEndTime();
+	//TimePhoton = mcphotoelectron->GetHitTime(); //fixme: not sure about this time...
 	
 	//Produce pulses and add them to the waveform
 	PMTPulse *pmtpulse;
@@ -223,12 +223,13 @@ namespace RAT {
 	      int pmtID = mc->GetMCPMT(imcpmt)->GetID();
 	      DS::PMT* pmt = ev->AddNewPMT();
 	      pmt->SetID(pmtID);
-	      pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
 	      pmt->SetWaveform(fDigitizer.SampleWaveform(fDigitizer.GetDigitizedWaveform(pmtID), isample));
 	      pmt->SetCharge(fDigitizer.IntegrateCharge(fDigitizer.GetDigitizedWaveform(pmtID)));
+	      pmt->SetTime(fDigitizer.GetPeakTime(pmtID,isample)); //sample the waveform and find the peak position
+	      //	      pmt->SetTime(isample*fStepTimeDB);
 	    } //end reading PMTs
 	    isample = fDigitizer.GoToEndOfSample(isample); //go forward towards the end of the sampling window
-	  } //end if above threshold
+	  } //end if: trigger above threshold
 	}//end sampling
 	DigitizedTriggerWaveform.clear(); //prune for next round of PMTs
       } //end if hit trigger PMT
@@ -240,6 +241,10 @@ namespace RAT {
     if(ev->GetPMTCount()>0){
       fEventCounter++;
     }
+
+
+
+
     //FIXME
     // else{
     //   std::cout<<"Prune event"<<fEventCounter<<" "<<ds->GetEVCount()<<std::endl;

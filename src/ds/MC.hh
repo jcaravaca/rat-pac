@@ -21,7 +21,6 @@
 #include <RAT/DS/MCTrack.hh>
 #include <RAT/DS/MCSummary.hh>
 #include <RAT/DS/MCPMT.hh>
-#include <RAT/DS/PMT.hh>
 
 namespace RAT {
   namespace DS {
@@ -94,15 +93,6 @@ public:
   };
   virtual void PrunePMT() { pmt.resize(0); }
 
-  /** List of PMT hits after sampling the waveform */
-  virtual PMT* GetMCPMTSampled(int i) { return &pmtsample[i]; }
-  virtual int GetMCPMTSampledCount() const { return pmtsample.size(); }
-  virtual PMT* AddNewMCPMTSampled() {
-    pmtsample.resize(pmtsample.size() + 1);
-    return &pmtsample.back();
-  };
-  virtual void PrunePMTSampled() { pmtsample.resize(0); }
-
   /** Total number of photoelectrons generated in this event */
   virtual int GetNumPE() const { return numPE; }
   virtual void SetNumPE(int _numPE) { numPE = _numPE; }
@@ -132,7 +122,6 @@ protected:
   std::vector<MCParticle> particle;
   std::vector<MCTrack> track;
   std::vector<MCPMT> pmt; //PMTs with at least one photoelectron in the simulation
-  std::vector<PMT> pmtsample; //PMT hits after sampling the waveform
 };
 
   } // namespace DS

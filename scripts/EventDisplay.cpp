@@ -533,7 +533,8 @@ void ParseArgs(int argc, char **argv){
     if(std::string(argv[i]) == "-o") {fOpt = argv[++i];}
   }
   if(!exist_inputfile){
-    std::cerr<<" Specify input file with option: '-i'"<<std::endl;
+    std::cerr<<" Usage: EventDisplay.exe -i INPUTFILE [(optional) -e EVNUMBER -o OPTION]"<<std::endl;
+    //    std::cerr<<" Specify input file with option: '-i'"<<std::endl;
     exit(0);
   }
   if(DEBUG){

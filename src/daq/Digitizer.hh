@@ -1,3 +1,18 @@
+////////////////////////////////////////////////////////////////////
+/// \class RAT::Digitizer
+///
+/// \brief   Digitizer
+///
+/// \author Javier Caravaca <jcaravaca@berkeley.edu>
+///
+/// REVISION HISTORY:\n
+///     1 Feb 2015: Initial commit
+///
+/// \details
+/// This class provides full support for a CAEN digitizer.
+/// It digitizes PMTWaveforms, check thresholds crossing,
+/// integrate charge, calculate front-end times ...
+////////////////////////////////////////////////////////////////////
 #ifndef __RAT_Digitizer__
 #define __RAT_Digitizer__
 
@@ -33,6 +48,7 @@ namespace RAT {
     virtual int GoToEndOfSample(int);
     virtual double IntegrateCharge(std::vector<int>);
     virtual double GetDigitizedThreshold(){return fDigitizedThreshold;};
+    virtual double GetPeakTime(int,int);
     
   protected:
     

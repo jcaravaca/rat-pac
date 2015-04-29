@@ -178,6 +178,26 @@ namespace RAT {
     return charge;
   }
 
+  //Moves the sampling point towards the end of the sampling window defined by the
+  //user
+  double Digitizer::GetPeakTime(int pmtID, int init_sample){
+    
+    //Retrieve a piece of the waveform within the sampling window
+    std::vector<int> sampledwf = this->SampleWaveform(this->GetDigitizedWaveform(pmtID), init_sample);
+    //Sample waveform to look for the maximum
+    double peaktime = -9999.;
+    int chargeatstep = 9999.;
+    for(int isample=0;isample<sampledwf.size();isample++){
+      if(sampledwf[isample]<chargeatstep){
+	chargeatstep = sampledwf[isample];
+	peaktime = isample;
+      }
+    }
+
+    return peaktime*fStepTime;
+  }
+
+  
   void Digitizer::Clear(){
 
     for(std::map<int, std::vector<int> >::iterator it = fDigitWaveForm.begin(); it!=fDigitWaveForm.end(); it++){

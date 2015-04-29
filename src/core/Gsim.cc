@@ -500,7 +500,7 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
     GLG4HitPMT* a_pmt= hitpmts->GetPMT(ipmt);
     a_pmt->SortTimeAscending();
 
-    // Create and initialize a RAT DS::MCPMT 
+    // Create and initialize a RAT DS::MCPMT
     // note that GLG4HitPMTs are given IDs which are their index
     DS::MCPMT* rat_mcpmt = mc->AddNewMCPMT();
     pmtMap[a_pmt->GetID()] = mc->GetMCPMTCount()-1; //at this point the size represent the index
@@ -616,10 +616,11 @@ void Gsim::AddMCPhoton(DS::MCPMT* rat_mcpmt, const GLG4HitPhoton* photon,
 
   }
   rat_mcphoton->SetHitTime(photon->GetTime());
-  //  rat_mcphoton->SetFrontEndTime(photon->GetTime());
   rat_mcphoton->SetFrontEndTime(fPMTTime[fPMTInfo->GetModel(rat_mcpmt->GetID())]->PickTime(photon->GetTime()));
   rat_mcphoton->SetCharge(fPMTCharge[fPMTInfo->GetModel(rat_mcpmt->GetID())]->PickCharge());
 
+  //  std::cout<<" Photon Time "<<rat_mcphoton->GetHitTime()<<" "<<rat_mcphoton->GetFrontEndTime()<<std::endl;
+  
 }
 
 void Gsim::SetStoreParticleTraj(const G4String& particleName,
