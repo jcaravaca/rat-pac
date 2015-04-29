@@ -68,6 +68,7 @@ public:
   void DisplayEvent(int);
   void LoadEvent(int);
   void DumpEventInfo(int);
+  void DumpDisplayInfo();
   void DrawGeometry();
   bool IsCerenkov();
   bool IsPE();
@@ -483,6 +484,18 @@ bool EventDisplay::IsPE(){
   
 }
 
+void EventDisplay::DumpDisplayInfo(){
+
+  std::cout<<"***NAVIGATION CONTROL***"<<std::endl;
+  std::cout<<"Left: H"<<std::endl;
+  std::cout<<"Right: L"<<std::endl;
+  std::cout<<"Up: U"<<std::endl;
+  std::cout<<"Down: I"<<std::endl;
+  std::cout<<"Zoom in: J"<<std::endl;
+  std::cout<<"Zoom out: K"<<std::endl;
+  
+}
+
 int main(int argc, char **argv){
 
   //Init
@@ -516,6 +529,7 @@ int main(int argc, char **argv){
     if(DEBUG) std::cout<<" After Dump Event "<<std::endl;
     ed->DisplayEvent(fEvent);
     if(DEBUG) std::cout<<" After Display Event "<<std::endl;
+    ed->DumpDisplayInfo();
   }
   
   dummy_app.Run();

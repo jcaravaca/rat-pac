@@ -25,7 +25,7 @@
   "type": [1, 1, 1, 1],
 }
 
-//1 PMT in the center of box
+//1 PMT in the center of box facing side
 {
   "name": "PMTINFO_ONEPMT",
   "valid_begin": [0, 0],
@@ -39,7 +39,7 @@
   "type": [1],
 }
 
-//6 PMTs located far from the target in a corner to get SPE
+//6 PMTs facing a corner and far from the target to get SPE
 {
   "name": "PMTINFO_FAR",
   "valid_begin": [0, 0],
@@ -54,7 +54,7 @@
 }
 
 
-//6 PMTs located near the target in a corner
+//6 PMTs facing a corner and near the target
 {
   "name": "PMTINFO_CLOSE",
   "valid_begin": [0, 0],
