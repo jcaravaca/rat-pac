@@ -10,13 +10,15 @@
 #/process/inactivate Scintillation
 #/glg4scint/off
 #/glg4scint/reemission off
+/tracking/storeTrajectory 1
 
 ##### Visualization ##########################
 
 ###HEPREP
+
 # /run/initialize
 # /vis/open HepRepFile
-# /vis/heprep/setFileDir ../results/heprep
+# /vis/heprep/setFileDir ../results/heprep/
 # /vis/scene/create
 # /vis/scene/add/volume
 # /vis/sceneHandler/attach
@@ -64,11 +66,11 @@
 ###############################################
 
 #Enable trajectories in tree
-/tracking/storeTrajectory 1
+#/tracking/storeTrajectory 1
 
 ##### BEGIN EVENT LOOP ##################
 /rat/proc daq
-/rat/procset trigger "allpmts" #triggerpmt, allpmts
+/rat/procset trigger "triggerpmt" #triggerpmt, allpmts
 /rat/proc count
 /rat/procset update 1000
 
@@ -76,7 +78,7 @@
 /rat/proclast outroot
 #/rat/procset file "../results/TheiaRnD_cosmics3GeV_scint20mm_noreem.root"
 #/rat/procset file "../results/TheiaRnD_90Y_cross.root"
-/rat/procset file "../results/TheiaRnD_90Y_onepmt_close_acrylicblack_properoptics_hqe_thin_og.root"
+/rat/procset file "../results/TheiaRnD_90Y_onepmt_close_acrylicblack_properoptics_hqe.root"
 #########################################
 
 ##### GENERATORS #################
@@ -120,4 +122,4 @@
 
 ##### RUN ###########
 
-/run/beamOn 100000
+/run/beamOn 10
