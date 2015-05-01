@@ -83,7 +83,7 @@ namespace RAT {
 
 
 
-
+  //Add channel to digitizer and inmdediatly digitize analogue waveform
   void Digitizer::AddChannel(int ichannel, DS::PMTWaveform pmtwf){
     
     GenerateElectronicNoise(ichannel,pmtwf); //Fill fNoise vector
@@ -126,12 +126,14 @@ namespace RAT {
   }
 
 
-  //This function retrieve a chunk of the digitized waveform in a sampling
-  //window defined by [thres_sample-fSampleDelay, thres_sample+fSamplingWindow]
-  std::vector<int> Digitizer::SampleWaveform(std::vector<int> completewaveform, int thres_sample){
+  //Retrieves a chunk of the digitized waveform in a sampling
+  //window defined by the user by fSampleDelay and fSamplingWindow
+  //[init_sample-fSampleDelay, thres_sample+fSamplingWindow]
+  std::vector<int> Digitizer::SampleWaveform(std::vector<int> completewaveform, int init_sample){
 
-    int start_sample = thres_sample-fSampleDelay;
-    int end_sample = thres_sample+(int)fSamplingWindow/fStepTime;
+    int start_sample = init_sample-fSampleDelay;
+    int end_sample = init_sample+(int)fSamplingWindow/fStepTime;
+    if(end_sample>completewaveform.size()-1) end_sample = completewaveform.size() - 1;
     std::vector<int> sampledwaveform;
     
     while(start_sample<=end_sample){
@@ -139,7 +141,6 @@ namespace RAT {
       start_sample++;
     }
 
-    //    *thres_sample = end_sample;  //set the step at the end of the sampling window
     return sampledwaveform;
 
   }
@@ -178,23 +179,41 @@ namespace RAT {
     return charge;
   }
 
-  //Moves the sampling point towards the end of the sampling window defined by the
-  //user
-  double Digitizer::GetPeakTime(int pmtID, int init_sample){
+  //Calculates the time at which the peak of the digitized waveform occurs
+  double Digitizer::GetTimeAtPeak(int pmtID, int init_sample){
     
     //Retrieve a piece of the waveform within the sampling window
     std::vector<int> sampledwf = this->SampleWaveform(this->GetDigitizedWaveform(pmtID), init_sample);
     //Sample waveform to look for the maximum
-    double peaktime = -9999.;
-    int chargeatstep = 9999.;
-    for(int isample=0;isample<sampledwf.size();isample++){
-      if(sampledwf[isample]<chargeatstep){
-	chargeatstep = sampledwf[isample];
-	peaktime = isample;
+    double sampleatpeak = -9999.;
+    int voltatstep = 9999.;
+    for(int isample=0; isample<sampledwf.size(); isample++){
+      if(sampledwf[isample]<voltatstep){
+	//	std::cout<<"GetTimeAtPeak "<<pmtID<<" "<<isample<<" "<<sampledwf[isample]<<std::endl;
+	voltatstep = sampledwf[isample];
+	sampleatpeak = isample;
       }
     }
 
-    return peaktime*fStepTime;
+    return sampleatpeak*fStepTime;
+  }
+
+  //Calculates the time at which a digitized waveform crosses threshold
+  double Digitizer::GetTimeAtThreshold(int pmtID, int init_sample){
+    
+    //Retrieve a piece of the waveform within the sampling window
+    std::vector<int> sampledwf = this->SampleWaveform(this->GetDigitizedWaveform(pmtID), init_sample);
+    //Sample waveform to look for the threshold crossing
+    int sampleatthres = 0;
+    for(int isample=0; isample<sampledwf.size(); isample++){
+      if(sampledwf[isample]<=this->GetDigitizedThreshold()){
+	//	std::cout<<"GetTimeAtThreshold "<<pmtID<<" "<<isample<<" "<<sampledwf[isample]<<std::endl;
+	sampleatthres = isample;
+	break;
+      }
+    }
+
+    return (double) sampleatthres*fStepTime;
   }
 
   

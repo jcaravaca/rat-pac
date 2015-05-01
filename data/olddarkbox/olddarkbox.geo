@@ -126,18 +126,18 @@
 //   orient_point: [-180.0, 0.0, 0.0],
 // }
 
-{
-  name: "GEO",
-  index: "pmt",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  mother: "inner",
-  type: "pmtarray",
-  pmt_model: "r7081_hqe",// r7081_hqe, r11780_hqe
-  pmt_detector_type: "idpmt",
-  sensitive_detector: "/mydet/pmt/inner",
-  efficiency_correction: 1.0, //1.027,
-  pos_table: "PMTINFO",
-  orientation: "point",
-  orient_point: [-180.0, 0.0, 0.0],
-}
+// {
+//   name: "GEO",
+//   index: "pmt",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   mother: "inner",
+//   type: "pmtarray",
+//   pmt_model: "r7081_hqe",// r7081_hqe, r11780_hqe
+//   pmt_detector_type: "idpmt",
+//   sensitive_detector: "/mydet/pmt/inner",
+//   efficiency_correction: 1.0, //1.027,
+//   pos_table: "PMTINFO",
+//   orientation: "point",
+//   orient_point: [-180.0, 0.0, 0.0],
+// }

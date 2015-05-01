@@ -14,35 +14,38 @@
 ##### Visualization ##########################
 
 ###HEPREP
+# /run/initialize
 # /vis/open HepRepFile
-# /vis/heprep/setFileDir ../results/heprep/
+# /vis/heprep/setFileDir ../results/heprep
 # /vis/scene/create
 # /vis/scene/add/volume
 # /vis/sceneHandler/attach
+# /vis/viewer/set/style s
+# /vis/scene/add/trajectories
+# /vis/scene/add/hits
 # /vis/viewer/flush
 
-#/vis/scene/add/trajectories #Add trajectories to vis
-#/vis/scene/add/hits
+#Extra useless commands
 #/vis/modeling/trajectories/create/generic
 #/vis/modeling/trajectories/generic-0/default/setDrawLine true
 #/vis/viewer/refresh
 
 
 ###OPENGL
-# /vis/open OGLSXm
-# /vis/scene/create
-# /vis/scene/add/volume
-# /vis/sceneHandler/attach
-# /vis/scene/add/trajectories
-# /tracking/storeTrajectory 1
-# /vis/viewer/refresh
-# /vis/scene/endOfEventAction accumulate
-# /vis/drawVolume darkbox
-# /vis/viewer/set/background white
-# /vis/viewer/set/style s
-# /vis/viewer/set/projection p
-# /vis/viewer/set/upVector 0 0 1
-# /vis/viewer/set/viewpointThetaPhi 50 -90 #side
+/vis/open OGLSXm
+/vis/scene/create
+/vis/scene/add/volume
+/vis/sceneHandler/attach
+/vis/scene/add/trajectories
+/tracking/storeTrajectory 1
+/vis/viewer/refresh
+/vis/scene/endOfEventAction accumulate
+/vis/drawVolume darkbox
+/vis/viewer/set/background white
+/vis/viewer/set/style s
+/vis/viewer/set/projection p
+/vis/viewer/set/upVector 0 0 1
+/vis/viewer/set/viewpointThetaPhi 50 -90 #side
 # /vis/viewer/set/viewpointThetaPhi 70 30 #corner
 # /vis/viewer/zoom 7.26
 
@@ -60,11 +63,12 @@
 
 ###############################################
 
+#Enable trajectories in tree
 /tracking/storeTrajectory 1
 
 ##### BEGIN EVENT LOOP ##################
 /rat/proc daq
-/rat/procset trigger "triggerpmt" #triggerpmt, allpmts
+/rat/procset trigger "allpmts" #triggerpmt, allpmts
 /rat/proc count
 /rat/procset update 1000
 
@@ -72,7 +76,7 @@
 /rat/proclast outroot
 #/rat/procset file "../results/TheiaRnD_cosmics3GeV_scint20mm_noreem.root"
 #/rat/procset file "../results/TheiaRnD_90Y_cross.root"
-/rat/procset file "../results/TheiaRnD_90Y_onepmt_close_acrylicblack_properoptics.root"
+/rat/procset file "../results/TheiaRnD_90Y_onepmt_close_acrylicblack_properoptics_hqe_thin_og.root"
 #########################################
 
 ##### GENERATORS #################
@@ -105,7 +109,7 @@
 /generator/add decaychain 90Y:fill:uniform
 # # /generator/pos/set -410.0 -410.0 0.0 #corner of the box (for TheiaRnD.geo)
 # # /generator/pos/set 0 0 423.0 #top of the box
-/generator/pos/set -464.287 -25.0 -300.0 #side of the box (for onepme_new_close.geo)
+/generator/pos/set -464.287 -25.0 -300.0 #side of the box (for onepmt_new_close.geo)
 /generator/pos/set source
 
 ###SOLAR NEUTRINOS

@@ -98,7 +98,7 @@ namespace RAT {
                          // we really should warn the user what is taking place
     }
 
-
+    //Setup digitizer
     fDigitizer.SetNBits(fNBits);
     fDigitizer.SetStepTime(fStepTimeDB);
     fDigitizer.SetOffSet(fOffSetDB);
@@ -125,9 +125,7 @@ namespace RAT {
 	
 	DS::MCPhoton *mcphotoelectron = mcpmt->GetMCPhoton(iph);
 	TimePhoton = mcphotoelectron->GetFrontEndTime();
-	//TimePhoton = mcphotoelectron->GetHitTime(); //fixme: not sure about this time...
 	
-	//Produce pulses and add them to the waveform
 	PMTPulse *pmtpulse;
 	if (fPulseTypeDB==0){
             pmtpulse = new SquarePMTPulse; //square PMT pulses
@@ -146,7 +144,7 @@ namespace RAT {
 	pmtwf.fPulse.push_back(pmtpulse);
 	//	PulseDuty += pmtpulse->GetPulseEndTime() - pmtpulse->GetPulseStartTime();
 
-      } // end mcphotoelectron loop: all pulses produces for this PMT
+      } // end mcphotoelectron loop: all pulses produced for this PMT
       
       //Sort pulses in time order
       std::sort(pmtwf.fPulse.begin(),pmtwf.fPulse.end(),Cmp_PMTPulse_TimeAscending);
@@ -165,17 +163,12 @@ namespace RAT {
     } //end pmt loop
 
 
-    
+    //////////////////////////////////////////////////////////    
     //FROM HERE THE TRIGGER PROCESSOR SHOULD TAKE OVER!
     //1) Check trigger condition and divide waveforms in chunks
     //2) Build events containing digitized waveform samples and integrated charges
+    //////////////////////////////////////////////////////////
     
-
-    
-    //So far the trigger condition correspond to any PMT crossing threshold. In the
-    //future we'll change it to only the trigger PMT crosses threshold. When trigger
-    //condition fulfilled create a new PMT in the event. If no PMT, no new event.
-
     //First trigger type: store all PMTs crossing threshold
     DS::EV *ev = ds->AddNewEV(); //Remove it if no PMT cross threshold
     ev->SetID(fEventCounter);
@@ -210,14 +203,15 @@ namespace RAT {
       }
       //If trigger PMT has been hit, sample its waveform and check if it crosses
       //threshold
-      if(triggerID>-1){
+      if(triggerID>-1){ //means the trigger PMT exists in the event and hence we have a hit
 	int nsamples = fDigitizer.GetNSamples(triggerID);
 	std::vector<int> DigitizedTriggerWaveform = fDigitizer.GetDigitizedWaveform(triggerID);
+	//Sample the digitized waveform to look for triggers
 	for(int isample=0; isample<nsamples; isample++){
 
 	  //	  std::cout<<" SAMPLE "<<isample<<" "<<DigitizedTriggerWaveform[isample]<<" "<<fDigitizer.GetDigitizedThreshold()<<std::endl;
 	  
-	  if (DigitizedTriggerWaveform[isample]<fDigitizer.GetDigitizedThreshold()){ //hit above threshold! (remember the pulses are negative)
+	  if (DigitizedTriggerWaveform[isample]<=fDigitizer.GetDigitizedThreshold()){ //hit above threshold! (remember the pulses are negative)
 	    //Read ALL PMTs
 	    for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++){
 	      int pmtID = mc->GetMCPMT(imcpmt)->GetID();
@@ -225,14 +219,18 @@ namespace RAT {
 	      pmt->SetID(pmtID);
 	      pmt->SetWaveform(fDigitizer.SampleWaveform(fDigitizer.GetDigitizedWaveform(pmtID), isample));
 	      pmt->SetCharge(fDigitizer.IntegrateCharge(fDigitizer.GetDigitizedWaveform(pmtID)));
-	      pmt->SetTime(fDigitizer.GetPeakTime(pmtID,isample)); //sample the waveform and find the peak position
-	      //	      pmt->SetTime(isample*fStepTimeDB);
+	      //pmt->SetTime(fDigitizer.GetTimeAtPeak(pmtID,isample));
+	      pmt->SetTime(fDigitizer.GetTimeAtThreshold(pmtID,isample));
 	    } //end reading PMTs
+
 	    isample = fDigitizer.GoToEndOfSample(isample); //go forward towards the end of the sampling window
 	  } //end if: trigger above threshold
+
 	}//end sampling
+
 	DigitizedTriggerWaveform.clear(); //prune for next round of PMTs
       } //end if hit trigger PMT
+
       fDigitizer.Clear();
     } //end if second type of trigger
 	

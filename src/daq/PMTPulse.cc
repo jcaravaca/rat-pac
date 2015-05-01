@@ -66,7 +66,7 @@ float SquarePMTPulse::Integrate(double time1, double time2)
 float RealPMTPulse::GetPulseHeight(double time)
 {
     float height;
-    float norm=fPulseCharge*exp(fPulseMean); //Orebi Gann normalization
+    //    float norm=fPulseCharge*exp(fPulseMean); //Orebi Gann normalization
     double delta_t = (time-fStartTime);
 
     // if (delta_t > 1.0) {

@@ -513,7 +513,7 @@ int main(int argc, char **argv){
   if(fEvent==-9999){
     for(int ievt=0; ievt<nevents ; ievt++){
       ed->LoadEvent(ievt);
-      if(std::string(fOpt) == "cerenkov" && !ed->IsCerenkov()) continue;
+      if(std::string(fOpt) == "cherenkov" && !ed->IsCerenkov()) continue;
       if(std::string(fOpt) == "pe" && !ed->IsPE()) continue;
       if(DEBUG) std::cout<<" After Cerenkov Check "<<std::endl;
       ed->DumpEventInfo(ievt);

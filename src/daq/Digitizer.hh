@@ -48,8 +48,9 @@ namespace RAT {
     virtual int GoToEndOfSample(int);
     virtual double IntegrateCharge(std::vector<int>);
     virtual double GetDigitizedThreshold(){return fDigitizedThreshold;};
-    virtual double GetPeakTime(int,int);
-    
+    virtual double GetTimeAtPeak(int,int);
+    virtual double GetTimeAtThreshold(int,int);
+
   protected:
     
     double fStepTime; //Time resolution in ns
