@@ -77,7 +77,7 @@ float RealPMTPulse::GetPulseHeight(double time)
     //     height = -1.0E-33; //non-zero at start time
     // }
 
-    if (delta_t != 0.0) {
+    if (delta_t > 0.0) {
       height = fPulseOffset - (fPulseCharge/(delta_t*fPulseWidth*sqrt(2*3.14159)))*exp(-0.5*pow(((log(delta_t)-fPulseMean)/fPulseWidth),2));
     }
     else{

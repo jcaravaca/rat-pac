@@ -10,10 +10,10 @@ noise_rate: 0.0,
 //Pulses
 pulse_type: 1, //0=square pulses, 1=realistic pulses
               //must change pulse_width depending on selection 
-pulse_width: 0.15, //0.22 PMT pulse width in log(ns) for real pulses
+pulse_width: 0.5, //0.15, 0.22 PMT pulse width in log(ns) for real pulses
 pulse_offset: 0.0, //PMT pulse offset in pA
 pulse_min: -0.001, //minimum pulse height to consider in mV
-pulse_mean: 2.727, //PMT pulse mean in log(ns) (for lognormal shape only)
+pulse_mean: 1.7, //(2.727) PMT pulse mean in log(ns) (for lognormal shape only)
 
 //Electronic noise
 noise_amplitude: 1.0, //amplitude of high frequency noise in mV

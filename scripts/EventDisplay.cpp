@@ -36,7 +36,7 @@
 
 #define DEBUG false
 #define DRAWTRACKS true
-#define DRAWWAVEFORMS false
+#define DRAWWAVEFORMS true
 #define DRAWPMTS false
 #define DRAWOLDDARKBOX false
 
@@ -304,10 +304,11 @@ void EventDisplay::LoadEvent(int ievt){
   double ymin_temp=0.;
   double xmax_temp=0.;//dummy
   double xmin_temp=0.;//dummy
+
   for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
     RAT::DS::MCPMT *mcpmt = mc->GetMCPMT(ipmt);
     PMTWaveforms.push_back(mcpmt->GetWaveform()->GetGraph());
-    vPMTDigitizedWaveforms[ipmt] = mcpmt->GetDigitizedWaveform();
+
     //Compute graph limits
     PMTWaveforms[ipmt].ComputeRange(xmin_temp,ymin_temp,xmax_temp,ymax_temp);
     ymax = TMath::Max(ymax,ymax_temp);
@@ -315,20 +316,18 @@ void EventDisplay::LoadEvent(int ievt){
     ymax = (ymax == 0)? 0.1:ymax;
 
     //Set digitized graphs
+    vPMTDigitizedWaveforms[ipmt] = mcpmt->GetDigitizedWaveform();
     for(int isample=0; isample<vPMTDigitizedWaveforms[ipmt].size(); isample++){
       PMTDigitizedWaveforms[ipmt].SetPoint(isample,isample,vPMTDigitizedWaveforms[ipmt][isample]);
-      //      PMTDigitizedWaveforms[ipmt].SetPoint(isample,isample*2.0,(vPMTDigitizedWaveforms[ipmt][isample] - 8200.)/330.);
-      //      std::cout<<"Digit waveforms "<<isample<<" "<<vPMTDigitizedWaveforms[ipmt][isample]<<std::endl;
       ymax_d = TMath::Max(ymax_d,vPMTDigitizedWaveforms[ipmt][isample]);
       ymin_d = TMath::Min(ymin_d,vPMTDigitizedWaveforms[ipmt][isample]);
     }
-    
-    if(DEBUG) std::cout<<" analogue limits "<<ymax<<" "<<ymin<<std::endl;
-    if(DEBUG) std::cout<<" digital limits "<<ymax_d<<" "<<ymin_d<<std::endl;
-    //    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(2.0*ymin,1.2*ymax);
-    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(-1.5,0.5);
+  }
+ 
+  //Set correct limits for drawing purposes
+  for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
+    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(1.2*ymin,1.2*ymax);
     PMTDigitizedWaveforms[ipmt].GetYaxis()->SetRangeUser(0.99*ymin_d,1.01*ymax_d);
-
   }
   
   if(DEBUG) std::cout<<"LOADED! "<<std::endl;
@@ -411,7 +410,7 @@ void EventDisplay::DisplayEvent(int ievt){
       if(DEBUG) std::cout<<"Display canvas 2 "<<std::endl;
       
       canvas_event->cd(3);
-      PMTWaveforms[0].GetXaxis()->SetLimits(0.,50.);
+      PMTWaveforms[0].GetXaxis()->SetLimits(0.,100.);
       PMTWaveforms[0].Draw("AP");
       PMTWaveforms[0].GetXaxis()->SetTitle("t(ns)");
       PMTWaveforms[0].GetYaxis()->SetTitle("V");

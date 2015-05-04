@@ -118,13 +118,13 @@ namespace RAT {
       //For each PMT loop over hit photons and create a waveform for each of them
       DS::PMTWaveform pmtwf;
       pmtwf.SetStepTime(fStepTimeDB);
-      double TimePhoton;
+      pmtwf.SetSamplingWindow(fSamplingTimeDB);
       //      double PulseDuty=0.0;
 
       for (size_t iph=0; iph < mcpmt->GetMCPhotonCount(); iph++) {
 	
 	DS::MCPhoton *mcphotoelectron = mcpmt->GetMCPhoton(iph);
-	TimePhoton = mcphotoelectron->GetFrontEndTime();
+	double TimePhoton = mcphotoelectron->GetFrontEndTime();
 	
 	PMTPulse *pmtpulse;
 	if (fPulseTypeDB==0){
@@ -179,7 +179,7 @@ namespace RAT {
 	int nsamples = fDigitizer.GetNSamples(pmtID);
 	std::vector<int> DigitizedWaveform = fDigitizer.GetDigitizedWaveform(pmtID);
 	for(int isample=0; isample<nsamples; isample++){
-	  if (DigitizedWaveform[isample]<fDigitizer.GetDigitizedThreshold()){ //hit above threshold! (remember the pulses are negative)
+	  if (DigitizedWaveform[isample]<=fDigitizer.GetDigitizedThreshold()){ //hit above threshold! (remember the pulses are negative)
 	    DS::PMT* pmt = ev->AddNewPMT();
 	    pmt->SetID(pmtID);
 	    pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
@@ -219,8 +219,8 @@ namespace RAT {
 	      pmt->SetID(pmtID);
 	      pmt->SetWaveform(fDigitizer.SampleWaveform(fDigitizer.GetDigitizedWaveform(pmtID), isample));
 	      pmt->SetCharge(fDigitizer.IntegrateCharge(fDigitizer.GetDigitizedWaveform(pmtID)));
-	      //pmt->SetTime(fDigitizer.GetTimeAtPeak(pmtID,isample));
-	      pmt->SetTime(fDigitizer.GetTimeAtThreshold(pmtID,isample));
+	      pmt->SetTime(fDigitizer.GetTimeAtPeak(pmtID,isample));
+	      //pmt->SetTime(fDigitizer.GetTimeAtThreshold(pmtID,isample));
 	    } //end reading PMTs
 
 	    isample = fDigitizer.GoToEndOfSample(isample); //go forward towards the end of the sampling window

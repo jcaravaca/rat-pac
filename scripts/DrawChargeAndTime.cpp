@@ -106,10 +106,10 @@ void GetHistos(){
   for(int ih=0; ih<NPMTs; ih++){
     h_MCPMT_npe.push_back(new TH1F(Form("h_mcpmt_npe_%i",ih),"h_mcpmt_npe",10,0,10));
     h_MCPMT_charge.push_back(new TH1F(Form("h_mcpmt_charge_%i",ih),"h_mcpmt_charge",100,0,50));
-    h_MCPMT_fetime.push_back(new TH1F(Form("h_MCPMT_fetime_%i",ih),"h_MCPMT_fetime",100,-10,10));
+    h_MCPMT_fetime.push_back(new TH1F(Form("h_MCPMT_fetime_%i",ih),"h_MCPMT_fetime",1000,0,80));
     h_charge.push_back(new TH1F(Form("h_charge_%i",ih),"h_charge",100,0,50));
-    h_time.push_back(new TH1F(Form("h_time_%i",ih),"h_time",100,-10,10));
-    h_time_diff.push_back(new TH1F(Form("h_time_diff_%i",ih),"h_time_diff",100,-10,10));
+    h_time.push_back(new TH1F(Form("h_time_%i",ih),"h_time",1000,0,80));
+    h_time_diff.push_back(new TH1F(Form("h_time_diff_%i",ih),"h_time_diff",100,-100,100));
   }
   h_charge_total = new TH1F("h_charge_total","h_charge_total",100,0,20);
 
@@ -123,10 +123,9 @@ void GetHistos(){
     T->Draw(Form("ds.ev.pmt.charge>>h_charge_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
     T->Draw(Form("ds.ev.pmt.time>>h_time_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
     //MC
-    T->Draw(Form("ds.mc.pmt.GetMCPhotonCount()>>h_mcpmt_npe_%i",ipmt),Form("ds.mc.pmt.id==%i",ipmt));
-    //    T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime>>h_MCPMT_fetime_%i",ipmt),Form("ds.mc.pmt.id==%i",ipmt));
-    //    T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime>>h_MCPMT_fetime_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
-    //    T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime - ds.ev.pmt.time >> h_time_diff_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
+    // T->Draw(Form("ds.mc.pmt.GetMCPhotonCount()>>h_mcpmt_npe_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
+    // T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime>>h_MCPMT_fetime_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
+    // T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime - ds.ev.pmt.time >> h_time_diff_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
   }
   
   //Fill histos with loop

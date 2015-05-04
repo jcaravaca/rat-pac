@@ -26,13 +26,16 @@ namespace RAT {
     
     //Sort pulses in time order
     //    std::sort(fPulse.begin(),fPulse.end(),Cmp_PMTPulse_TimeAscending);
-    double starttime = pmtwf.fPulse.front()->GetPulseStartTime();
-    double endtime = pmtwf.fPulse.back()->GetPulseEndTime();
-    if(starttime-endtime < fSamplingWindow) endtime = starttime + fSamplingWindow;
+    // double starttime = pmtwf.fPulse.front()->GetPulseStartTime();
+    // double endtime = pmtwf.fPulse.back()->GetPulseEndTime();
+    // if(starttime-endtime < fSamplingWindow) endtime = starttime + fSamplingWindow;
+    double starttime = 0.;
+    double endtime = fSamplingWindow;
     int nsamples = (endtime - starttime)/fStepTime;
     fNoise[ichannel].resize(nsamples);
     float NoiseAmpl = fNoiseAmpl;
     for(int istep=0; istep<nsamples ;istep++){
+      //      fNoise[ichannel][istep] = 0.;
       fNoise[ichannel][istep] = NoiseAmpl*CLHEP::RandGauss::shoot();
     }
     
@@ -88,9 +91,11 @@ namespace RAT {
     
     GenerateElectronicNoise(ichannel,pmtwf); //Fill fNoise vector
 
-    double starttime = pmtwf.fPulse.front()->GetPulseStartTime();
-    double endtime = pmtwf.fPulse.back()->GetPulseEndTime();
-    if(starttime-endtime < fSamplingWindow) endtime = starttime + fSamplingWindow;
+    //    double starttime = pmtwf.fPulse.front()->GetPulseStartTime();
+    //    double endtime = pmtwf.fPulse.back()->GetPulseEndTime();
+    //    if(endtime-starttime < fSamplingWindow) endtime = starttime + fSamplingWindow;
+    double starttime = 0.;
+    double endtime = fSamplingWindow;
     int nsamples = (endtime - starttime)/fStepTime;
     int nADCs = 1 << fNBits; //Calculate the number of adc counts
     double adcpervolt = nADCs/(fVhigh - fVlow);
@@ -160,7 +165,8 @@ namespace RAT {
     int nADCs = 1 << fNBits; //Calculate the number of adc counts
     double adcpervolt = nADCs/(fVhigh - fVlow);
     fDigitizedThreshold = round((threhold_volts - fVlow + fOffset)*adcpervolt); //digitize: V->ADC
-    
+    //    std::cout<<"SetThreshold "<<fDigitizedThreshold<<std::endl;
+      
   }
   
   double Digitizer::IntegrateCharge(std::vector<int> digitizedwaveform){
@@ -198,22 +204,23 @@ namespace RAT {
     return sampleatpeak*fStepTime;
   }
 
-  //Calculates the time at which a digitized waveform crosses threshold
-  double Digitizer::GetTimeAtThreshold(int pmtID, int init_sample){
+  //Calculates the time at which a digitized waveform crosses threshold with respect
+  //to init_sample (that ideally is the time at which the trigger PMT crosses threshold)
+  double Digitizer::GetTimeAtThreshold(int pmtID, int trigger_sample){
     
     //Retrieve a piece of the waveform within the sampling window
-    std::vector<int> sampledwf = this->SampleWaveform(this->GetDigitizedWaveform(pmtID), init_sample);
+    std::vector<int> sampledwf = this->SampleWaveform(this->GetDigitizedWaveform(pmtID), trigger_sample);
     //Sample waveform to look for the threshold crossing
     int sampleatthres = 0;
     for(int isample=0; isample<sampledwf.size(); isample++){
       if(sampledwf[isample]<=this->GetDigitizedThreshold()){
-	//	std::cout<<"GetTimeAtThreshold "<<pmtID<<" "<<isample<<" "<<sampledwf[isample]<<std::endl;
+	std::cout<<"GetTimeAtThreshold "<<pmtID<<" "<<isample<<" "<<sampledwf[isample]<<std::endl;
 	sampleatthres = isample;
 	break;
       }
     }
 
-    return (double) sampleatthres*fStepTime;
+    return sampleatthres*fStepTime;
   }
 
   
