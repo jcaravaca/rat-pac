@@ -36,7 +36,7 @@
 
 #define DEBUG false
 #define DRAWTRACKS true
-#define DRAWWAVEFORMS true
+#define DRAWWAVEFORMS false //if false -> Draw rings
 #define DRAWPMTS false
 #define DRAWOLDDARKBOX false
 
@@ -56,6 +56,8 @@
 char *fInputFile = NULL;
 int fEvent = -9999;
 char *fOpt = "NULL";
+int fNtracks = -9999;
+bool fUserSetNtracks = false;
 void ParseArgs(int argc, char **argv);
 
 
@@ -154,10 +156,10 @@ EventDisplay::EventDisplay(char *_inputfile){
     pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 200.0;
     btarget = new TGeoBBox(20.0,20.0,1.0,pos_temp);
   }
-  TGeoVolume *vtarget = new TGeoVolume("target",btarget,med);
-  vtarget->SetLineWidth(3);
-  vtarget->SetLineColor(kCyan);
-  vworld->AddNode(vtarget,1);
+  // TGeoVolume *vtarget = new TGeoVolume("target",btarget,med);
+  // vtarget->SetLineWidth(3);
+  // vtarget->SetLineColor(kCyan);
+  // vworld->AddNode(vtarget,1);
   if(DRAWPMTS){
     for(int pmtID=0; pmtID<16; pmtID++){
       pos_temp[0] = 75.0-50.0*(pmtID%4); pos_temp[1] = 75.0-50.0*(pmtID/4); pos_temp[2] = 100.0;
@@ -221,9 +223,9 @@ void EventDisplay::LoadEvent(int ievt){
   PMTDigitizedWaveforms.clear();
   hxyplane->Reset();
   npe.clear();
-
+  if (!fUserSetNtracks) fNtracks = mc->GetMCTrackCount();
   //Load tracks
-  for (int itr = 0; itr < mc->GetMCTrackCount(); itr++) {
+  for (int itr = 0; itr < fNtracks; itr++) {
     
     RAT::DS::MCTrack *mctrack = mc->GetMCTrack(itr);
     //Create new track
@@ -398,7 +400,7 @@ void EventDisplay::DisplayEvent(int ievt){
     canvas_event->cd(1);
     DrawGeometry();
     //    pl_tracks[0].Draw("LINE");
-    for (int itr = 0; itr < mc->GetMCTrackCount(); itr++) {
+    for (int itr = 0; itr < fNtracks; itr++) {
       pl_tracks[itr].Draw("LINE same");
     }
     
@@ -525,10 +527,10 @@ int main(int argc, char **argv){
     ed->LoadEvent(fEvent);
     if(DEBUG) std::cout<<" After Cerenkov Check "<<std::endl;
     ed->DumpEventInfo(fEvent);
+    ed->DumpDisplayInfo();
     if(DEBUG) std::cout<<" After Dump Event "<<std::endl;
     ed->DisplayEvent(fEvent);
     if(DEBUG) std::cout<<" After Display Event "<<std::endl;
-    ed->DumpDisplayInfo();
   }
   
   dummy_app.Run();
@@ -542,8 +544,9 @@ void ParseArgs(int argc, char **argv){
   bool exist_inputfile = false;
   for(int i = 1; i < argc; i++){
     if(std::string(argv[i]) == "-i") {fInputFile = argv[++i]; exist_inputfile=true;}
-    if(std::string(argv[i]) == "-e") {fEvent = std::stoi(argv[++i]);}
+    if(std::string(argv[i]) == "-ev") {fEvent = std::stoi(argv[++i]);}
     if(std::string(argv[i]) == "-o") {fOpt = argv[++i];}
+    if(std::string(argv[i]) == "-t") {fNtracks = std::stoi(argv[++i]); fUserSetNtracks=true;}
   }
   if(!exist_inputfile){
     std::cerr<<" Usage: EventDisplay.exe -i INPUTFILE [(optional) -e EVNUMBER -o OPTION]"<<std::endl;
