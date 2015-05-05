@@ -47,7 +47,7 @@
 # /vis/viewer/set/upVector 0 0 1
 # /vis/viewer/set/viewpointThetaPhi 50 -90 #side
 # /vis/viewer/set/viewpointThetaPhi 70 30 #corner
-# /vis/viewer/zoom 7.26
+# /vis/viewer/zoom 10
 
 ###RAYTRACER
 #/vis/open RayTracer
@@ -73,7 +73,7 @@
 /rat/proclast outroot
 #/rat/procset file "../results/TheiaRnD_cosmics3GeV_scint20mm_noreem.root"
 #/rat/procset file "../results/TheiaRnD_90Y_cross.root"
-/rat/procset file "../results/TheiaRnD_90Y_smallpmt_close_lab_scint.root"
+/rat/procset file "../results/TheiaRnD_90Y_smallpmt_newpmts.root"
 #########################################
 
 ##### GENERATORS #################
@@ -117,4 +117,4 @@
 
 ##### RUN ###########
 
-/run/beamOn 10000
+/run/beamOn 1000
