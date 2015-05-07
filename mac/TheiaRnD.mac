@@ -6,15 +6,14 @@
 /rat/db/set DETECTOR geo_file "TheiaRnD/onepmt_new_close.geo"
 
 /run/initialize
-/process/inactivate Cerenkov
+#/process/inactivate Cerenkov
 #/glg4scint/off
-/glg4scint/reemission off
-#/tracking/storeTrajectory 1
+#/glg4scint/reemission off
+/tracking/storeTrajectory 1
 
 ##### Visualization ##########################
 
 ###HEPREP
-
 # /run/initialize
 # /vis/open HepRepFile
 # /vis/heprep/setFileDir ../results/heprep/
@@ -73,7 +72,7 @@
 /rat/proclast outroot
 #/rat/procset file "../results/TheiaRnD_cosmics3GeV_scint20mm_noreem.root"
 #/rat/procset file "../results/TheiaRnD_90Y_cross.root"
-/rat/procset file "../results/TheiaRnD_90Y_smallpmt_newpmts.root"
+/rat/procset file "../results/TheiaRnD_90Y_r7081_closer_thres40.root"
 #########################################
 
 ##### GENERATORS #################
@@ -116,5 +115,4 @@
 #######################################
 
 ##### RUN ###########
-
-/run/beamOn 1000
+/run/beamOn 100000

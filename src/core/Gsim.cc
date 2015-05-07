@@ -560,7 +560,7 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
 	  lasthittime = hittime;
 	}
       }
-    }
+    } //end real photons loop
   }// end hit PMTs loop
   mc->SetNumPE(numPE);
 
@@ -613,6 +613,18 @@ void Gsim::MakeEvent(const G4Event* g4ev, DS::Root* ds) {
     AddMCPhoton(mc->GetMCPMT(pmtMap[pmtid]), hit, true, (StoreOpticalTrackID ? exinfo : NULL));
 
   }
+
+  //Fill total charge and time for the MCPMTs
+  //Methods are automatic and filled out of the information
+  //of the storaged photons
+  for(int ipmt=0; ipmt<mc->GetMCPMTCount(); ipmt++){
+
+    mc->GetMCPMT(ipmt)->SetTotalCharge();
+    mc->GetMCPMT(ipmt)->SetTime();
+    mc->GetMCPMT(ipmt)->SetFrontEndTime();
+
+  }
+
 }
 
 void Gsim::AddMCPhoton(DS::MCPMT* rat_mcpmt, const GLG4HitPhoton* photon,

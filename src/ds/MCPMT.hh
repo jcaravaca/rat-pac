@@ -31,6 +31,14 @@ public:
   /** Charge */
   virtual Float_t GetCharge() const;
 
+  /** Time */
+  virtual Float_t SetTime() {time = this->GetTime();};
+  virtual Float_t GetTime() const;
+
+  /** FETime */
+  virtual Float_t SetFrontEndTime() {feTime = this->GetFrontEndTime();};
+  virtual Float_t GetFrontEndTime() const;
+
   /** PMT type */
   virtual Int_t GetType() const { return type; };
   virtual void SetType(Int_t _type) { type = _type; };
@@ -50,11 +58,19 @@ public:
   void SetDigitizedWaveform(std::vector<int> _digitwaveform) {fDigitWaveForm = _digitwaveform;};
   std::vector<int> GetDigitizedWaveform() {return fDigitWaveForm;};
 
+  /** Total charge as the sum of the charge of all the PE. */
+  Float_t GetTotalCharge() const { return qTotal; }
+  void SetTotalCharge() { qTotal = this->GetCharge(); }
+
+  
   ClassDef(MCPMT, 1)
     
 protected:
   Int_t id;
   Int_t type;
+  Float_t qTotal;
+  Float_t time;
+  Float_t feTime;
   std::vector<MCPhoton> photon;
   PMTWaveform waveform;
   std::vector<int> fDigitWaveForm;
