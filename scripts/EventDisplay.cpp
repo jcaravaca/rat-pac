@@ -101,7 +101,7 @@ protected:
   TGeoVolume *vworld;
   std::map<int, TGeoBBox* > bpmt;
   std::map<int, TGeoVolume* > vpmt;
-  double pmtwidth = 30.; //mm
+  double pmtwidth;
   std::vector<TPaveText> vpmtbox;
 
 };
@@ -109,7 +109,10 @@ protected:
 
 EventDisplay::EventDisplay(char *_inputfile){
   
+  //Init
   OpenFile(_inputfile);
+  pmtwidth = 30.; //mm
+
   //Set canvas
   gStyle->SetGridWidth(1);
   canvas_event = new TCanvas("canvas_event", "Event", 800, 1000);
@@ -130,7 +133,7 @@ EventDisplay::EventDisplay(char *_inputfile){
   hxyplane = new TH2F("hxyplane","Track intersections with XY plane",1000,-XP_XSIDE,XP_XSIDE,1000,-XP_YSIDE,XP_YSIDE);
   
   //Geometry
-  new TGeoManager("box", "poza1");
+  TGeoManager *tgeoman = new TGeoManager("box", "poza1");
   TGeoMaterial *mat = new TGeoMaterial("Al", 26.98,13,2.7);
   TGeoMedium *med = new TGeoMedium("MED",1,mat);
   

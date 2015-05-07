@@ -1,4 +1,3 @@
-#include"/Users/snoplus/tests/jsoncpp/dist/jsoncpp.cpp" //Needs to be included the first
 #include<iostream>
 #include<fstream>
 

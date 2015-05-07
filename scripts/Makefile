@@ -2,7 +2,8 @@ CFLAGS = -Wall -Wno-write-strings -DSWAP_BYTES -g -fdiagnostics-show-option
 LFLAGS = -L/usr/lib -L$(ROOTSYS)/lib -L$(RATROOT)/lib
 CC= g++
 
-INCLUDES= `root-config --cflags --glibs` -lGeom\
+#LOCAL
+#INCLUDES= `root-config --cflags --glibs` -lGeom\
 -Iinclude \
 -Iinclude/RAT \
 -I/Users/snoplus/snoing/install/rat-pac/include \
@@ -10,13 +11,14 @@ INCLUDES= `root-config --cflags --glibs` -lGeom\
 -I/Users/snoplus/snoing/install/rat-pac/include/RAT/DS \
 -lRATEvent
 
-#INCLUDES= `root-config --cflags --glibs` \
+#CLUSTER
+INCLUDES= `root-config --cflags --glibs` -lGeom\
 -Iinclude \
 -Iinclude/RAT \
--I/data/snoplus/shared/code/snoing/x11install/rat-4.5.0/include \
--I/data/snoplus/shared/code/snoing/x11install/rat-4.5.0/include/RAT \
--I/data/snoplus/shared/code/snoing/x11install/rat-4.5.0/include/RAT/DS \
--lRATEvent_Linux
+-I/data/snoplus/home/jcaravaca/install/rat-pac/include \
+-I/data/snoplus/home/jcaravaca/install/rat-pac/include/RAT \
+-I/data/snoplus/home/jcaravaca/install/rat-pac/include/RAT/DS \
+-lRATEvent
 
 .PHONY: all
 
