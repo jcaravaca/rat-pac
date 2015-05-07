@@ -3,7 +3,7 @@ LFLAGS = -L/usr/lib -L$(ROOTSYS)/lib -L$(RATROOT)/lib
 CC= g++
 
 #LOCAL
-#INCLUDES= `root-config --cflags --glibs` -lGeom\
+INCLUDES= `root-config --cflags --glibs` -lGeom\
 -Iinclude \
 -Iinclude/RAT \
 -I/Users/snoplus/snoing/install/rat-pac/include \
@@ -12,7 +12,7 @@ CC= g++
 -lRATEvent
 
 #CLUSTER
-INCLUDES= `root-config --cflags --glibs` -lGeom\
+#INCLUDES= `root-config --cflags --glibs` -lGeom\
 -Iinclude \
 -Iinclude/RAT \
 -I/data/snoplus/home/jcaravaca/install/rat-pac/include \
