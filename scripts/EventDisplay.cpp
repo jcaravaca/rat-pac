@@ -39,6 +39,7 @@
 #define DRAWWAVEFORMS false //if false -> Draw rings
 #define DRAWPMTS false
 #define DRAWOLDDARKBOX false
+#define DRAWVESSEL true
 
 //Geometry
 #define DB_XSIDE 762.0 // 500.//762.0, 
@@ -56,7 +57,8 @@
 char *fInputFile = NULL;
 int fEvent = -9999;
 char *fOpt = "NULL";
-int fNtracks = -9999;
+int fItrack = -9999;
+int fFtrack = -9999;
 bool fUserSetNtracks = false;
 void ParseArgs(int argc, char **argv);
 
@@ -146,20 +148,28 @@ EventDisplay::EventDisplay(char *_inputfile){
   vdarkbox->SetLineWidth(3);
   vdarkbox->SetLineColor(1);
   vworld->AddNode(vdarkbox,1);
-  TGeoBBox *btarget;
+  TGeoBBox *bvessel;
+  TGeoBBox *bcontent;
   if(DRAWOLDDARKBOX){
     // pos_temp[0] = -180.0; pos_temp[1] = 0.0; pos_temp[2] = 0.0;
-    // btarget = new TGeoBBox(2.5,66.7,47.6,pos_temp);
+    // bvessel = new TGeoBBox(2.5,66.7,47.6,pos_temp);
     pos_temp[0] = -450.0; pos_temp[1] = 0.0; pos_temp[2] = -300.0;
-    btarget = new TGeoBBox(32.0,100.0,50.0,pos_temp);
+    bvessel = new TGeoBBox(32.0,100.0,50.0,pos_temp);
   } else{
     pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 200.0;
-    btarget = new TGeoBBox(20.0,20.0,1.0,pos_temp);
+    bvessel = new TGeoBBox(20.0,20.0,5.0,pos_temp);
+    bcontent = new TGeoBBox(18.0,18.0,3.0,pos_temp);
   }
-  // TGeoVolume *vtarget = new TGeoVolume("target",btarget,med);
-  // vtarget->SetLineWidth(3);
-  // vtarget->SetLineColor(kCyan);
-  // vworld->AddNode(vtarget,1);
+  if(DRAWVESSEL){
+    TGeoVolume *vvessel = new TGeoVolume("vessel",bvessel,med);
+    TGeoVolume *vcontent = new TGeoVolume("content",bcontent,med);
+    vvessel->SetLineWidth(3);
+    vvessel->SetLineColor(kCyan);
+    vcontent->SetLineWidth(2);
+    vcontent->SetLineColor(kCyan+1);
+    vworld->AddNode(vvessel,1);
+    vworld->AddNode(vcontent,2);
+  }
   if(DRAWPMTS){
     for(int pmtID=0; pmtID<16; pmtID++){
       pos_temp[0] = 75.0-50.0*(pmtID%4); pos_temp[1] = 75.0-50.0*(pmtID/4); pos_temp[2] = 100.0;
@@ -223,9 +233,9 @@ void EventDisplay::LoadEvent(int ievt){
   PMTDigitizedWaveforms.clear();
   hxyplane->Reset();
   npe.clear();
-  if (!fUserSetNtracks) fNtracks = mc->GetMCTrackCount();
+  if (!fUserSetNtracks || fFtrack > mc->GetMCTrackCount()) fFtrack = mc->GetMCTrackCount();
   //Load tracks
-  for (int itr = 0; itr < fNtracks; itr++) {
+  for (int itr = fItrack; itr < fFtrack; itr++) {
     
     RAT::DS::MCTrack *mctrack = mc->GetMCTrack(itr);
     //Create new track
@@ -400,7 +410,7 @@ void EventDisplay::DisplayEvent(int ievt){
     canvas_event->cd(1);
     DrawGeometry();
     //    pl_tracks[0].Draw("LINE");
-    for (int itr = 0; itr < fNtracks; itr++) {
+    for (int itr = 0; itr < fFtrack-fItrack; itr++) {
       pl_tracks[itr].Draw("LINE same");
     }
     
@@ -544,12 +554,13 @@ void ParseArgs(int argc, char **argv){
   bool exist_inputfile = false;
   for(int i = 1; i < argc; i++){
     if(std::string(argv[i]) == "-i") {fInputFile = argv[++i]; exist_inputfile=true;}
-    if(std::string(argv[i]) == "-ev") {fEvent = std::stoi(argv[++i]);}
+    if(std::string(argv[i]) == "-e") {fEvent = std::stoi(argv[++i]);}
     if(std::string(argv[i]) == "-o") {fOpt = argv[++i];}
-    if(std::string(argv[i]) == "-t") {fNtracks = std::stoi(argv[++i]); fUserSetNtracks=true;}
+    if(std::string(argv[i]) == "-ti") {fItrack = std::stoi(argv[++i]); fUserSetNtracks=true;}
+    if(std::string(argv[i]) == "-tf") {fFtrack = std::stoi(argv[++i]); fUserSetNtracks=true;}
   }
   if(!exist_inputfile){
-    std::cerr<<" Usage: EventDisplay.exe -i INPUTFILE [(optional) -e EVNUMBER -o OPTION]"<<std::endl;
+    std::cerr<<" Usage: EventDisplay.exe -i INPUTFILE [(optional) -e EVNUMBER -o OPTION -ti INITIAL_TRACK_TO_BE_DRAWN -tf FINAL_TRACK_TO_BE_DRAWN]"<<std::endl;
     //    std::cerr<<" Specify input file with option: '-i'"<<std::endl;
     exit(0);
   }

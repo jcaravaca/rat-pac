@@ -45,8 +45,8 @@
 # /vis/viewer/set/background white
 # /vis/viewer/set/style s
 # /vis/viewer/set/projection p
-# /vis/viewer/set/upVector 0 0 1
-# /vis/viewer/set/viewpointThetaPhi 50 -90 side
+#/vis/viewer/set/upVector 0 0 1
+#/vis/viewer/set/viewpointThetaPhi 50 -90 side
 # /vis/viewer/set/viewpointThetaPhi 70 30 #corner
 # /vis/viewer/zoom 10
 
@@ -73,7 +73,7 @@
 #Output file
 /rat/proclast outroot
 #/rat/procset file "../results/TheiaRnD_cosmics3GeV_scint20mm_noreem.root"
-/rat/procset file "../results/TheiaRnD_90Y_box.root"
+/rat/procset file "../results/TheiaRnD_90Y_waterinacry.root"
 #/rat/procset file "../results/TheiaRnD_90Y_smallpmt_scint.root"
 #########################################
 

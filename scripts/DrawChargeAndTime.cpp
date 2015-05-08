@@ -20,7 +20,7 @@
 #include <RAT/DB.hh>
 
 #define NPMTs 2
-#define USEROOTLOOP false
+#define USERROOTLOOP true
 
 //Methods
 char * gInputFile = NULL;
@@ -121,7 +121,7 @@ void GetHistos(){
   for(int ipmt=0; ipmt<NPMTs; ipmt++){
     //EV
     T->Draw(Form("ds.ev.pmt.charge>>h_charge_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
-    T->Draw(Form("ds.ev.pmt.time>>h_time_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
+    // T->Draw(Form("ds.ev.pmt.time>>h_time_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
     //MC
     // T->Draw(Form("ds.mc.pmt.GetMCPhotonCount()>>h_mcpmt_npe_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
     // T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime>>h_MCPMT_fetime_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
@@ -129,7 +129,7 @@ void GetHistos(){
   }
   
   //Fill histos with loop
-  if(USEROOTLOOP){
+  if(USERROOTLOOP){
     RAT::DSReader *dsreader = new RAT::DSReader(gInputFile);
     int nentries = dsreader->GetT()->GetEntries();
     std::cout<<" Number of entries: "<<nentries<<std::endl;

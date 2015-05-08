@@ -105,19 +105,19 @@
 
 // }
 
-// {
-//   name: "GEO",
-//   index: "content",
-//   valid_begin: [0, 0],
-//   valid_end: [0, 0],
-//   invisible: 0, // omitted for visualization
-//   mother: "vessel",
-//   type: "box",
-//   position: [0.0, 0.0, 0.0],
-//   size: [18.0,18.0,10.0], //mm, half-lenght
-//   material: "scintillator",
-//   color: [0.1, 0.1, 1.0, 0.5],
-// }
+{
+  name: "GEO",
+  index: "content",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "vessel",
+  type: "box",
+  position: [0.0, 0.0, 0.0],
+  size: [18.0,18.0,3.0], //mm, half-lenght
+  material: "water",
+  color: [0.1, 0.1, 1.0, 0.5],
+}
 
 // {
 //   name: "GEO",
