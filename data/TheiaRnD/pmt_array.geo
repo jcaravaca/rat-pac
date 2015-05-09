@@ -71,6 +71,7 @@
 //   orient_point: [0.0, 0.0, 400.0],
 // }
 
+////////VESSELS
 {
   name: "GEO",
   index: "vessel",
@@ -95,24 +96,39 @@
 //   valid_end: [0, 0],
 //   invisible: 0, // omitted for visualization
 //   mother: "inner",
+//   type: "sphere",
+//   r_max: 20.0, //mm
+//   position: [0.0, 0.0, 200.0],
+//   material: "acrylic_berkeley",
+//   color: [0.1, 0.3, 0.8, 0.1],
+
+// }
+
+{
+  name: "GEO",
+  index: "content",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "vessel",
+  type: "box",
+  position: [0.0, 0.0, 0.0],
+  size: [18.0,18.0,3.0], //mm, half-lenght
+  material: "water",
+  color: [0.1, 0.1, 1.0, 0.5],
+}
+
+// {
+//   name: "GEO",
+//   index: "source",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "inner",
 //   type: "tube",
 //   position: [0.0, 0.0, 423.0],
 //   r_max: 12.7,
 //   size_z: 1.5, //half-height
 //   material: "strontium", //strontium
 //   color: [0.1, 1.0, 0.3, 0.8],
-// }
-
-// {
-//   name: "GEO",
-//   index: "content",
-//   valid_begin: [0, 0],
-//   valid_end: [0, 0],
-//   invisible: 0, // omitted for visualization
-//   mother: "vessel",
-//   type: "box",
-//   position: [0.0, 0.0, 0.0],
-//   size: [18.0,18.0,10.0], //mm, half-lenght
-//   material: "scintillator",
-//   color: [0.1, 0.1, 1.0, 0.5],
 // }
