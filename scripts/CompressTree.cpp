@@ -77,7 +77,10 @@ int main(int argc, char **argv){
 
 void ParseArgs(int argc, char **argv){
 
-  if(argc < 1) std::cout<<" Usage: ./CompressTree.exe INPUTFILE [CUTLEVEL (optional)] "<<std::endl;
+  if(argc < 2){
+    std::cout<<" Usage: ./CompressTree.exe INPUTFILE [CUTLEVEL (optional)] "<<std::endl;
+    exit(0);
+  }
   filename = argv[1];
   if(argc>2)
     cutlevel = std::stoi(argv[2]);
