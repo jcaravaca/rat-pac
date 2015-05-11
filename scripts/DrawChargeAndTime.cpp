@@ -19,7 +19,7 @@
 #include <RAT/DB.hh>
 
 #define NPMTs 2
-#define USEROOTLOOP true
+#define USERROOTLOOP false
 
 //Methods
 char * gInputFileMC = NULL;
@@ -132,7 +132,7 @@ void GetHistos(){
   h_charge_total = new TH1F("h_charge_total","h_charge_total",100,0,20);
 
   //Fill histos with loop
-  if(USEROOTLOOP){
+  if(USERROOTLOOP){
 
     RAT::DSReader *dsreader = new RAT::DSReader(gInputFileMC);
     TTree *tree = dsreader->GetT();
@@ -204,8 +204,8 @@ void GetHistos(){
       //EV
       std::cout<<"   Loading charge... "<<std::endl;
       T->Draw(Form("ds.ev.pmt.charge>>h_charge_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
-      std::cout<<"   Loading time... "<<std::endl;
-      T->Draw(Form("ds.ev.pmt.time>>h_time_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
+      //      std::cout<<"   Loading time... "<<std::endl;
+      //      T->Draw(Form("ds.ev.pmt.time>>h_time_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
       //MC
       // std::cout<<"   Loading mc charge... "<<std::endl;
       // T->Draw(Form("ds.mc.pmt.GetCharge()>>h_mcpmt_charge_%i",ipmt),Form("ds.mc.pmt.id==%i",ipmt));
@@ -246,16 +246,16 @@ void GetHistos(){
 void NormalizeHistos(){
 
   for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    double norm = h_charge[ipmt]->Integral(21,100);
+    double norm = h_charge[ipmt]->Integral(2,100);
     h_charge[ipmt]->Scale(1./norm);
     std::cout<<" norm "<<ipmt<<" "<<norm<<std::endl;
-    norm = h_mcpmt_charge[ipmt]->Integral(21,100);
+    norm = h_mcpmt_charge[ipmt]->Integral(2,100);
     h_mcpmt_charge[ipmt]->Scale(1./norm);
     std::cout<<" norm "<<ipmt<<" "<<norm<<std::endl;
   }
   
   if(gInputFileDT.size()>0){
-    double norm = h_dt_charge[0]->Integral(21,100);
+    double norm = h_dt_charge[0]->Integral(2,100);
     h_dt_charge[0]->Scale(1./norm);
   }
   
