@@ -15,9 +15,10 @@ def main():
 
     #Parse arguments
     if ( len(sys.argv) < 2):
-        print 'Usage: python RunSimulationInCluster.py NEVENTS'
+        print 'Usage: python RunSimulationInCluster.py OUTPUTFILE NEVENTS'
         sys.exit()
-    nevents = int(sys.argv[1])
+    outfilename = sys.argv[1]
+    nevents = int(sys.argv[2])
 
     #Max number of events per job
     neventsperjob = 100000
@@ -31,7 +32,7 @@ def main():
     template = string.Template(open(template_filename, 'r').read())
 
     for job in range(0,njobs):
-        foutname = " \"../results/TheiaRnD_Y90_r7081_20cm_%s.root\" " % job
+        foutname = " \"../results/%s_%s.root\" " % (outfilename,job)
         rat_macro_text = template.substitute(OUTPUTFILE = foutname, NEVENTSPERJOB = neventsperjob)
         rat_macro_name = 'TheiaRnD_temp_%s.mac' % job
         log_name = 'TheiaRnD_temp_%s.log' % job
