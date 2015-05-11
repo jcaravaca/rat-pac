@@ -21,3 +21,4 @@ src/core/config.hh
 #my untracked files
 data/TheiaRnD/Acrylic*
 data/TheiaRnD/Sample*
+scripts/Makefile
