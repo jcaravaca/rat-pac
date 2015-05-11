@@ -57,8 +57,8 @@
 char *fInputFile = NULL;
 int fEvent = -9999;
 char *fOpt = "NULL";
-int fItrack = -9999;
-int fFtrack = -9999;
+int fItrack = 0;
+int fFtrack = 9999;
 bool fUserSetNtracks = false;
 void ParseArgs(int argc, char **argv);
 
@@ -554,18 +554,19 @@ int main(int argc, char **argv){
 
 
 void ParseArgs(int argc, char **argv){
-  bool exist_inputfile = false;
+
+  //Check args
+  if(argc<2 || std::string(argv[1])=="-help"){
+    std::cerr<<" Usage: EventDisplay.exe INPUTFILE [(optional) -e EVNUMBER -o OPTION -ti INITIAL_TRACK_TO_BE_DRAWN -tf FINAL_TRACK_TO_BE_DRAWN]"<<std::endl;
+    exit(0);
+  }
+
   for(int i = 1; i < argc; i++){
-    if(std::string(argv[i]) == "-i") {fInputFile = argv[++i]; exist_inputfile=true;}
+    fInputFile = argv[1];
     if(std::string(argv[i]) == "-e") {fEvent = std::stoi(argv[++i]);}
     if(std::string(argv[i]) == "-o") {fOpt = argv[++i];}
-    if(std::string(argv[i]) == "-ti") {fItrack = std::stoi(argv[++i]); fUserSetNtracks=true;}
+    if(std::string(argv[i]) == "-ti") {fItrack = std::stoi(argv[++i]);}
     if(std::string(argv[i]) == "-tf") {fFtrack = std::stoi(argv[++i]); fUserSetNtracks=true;}
-  }
-  if(!exist_inputfile){
-    std::cerr<<" Usage: EventDisplay.exe -i INPUTFILE [(optional) -e EVNUMBER -o OPTION -ti INITIAL_TRACK_TO_BE_DRAWN -tf FINAL_TRACK_TO_BE_DRAWN]"<<std::endl;
-    //    std::cerr<<" Specify input file with option: '-i'"<<std::endl;
-    exit(0);
   }
   if(DEBUG){
     std::cout<<" Input file "<<fInputFile<<std::endl;

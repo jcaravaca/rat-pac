@@ -42,10 +42,10 @@
 #include <RAT/DB.hh>
 
 #define DEBUG false
-#define BATCH true
+#define BATCH false
 #define NBINS 500 //500
 #define FITTER "SIMPLEX" //Migrad, SIMPLEX
-
+#define ENABLESR false
 
 namespace TheiaRnD{
 
@@ -111,8 +111,8 @@ Fitter::Fitter(int argc, char **argv){
   time_local = localtime(&time_now);
 
   //Set log filename
-  //sprintf(f_log,"../logs/TheiaRnD_log_%s_%s_%s.txt",time_local->tm_mday,time_local->tm_mon,1900+time_local->tm_year);
-  f_log = Form("../logs/TheiaRnD_log.txt");
+  //sprintf(f_log,"./logs/TheiaRnD_log_%s_%s_%s.txt",time_local->tm_mday,time_local->tm_mon,1900+time_local->tm_year);
+  f_log = Form("./logs/TheiaRnD_log.txt");
   
   //Parse arguments and get pdfs
   ParseArgs(argc, argv);
@@ -130,8 +130,13 @@ void Fitter::ParseArgs(int argc, char **argv){
   }
   
   //  if(!exist_srfile || !exist_yfile || !exist_bkgfile || !exist_datafile){
-  if(!exist_bkgfile || !exist_datafile){
-    std::cerr<<" Specify input files with options: '-d' or '-b'"<<std::endl;
+  if(!exist_bkgfile){
+    std::cerr<<" Specify background with option: '-b'"<<std::endl;
+    std::cerr<<" Performing fit without background!"<<std::endl;
+    exit(0);
+  }
+  if(!exist_datafile){
+    std::cerr<<" Specify input files with options: '-d'"<<std::endl;
     std::cerr<<" Fit cannot be perform! Drawing prefit histograms..."<<std::endl;
     exit(0);
   }
@@ -160,8 +165,8 @@ void Fitter::GetDataPDFs(){
     //    hdata->Scale(1./hdata->Integral()); //Nomalize for shape only analysis
     hpdf_dt.push_back(hdata);
   }
-  hpdf_dt[0]->Scale(1.6/4.7);//scale background
-  //  hpdf_dt[0]->Scale(0.);//NO BACKGROUND
+  //  hpdf_dt[0]->Scale(1.6/4.7);//scale background
+  hpdf_dt[0]->Scale(0.);//NO BACKGROUND
 
   //Initialize post fit histograms
   for(int ih=0; ih<hpdf_dt.size(); ih++)
@@ -206,8 +211,8 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
 
   //Set the efficiency_correction according to fit step: we use a geometry template
   //where we subtitute the efficiency_correction for the desired value
-  ifstream fgeo_template("./data/olddarkbox_template.geo"); //set template
-  ofstream fgeo_used("./data/olddarkbox_fitter.geo"); //set outputfile
+  ifstream fgeo_template("./data/onepmt_template.geo"); //set template
+  ofstream fgeo_used("./data/onepmt_fitter.geo"); //set outputfile
   std::string line;
   std::string valname_template = "CE_VALUE";
   size_t len = valname_template.length();
@@ -222,22 +227,26 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
   fgeo_used.close();
   //Run simulation
   char command_90Sr[10000];
-  sprintf(command_90Sr,"rat -l ./logs/rat_TheiaRnD_90Sr_%f.log ./mac/olddarkbox_90Sr.mac >> %s 2>&1", collection_eff, f_log.c_str());
+  sprintf(command_90Sr,"rat -l ./logs/rat_TheiaRnD_90Sr_%f.log ./mac/TheiaRnD_90Sr.mac >> %s 2>&1", collection_eff, f_log.c_str());
   char command_90Y[10000];
-  sprintf(command_90Y,"rat -l ./logs/rat_TheiaRnD_90Y_%f.log .mac/olddarkbox_90Y.mac >> %s 2>&1", collection_eff, f_log.c_str());
-  system(command_90Sr); //Run 90Sr
+  sprintf(command_90Y,"rat -l ./logs/rat_TheiaRnD_90Y_%f.log ./mac/TheiaRnD_90Y.mac >> %s 2>&1", collection_eff, f_log.c_str());
+  if(ENABLESR) system(command_90Sr); //Run 90Sr
   system(command_90Y); //Run 90Y
 
   //Read file and extract PDFs
-  fMCFiles[0] = "./results/olddarkbox_90Sr_fitter.root"; //signal - strontium
-  fMCFiles[1] = "./results/olddarkbox_90Y_fitter.root"; //signal - ytrium
+  fMCFiles[0] = "./results/TheiaRnD_90Sr_fitter.root"; //signal - strontium
+  fMCFiles[1] = "./results/TheiaRnD_90Y_fitter.root"; //signal - ytrium
 
   RAT::DSReader *dsreader;
   TH1F *htemp;
   for(int ifile=0; ifile<fMCFiles.size(); ifile++){
-    dsreader = new RAT::DSReader(fMCFiles[ifile]);
     htemp = new TH1F(Form("hpdf_mc_fit_%i",ifile),"Charge",NBINS,0,100);
-    dsreader->GetT()->Draw(Form("ds.ev.pmt.charge/5.0>>hpdf_mc_fit_%i",ifile)); //convert to PE
+    if(!ENABLESR && ifile == 0){ //ignore Sr
+      hpdf_mc_fit.push_back(htemp);
+      continue;
+    }
+    dsreader = new RAT::DSReader(fMCFiles[ifile]);
+    dsreader->GetT()->Draw(Form("ds.ev.pmt.charge>>hpdf_mc_fit_%i",ifile), "ds.ev.pmt.id==0");
     hpdf_mc_fit.push_back(htemp);
   }
 
@@ -334,11 +343,11 @@ void Fitter::DoFit(){
   min->FixVariable(0); //Fix 90Sr norm
   min->FixVariable(1); //Fix 90Y norm
   min->FixVariable(2); //Fix background
-  min->FixVariable(3); //Fix collection eff
+  //  min->FixVariable(3); //Fix collection eff
 
   //  do the minimization
-  //  min->Minimize();
-  GetMCPDFsWithCollEff(0.6);
+  min->Minimize();
+  //  GetMCPDFsWithCollEff(0.6);
 
   fMinLikelihood = min->MinValue(); //Minimum likelihood
   const double *xs = min->X();
@@ -433,7 +442,7 @@ void Fitter::DrawPlots(){
   hpdf_mc_sum_fit->Draw("same");
   leg->Draw("same");
 
-  TFile *f_out = new TFile(Form("../plots/TheiaRnD_fitter_%d_%d_%d.root",time_local->tm_mday,time_local->tm_mon,1900+time_local->tm_year),"RECREATE");
+  TFile *f_out = new TFile(Form("./plots/TheiaRnD_fitter_%d_%d_%d.root",time_local->tm_mday,time_local->tm_mon,1900+time_local->tm_year),"RECREATE");
   f_out->cd();
   c_fit->Write();
   f_out->Close();
