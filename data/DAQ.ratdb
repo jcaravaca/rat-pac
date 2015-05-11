@@ -20,7 +20,7 @@ noise_amplitude: 1.0, //amplitude of high frequency noise in mV
 
 //Digitizer
 nbits: 14, //number of bits
-step_time: 0.01, //time resolution in ns (2.0)
+step_time: 2.0, //time resolution in ns (2.0)
 volt_high: 1000.0, //upper voltage limit in mV
 volt_low: -1000.0, //lower voltage limit in mV
 offset: 0.0, //voltage offset in mV
