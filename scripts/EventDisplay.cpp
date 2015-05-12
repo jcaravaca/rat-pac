@@ -76,6 +76,7 @@ public:
   void DrawGeometry();
   bool IsCerenkov();
   bool IsPE();
+  void CustomizeTrack(TPolyLine3D*,RAT::DS::MCTrack*);
 
 protected:
   
@@ -94,7 +95,7 @@ protected:
   std::vector<TPolyLine3D> pl_tracks;
   std::vector<TGraph> PMTWaveforms;
   std::vector<TGraph> PMTDigitizedWaveforms;
-  TH2F *hxyplane;
+  std::map<std::string,TH2F*> hxyplane;
   std::map< int, std::vector<int> > vPMTDigitizedWaveforms;
   TCanvas *canvas_event;
 
@@ -119,7 +120,7 @@ EventDisplay::EventDisplay(char *_inputfile){
 
   //Set canvas
   gStyle->SetGridWidth(1);
-  canvas_event = new TCanvas("canvas_event", "Event", 800, 1000);
+  canvas_event = new TCanvas("canvas_event", "Event", 600, 1000);
   canvas_event->Divide(2,2);
   canvas_event->cd(1)->SetPad(0.,0.3,1.,1.);
   canvas_event->cd(2)->SetPad(0.99,0.99,1.,1.);
@@ -128,13 +129,15 @@ EventDisplay::EventDisplay(char *_inputfile){
 
   //Particle maps
   ParticleColor[11]=kGreen;   ParticleWidth[11]=1;   ParticleName[11]="Electron";
-  ParticleColor[22]=kRed;     ParticleWidth[22]=1;   ParticleName[22] = "Standard photon";
+  ParticleColor[22]=kYellow;     ParticleWidth[22]=1;   ParticleName[22] = "Standard photon";
   ParticleColor[13]=kOrange;  ParticleWidth[13]=2;   ParticleName[13] = "Muon";
   ParticleColor[211]=kOrange; ParticleWidth[211]=2;  ParticleName[211]= "Pi+";
-  ParticleColor[0]=kBlue;     ParticleWidth[0]=1;    ParticleName[0] = "Optical photon";
+  ParticleColor[0]=kBlue;     ParticleWidth[0]=1;    ParticleName[0] = "Cherenkov photon"; //Indeed this is an optical photon, but I changed the definition
+  ParticleColor[9999]=kRed;     ParticleWidth[9999]=1;    ParticleName[9999] = "Scintillation photon"; //Created by me, PDG number doesn't actually exist
   
   //Representation plane
-  hxyplane = new TH2F("hxyplane","Track intersections with XY plane",1000,-XP_XSIDE,XP_XSIDE,1000,-XP_YSIDE,XP_YSIDE);
+  hxyplane["Cerenkov"] = new TH2F("hxyplane_cher","Track intersections with XY plane: Cherenkov",1000,-XP_XSIDE,XP_XSIDE,1000,-XP_YSIDE,XP_YSIDE);
+  hxyplane["Scintillation"] = new TH2F("hxyplane_scint","Track intersections with XY plane: Scintillation",1000,-XP_XSIDE,XP_XSIDE,1000,-XP_YSIDE,XP_YSIDE);
   
   //Geometry
   TGeoManager *tgeoman = new TGeoManager("box", "poza1");
@@ -160,8 +163,8 @@ EventDisplay::EventDisplay(char *_inputfile){
     bvessel = new TGeoBBox(32.0,100.0,50.0,pos_temp);
   } else{
     pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 200.0;
-    bvessel = new TGeoBBox(20.0,20.0,5.0,pos_temp);
-    bcontent = new TGeoBBox(18.0,18.0,3.0,pos_temp);
+    bvessel = new TGeoBBox(10.0,10.0,20.0,pos_temp);
+    bcontent = new TGeoBBox(8.0,8.0,18.0,pos_temp);
   }
   if(DRAWVESSEL){
     TGeoVolume *vvessel = new TGeoVolume("vessel",bvessel,med);
@@ -217,6 +220,22 @@ void EventDisplay::OpenFile(char *_inputfile){
 };
 
 
+
+void EventDisplay::CustomizeTrack(TPolyLine3D *track, RAT::DS::MCTrack *mctrack){
+
+  RAT::DS::MCTrackStep *firststep = mctrack->GetMCTrackStep(0);
+  if(firststep->GetProcess()=="Scintillation")
+    mctrack->SetPDGCode(9999);
+      
+  //Set color
+  track->SetLineColor(ParticleColor[mctrack->GetPDGCode()]);
+  //Set width
+  track->SetLineWidth(ParticleWidth[mctrack->GetPDGCode()]);
+  //Count particles
+  ParticleCounter[ParticleName[mctrack->GetPDGCode()]] += 1;
+
+}
+
 void EventDisplay::LoadEvent(int ievt){
 
   if(DEBUG) std::cout<<"Loading event "<<ievt<<"......."<<std::endl;
@@ -234,7 +253,8 @@ void EventDisplay::LoadEvent(int ievt){
   pl_tracks.clear();
   PMTWaveforms.clear();
   PMTDigitizedWaveforms.clear();
-  hxyplane->Reset();
+  for (std::map<std::string,TH2F*>::iterator it=hxyplane.begin();it!=hxyplane.end();it++)
+    it->second->Reset();
   npe.clear();
   if (!fUserSetNtracks || fFtrack > mc->GetMCTrackCount()) fFtrack = mc->GetMCTrackCount();
   //Load tracks
@@ -244,12 +264,9 @@ void EventDisplay::LoadEvent(int ievt){
     //Create new track
     pl_tracks.resize(pl_tracks.size()+1);
     //Set PDGcode color code
-    pl_tracks.back().SetLineColor(ParticleColor[mctrack->GetPDGCode()]);
-    pl_tracks.back().SetLineWidth(ParticleWidth[mctrack->GetPDGCode()]);
+    CustomizeTrack(&pl_tracks.back(), mctrack);
     //Measure electron length
     if(mctrack->GetPDGCode()==11) elength += mctrack->GetLength();
-    //Count particles
-    ParticleCounter[ParticleName[mctrack->GetPDGCode()]] += 1;
     //Count processes
     RAT::DS::MCTrackStep *firststep = mctrack->GetMCTrackStep(0);
     RAT::DS::MCTrackStep *laststep = mctrack->GetLastMCTrackStep();
@@ -273,7 +290,7 @@ void EventDisplay::LoadEvent(int ievt){
       //Calculate intersection with XY plane
       // std::cout<<"step "<<istep<<" "<<top_pos.X()<<" "<<top_pos.Y()<<" "<<top_pos.Z()<<std::endl;
       // std::cout<<"step "<<istep<<" "<<bottom_pos.X()<<" "<<bottom_pos.Y()<<" "<<bottom_pos.Z()<<std::endl;
-      if(mctrack->GetPDGCode()!=0 && mctrack->GetPDGCode()!=22) continue; //only for photons
+      if(mctrack->GetPDGCode()!=0 && mctrack->GetPDGCode()!=22 && mctrack->GetPDGCode()!=9999) continue; //only for photons
       if(bottom_pos.Z()!=-9999.){ //we haven't found the point yet
 	if(endpointstep.Z()>XP_ZPOS){
 	  top_pos = endpointstep;
@@ -284,7 +301,7 @@ void EventDisplay::LoadEvent(int ievt){
 	  double lambda = (XP_ZPOS - top_pos.Z())/(bottom_pos.Z() - top_pos.Z());
 	  int_pos = top_pos + (bottom_pos - top_pos)*lambda;
 	  //	  std::cout<<"FILL IT! "<<int_pos.X()<<" "<<int_pos.Y()<<" "<<int_pos.Z()<<std::endl;
-	  hxyplane->Fill(int_pos.X(),int_pos.Y());
+	  hxyplane[firststep->GetProcess()]->Fill(int_pos.X(),int_pos.Y());
 	  bottom_pos.SetZ(-9999.);
 	}
       }
@@ -337,17 +354,21 @@ void EventDisplay::LoadEvent(int ievt){
       ymax_d = TMath::Max(ymax_d,vPMTDigitizedWaveforms[ipmt][isample]);
       ymin_d = TMath::Min(ymin_d,vPMTDigitizedWaveforms[ipmt][isample]);
     }
-  }
+
+  }  
  
   //Set correct limits for drawing purposes
   for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
     PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(1.2*ymin,1.2*ymax);
     PMTDigitizedWaveforms[ipmt].GetYaxis()->SetRangeUser(0.99*ymin_d,1.01*ymax_d);
   }
+
   
   if(DEBUG) std::cout<<"LOADED! "<<std::endl;
 
+
 }
+
 
 //Draw experiment geometry in canvas
 void EventDisplay::DrawGeometry(){
@@ -450,7 +471,15 @@ void EventDisplay::DisplayEvent(int ievt){
     }
   } else{
     canvas_event->cd(3);
-    hxyplane->Draw("box");
+    hxyplane["Cerenkov"]->SetLineColor(kBlue);
+    hxyplane["Scintillation"]->SetLineColor(kRed);
+    if(hxyplane["Cerenkov"]->GetEntries()>0)
+      hxyplane["Cerenkov"]->Draw("box");
+    else
+      hxyplane["Scintillation"]->Draw("box");
+    for (std::map<std::string,TH2F*>::iterator it=hxyplane.begin();it!=hxyplane.end();it++){
+      it->second->Draw("box same");
+    }
     //Draw grid
     int nlines = 2*XP_XSIDE/pmtwidth;
     TLine* xline;
