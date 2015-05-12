@@ -2,13 +2,13 @@
 /glg4debug/glg4param omit_hadronic_processes  1.0
 
 /rat/db/set DETECTOR experiment "TheiaRnD"
-#/rat/db/set DETECTOR geo_file "TheiaRnD/pmt_array.geo"
-/rat/db/set DETECTOR geo_file "TheiaRnD/onepmt_new_close.geo"
+/rat/db/set DETECTOR geo_file "TheiaRnD/pmt_array.geo"
+#/rat/db/set DETECTOR geo_file "TheiaRnD/onepmt_new_close.geo"
 
 /run/initialize
 #/process/inactivate Cerenkov
-#/glg4scint/off
-#/glg4scint/reemission off
+/glg4scint/off
+/glg4scint/reemission off
 /tracking/storeTrajectory 1
 
 ##### Visualization ##########################
@@ -43,9 +43,9 @@
 # /vis/viewer/set/background white
 # /vis/viewer/set/style s
 # /vis/viewer/set/projection p
+# /vis/viewer/set/upVector 1 0 0
 # /vis/viewer/set/viewpointThetaPhi 30 30 side
 # /vis/viewer/set/viewpointThetaPhi 70 30 #corner
-# /vis/viewer/set/upVector 0 0 1
 # /vis/viewer/zoom 10
 
 ###RAYTRACER
@@ -64,15 +64,15 @@
 
 ##### BEGIN EVENT LOOP ##################
 /rat/proc daq
-/rat/procset trigger "allpmts" #triggerpmt, allpmts
+/rat/procset trigger "allpmts" #simpledaq, triggerpmt, allpmts
 /rat/proc count
 /rat/procset update 1
 
 #Output file
 /rat/proclast outroot
-#/rat/procset file "../results/TheiaRnD_cosmic3GeV_quartz_labppo_cylinder.root"
+/rat/procset file "../results/TheiaRnD_cosmic3GeV_quartz_wbls5pct_noscint_cylinder_pmts.root"
 #/rat/procset file "../results/TheiaRnD_90Y_cross.root"
-/rat/procset file "../results/TheiaRnD_90Y_test.root"
+#/rat/procset file "../results/TheiaRnD_90Y_test.root"
 #########################################
 
 ##### GENERATORS #################
@@ -82,9 +82,9 @@
 # /generator/pos/set 0 0 422.0
 
 ###COSMIC
-# /generator/add combo gun2:point
-# /generator/vtx/set mu- 0 0 -1.0 0 3000.0 3000.0 //mu->100.0
-# /generator/pos/set 0 0 280.0
+/generator/add combo gun2:point
+/generator/vtx/set mu- 0.0 0.0 -1.0 0 3000.0 3000.0 //mu->100.0
+/generator/pos/set 0.0 0.0 280.0
 
 ###PHOTON GUN
 #/generator/add combo pbomb:point:uniform    # Photonbomb generator from fixed point, uniform in time
@@ -102,11 +102,11 @@
 # /generator/pos/set source
 
 ###RADIACTIVE SOURCE DECAYCHAIN
-/generator/add decaychain 90Y:fill:uniform
+#/generator/add decaychain 90Y:fill:uniform
 #/generator/pos/set -410.0 -410.0 0.0 #corner of the box (for TheiaRnD.geo)
 #/generator/pos/set 0 0 423.0 #top of the box
-/generator/pos/set -464.287 -25.0 -300.0 #side of the box (for onepmt_new_close.geo)
-/generator/pos/set source
+#/generator/pos/set -464.287 -25.0 -300.0 #side of the box (for onepmt_new_close.geo)
+#/generator/pos/set source
 
 ###SOLAR NEUTRINOS
 #/generator/add solar pep:nue
@@ -115,4 +115,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 1000
+/run/beamOn 50

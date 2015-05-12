@@ -38,22 +38,22 @@
   color: [0.0, 0.0, 0.0, 0.1],
 }
 
-// {
-//   name: "GEO",
-//   index: "pmts",
-//   valid_begin: [0, 0],
-//   valid_end: [0, 0],
-//   mother: "inner",
-//   type: "pmtarray",
-//   pmt_model: "h11934", //h11934, r7081_hqe, r11780_hqe
-//   pmt_detector_type: "idpmt",
-//   sensitive_detector: "/mydet/pmt/inner",
-//   efficiency_correction: 1.0,
-//   pos_table: "PMTINFO_CROSS_SIMPLE",
-//   // orientation: "point",
-//   // orient_point: [0.0, 0.0, 400.0],
-//   orientation: "manual",
-// }
+{
+  name: "GEO",
+  index: "pmts",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  mother: "inner",
+  type: "pmtarray",
+  pmt_model: "h11934", //h11934, r7081_hqe, r11780_hqe
+  pmt_detector_type: "idpmt",
+  sensitive_detector: "/mydet/pmt/inner",
+  efficiency_correction: 1.0,
+  pos_table: "PMTINFO_CROSS",
+  // orientation: "point",
+  // orient_point: [0.0, 0.0, 400.0],
+  orientation: "manual",
+}
 
 // {
 //   name: "GEO",
@@ -70,9 +70,10 @@
 //   orientation: "point",
 //   orient_point: [0.0, 0.0, 400.0],
 // }
-///////////////////////////
-//      VESSELS
-///////////////////////////
+
+///////////////////////////////////////
+//             VESSELS               //
+///////////////////////////////////////
 
 ///////////////////////////////////////
 //// BOX
@@ -86,8 +87,9 @@
 //   type: "box",
 //   position: [0.0, 0.0, 200.0],
 // //  size: [20.0,20.0,12.0], //mm, half-lenght
-//   size: [20.0,20.0,5.0], //mm, half-lenght
-//   material: "quartz", //acrylic_berkeley
+//   size: [20.0,20.0,4.0], //mm, half-lenght
+// //  size: [10.0,10.0,20.0], //mm, half-lenght
+//   material: "quartz", //quartz, acrylic_berkeley
 //   color: [0.1, 0.3, 0.8, 0.1],
 // }
 
@@ -101,29 +103,14 @@
 //   type: "box",
 //   position: [0.0, 0.0, 0.0],
 //   size: [18.0,18.0,3.0], //mm, half-lenght
-//   material: "water",
+// //  size: [9.0,9.0,19.0], //mm, half-lenght
+//   material: "labppo_scintillator",
 //   color: [0.1, 0.1, 1.0, 0.5],
 // }
 //////////////////////////////////////////////
 
-//////////////////////////////////////////////
-//// SPHERE
-// {
-//   name: "GEO",
-//   index: "vessel",
-//   valid_begin: [0, 0],
-//   valid_end: [0, 0],
-//   invisible: 0, // omitted for visualization
-//   mother: "inner",
-//   type: "sphere",
-//   r_max: 20.0, //mm
-//   position: [0.0, 0.0, 200.0],
-//   material: "acrylic_berkeley",
-//   color: [0.1, 0.3, 0.8, 0.1],
-// }
-
 ///////////////////////////////////////////////
-//// Cylinder
+// //// Cylinder
 {
   name: "GEO",
   index: "vessel",
@@ -150,9 +137,40 @@
   position: [0.0, 0.0, 0.0],
   r_max: 8.0, //mm
   size_z: 18.0, //mm
-  material: "labppo_scintillator", //water
+  material: "wbls_5pct", //labppo_scintillator, water
   color: [0.1, 0.1, 1.0, 0.5],
 }
+////////////////////////////////////////////////
+
+//////////////////////////////////////////////
+//// SPHERE
+// {
+//   name: "GEO",
+//   index: "vessel",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "inner",
+//   type: "sphere",
+//   r_max: 20.0, //mm
+//   position: [0.0, 0.0, 200.0],
+//   material: "acrylic_berkeley",
+//   color: [0.1, 0.3, 0.8, 0.1],
+// }
+
+// {
+//   name: "GEO",
+//   index: "content",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "vessel",
+//   type: "sphere",
+//   position: [0.0, 0.0, 0.0],
+//   r_max: 18.0, //mm
+//   material: "labppo_scintillator",
+//   color: [0.1, 0.1, 1.0, 0.5],
+// }
 ////////////////////////////////////////////////
 
 // {

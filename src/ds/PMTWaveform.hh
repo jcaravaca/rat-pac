@@ -16,18 +16,18 @@
 
 #include <vector>
 #include <RAT/PMTPulse.hh>
-//#include <TObject.h> //Dummy root include file needed to define the ClassDef and ClassImp methods
-#include <TGraph.h> //Dummy root include file needed to define the ClassDef and ClassImp methods
+#include <TObject.h> //Dummy root include file needed to define the ClassDef and ClassImp methods
+#include <TGraph.h>
 
 namespace RAT {
 namespace DS {
 
-  //class PMTWaveform : public TObject {
-class PMTWaveform {
+class PMTWaveform : public TObject {
+  //class PMTWaveform {
 public:
 
-  //  PMTWaveform() : TObject(){}
-  PMTWaveform(){}
+  PMTWaveform() : TObject(){}
+  //PMTWaveform(){}
   virtual ~PMTWaveform() {}
   //  virtual void GenerateElectronicNoise(double);
   virtual float GetHeight(double time);

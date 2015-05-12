@@ -36,7 +36,7 @@
 
 #define DEBUG false
 #define DRAWTRACKS true
-#define DRAWWAVEFORMS false //if false -> Draw rings
+#define DRAWWAVEFORMS true //if false -> Draw rings
 #define DRAWPMTS false
 #define DRAWOLDDARKBOX false
 #define DRAWVESSEL true
@@ -95,8 +95,9 @@ protected:
   std::vector<TPolyLine3D> pl_tracks;
   std::vector<TGraph> PMTWaveforms;
   std::vector<TGraph> PMTDigitizedWaveforms;
-  std::map<std::string,TH2F*> hxyplane;
+  std::map< int, std::vector<double> > vPMTWaveforms;
   std::map< int, std::vector<int> > vPMTDigitizedWaveforms;
+  std::map<std::string,TH2F*> hxyplane;
   TCanvas *canvas_event;
 
   double elength;
@@ -327,25 +328,27 @@ void EventDisplay::LoadEvent(int ievt){
   }
 
   //Load waveforms
+  PMTWaveforms.resize(mc->GetMCPMTCount());
   PMTDigitizedWaveforms.resize(mc->GetMCPMTCount());
+  double ymin=9999999.; //yaxis min limit analogue
   int ymax_d=0.; //yaxis max limit digital
   int ymin_d=9999999.; //yaxis min limit digital
-  double ymax=0.; //yaxis max limit analogue
-  double ymin=9999999.; //yaxis min limit analogue
   double ymax_temp=0.;
   double ymin_temp=0.;
   double xmax_temp=0.;//dummy
   double xmin_temp=0.;//dummy
 
   for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
+    
     RAT::DS::MCPMT *mcpmt = mc->GetMCPMT(ipmt);
-    PMTWaveforms.push_back(mcpmt->GetWaveform()->GetGraph());
 
-    //Compute graph limits
-    PMTWaveforms[ipmt].ComputeRange(xmin_temp,ymin_temp,xmax_temp,ymax_temp);
-    ymax = TMath::Max(ymax,ymax_temp);
-    ymin = TMath::Min(ymin,ymin_temp);
-    ymax = (ymax == 0)? 0.1:ymax;
+    //Set analogue graphs
+    vPMTWaveforms[ipmt] = mcpmt->GetWaveform();
+    for(int isample=0; isample<vPMTWaveforms[ipmt].size(); isample++){
+      std::cout<<"waveform "<<isample<<" "<<vPMTWaveforms[ipmt][isample]<<std::endl;
+      PMTWaveforms[ipmt].SetPoint(isample,isample,vPMTWaveforms[ipmt][isample]);
+      ymin = TMath::Min(ymin,vPMTWaveforms[ipmt][isample]);
+    }
 
     //Set digitized graphs
     vPMTDigitizedWaveforms[ipmt] = mcpmt->GetDigitizedWaveform();
@@ -359,7 +362,7 @@ void EventDisplay::LoadEvent(int ievt){
  
   //Set correct limits for drawing purposes
   for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
-    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(1.2*ymin,1.2*ymax);
+    PMTWaveforms[ipmt].GetYaxis()->SetRangeUser(1.2*ymin,.5);
     PMTDigitizedWaveforms[ipmt].GetYaxis()->SetRangeUser(0.99*ymin_d,1.01*ymax_d);
   }
 
@@ -446,7 +449,6 @@ void EventDisplay::DisplayEvent(int ievt){
       if(DEBUG) std::cout<<"Display canvas 2 "<<std::endl;
       
       canvas_event->cd(3);
-      PMTWaveforms[0].GetXaxis()->SetLimits(0.,100.);
       PMTWaveforms[0].Draw("AP");
       PMTWaveforms[0].GetXaxis()->SetTitle("t(ns)");
       PMTWaveforms[0].GetYaxis()->SetTitle("V");

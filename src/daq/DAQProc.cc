@@ -80,7 +80,7 @@ namespace RAT {
     if(param=="trigger")
       fTriggerType = value;
 
-    if(fTriggerType!="allpmts" && fTriggerType!="triggerpmt"){
+    if(fTriggerType!="allpmts" && fTriggerType!="triggerpmt" && fTriggerType!="simpledaq"){
       std::cerr<<"DAQ: "<<fTriggerType<<" option unknown... EXIT "<<std::endl;
       exit(0);
     }
@@ -92,11 +92,11 @@ namespace RAT {
     //store each sampled piece as a new event
 
     DS::MC *mc = ds->GetMC();
-    if(ds->ExistEV()) {  // there is already a EV branch present 
-      ds->PruneEV();     // remove it, otherwise we'll have multiple detector events
-                         // in this physics event
-                         // we really should warn the user what is taking place
-    }
+    // if(ds->ExistEV()) {  // there is already a EV branch present 
+    //   ds->PruneEV();     // remove it, otherwise we'll have multiple detector events
+    //                      // in this physics event
+    //                      // we really should warn the user what is taking place
+    // }
 
     //Setup digitizer
     fDigitizer.SetNBits(fNBits);
@@ -151,7 +151,17 @@ namespace RAT {
 
       //At this point the PMT waveform is defined for the whole event for this PMT, so save it
       //only for drawing purposes
-      mcpmt->SetWaveform(pmtwf);
+      //      mcpmt->SetWaveform(pmtwf); //DEBUG!
+      std::vector<double> waveform;
+      double StepTime=0.01;
+      int nsteps = (int)fSamplingTimeDB/StepTime;
+      for(int istep=0; istep<=nsteps ;istep++){
+	double time = istep*StepTime;
+	double height = pmtwf.GetHeight(time);
+	waveform.push_back(height);
+	//std::cout<<" istep "<<istep<<" time "<<time<<" height "<<height<<std::endl;
+      }
+      mcpmt->SetWaveform(waveform);
 
       //Digitize waveform (electronic noise is added by the digitizer) and save it
       //in MCPMT object only for drawing purpose (in the future we might want to do
@@ -163,16 +173,69 @@ namespace RAT {
     } //end pmt loop
 
 
+    
     //////////////////////////////////////////////////////////    
     //FROM HERE THE TRIGGER PROCESSOR SHOULD TAKE OVER!
     //1) Check trigger condition and divide waveforms in chunks
     //2) Build events containing digitized waveform samples and integrated charges
     //////////////////////////////////////////////////////////
     
+    //Switch among triggers
+    //simpledaq for debugging
+    if(fTriggerType=="simpledaq"){
+
+      DS::EV *ev = ds->AddNewEV(); //Remove it if no PMT cross threshold
+      ev->SetID(fEventCounter);
+      fEventCounter++; //simpledaq
+      
+      std::cout<<" Using simpleDAQ!"<<std::endl;
+
+      //simpleDAQ
+      double totalQ = 0.0;
+      double calibQ = 0.0;
+      for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++) {
+	DS::MCPMT *mcpmt = mc->GetMCPMT(imcpmt);
+	int pmtID = mcpmt->GetID();
+	
+	if (mcpmt->GetMCPhotonCount() > 0) {
+	  // Need at least one photon to trigger
+	  DS::PMT* pmt = ev->AddNewPMT();
+	  pmt->SetID(pmtID);
+
+	  // Create one sample, hit time is determined by first hit,
+	  // "infinite" charge integration time
+	  // WARNING: gets multiphoton effect right, but not walk correction
+	  // Write directly to calibrated waveform branch
+	  
+	  double time = mcpmt->GetMCPhoton(0)->GetFrontEndTime();
+	  double charge = 0;
+	  
+	  for (int i=0; i < mcpmt->GetMCPhotonCount(); i++)  {
+	    if (time > mcpmt->GetMCPhoton(i)->GetHitTime())
+	      time = mcpmt->GetMCPhoton(i)->GetHitTime();
+	    charge += mcpmt->GetMCPhoton(i)->GetCharge();
+	  }
+	  
+	  //pmt->SetCalibratedCharge(charge);
+	  totalQ += charge;
+	  
+	  //charge *= fSPECharge[pmtID] * 1e12; /* convert to pC */
+	  pmt->SetTime(time);
+	  pmt->SetCharge(charge);
+	  calibQ += charge;
+	}
+      }
+      
+      ev->SetTotalCharge(totalQ);
+
+    }
     //First trigger type: store all PMTs crossing threshold
-    DS::EV *ev = ds->AddNewEV(); //Remove it if no PMT cross threshold
-    ev->SetID(fEventCounter);
-    if(fTriggerType=="allpmts"){
+    else if(fTriggerType=="allpmts"){
+
+      DS::EV *ev = ds->AddNewEV(); //Remove it if no PMT cross threshold
+      ev->SetID(fEventCounter);
+      fEventCounter++;      
+
       for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++){
 	int pmtID = mc->GetMCPMT(imcpmt)->GetID();
 	//Sample digitized waveform and look for triggers
@@ -180,6 +243,7 @@ namespace RAT {
 	std::vector<int> DigitizedWaveform = fDigitizer.GetDigitizedWaveform(pmtID);
 	for(int isample=0; isample<nsamples; isample++){
 	  if (DigitizedWaveform[isample]<=fDigitizer.GetDigitizedThreshold()){ //hit above threshold! (remember the pulses are negative)
+
 	    DS::PMT* pmt = ev->AddNewPMT();
 	    pmt->SetID(pmtID);
 	    pmt->SetTime(isample*fStepTimeDB); //fixme: think about this time...
@@ -191,6 +255,7 @@ namespace RAT {
 	DigitizedWaveform.clear(); //prune for next round of PMTs
       }//end PMT loop
     fDigitizer.Clear();
+      
     }
     //Second trigger type: when trigger PMT detects a hit above threshold store
     //hits in ALL the PMTs
@@ -212,6 +277,12 @@ namespace RAT {
 	  //	  std::cout<<" SAMPLE "<<isample<<" "<<DigitizedTriggerWaveform[isample]<<" "<<fDigitizer.GetDigitizedThreshold()<<std::endl;
 	  
 	  if (DigitizedTriggerWaveform[isample]<=fDigitizer.GetDigitizedThreshold()){ //hit above threshold! (remember the pulses are negative)
+
+	    //Create a new event
+	    DS::EV *ev = ds->AddNewEV();
+	    ev->SetID(fEventCounter);
+	    fEventCounter++;
+
 	    //Read ALL PMTs
 	    for (int imcpmt=0; imcpmt < mc->GetMCPMTCount(); imcpmt++){
 	      int pmtID = mc->GetMCPMT(imcpmt)->GetID();
@@ -234,15 +305,36 @@ namespace RAT {
       fDigitizer.Clear();
     } //end if second type of trigger
 	
-    //If got at least one PMT above threshold move forward one event so it is not
-    //overwritten by the next one
-    if(ev->GetPMTCount()>0){
-      fEventCounter++;
-    }
+    // //If got at least one PMT above threshold move forward one event so it is not
+    // //overwritten by the next one
+    // if(ev->GetPMTCount()>0){
+    //   fEventCounter++;
+    // }
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     //FIXME
     // else{
     //   std::cout<<"Prune event"<<fEventCounter<<" "<<ds->GetEVCount()<<std::endl;
