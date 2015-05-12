@@ -42,10 +42,12 @@
 #include <RAT/DB.hh>
 
 #define DEBUG false
-#define BATCH false
-#define NBINS 500 //500
+#define BATCH true
 #define FITTER "SIMPLEX" //Migrad, SIMPLEX
 #define ENABLESR false
+#define NBINS 500 //(500) number of bins in the pdfs
+#define INITBIN 10 //(10) first bin to consider in the fit
+#define LASTBIN 200 //(200) last bin to consider in the fit
 
 namespace TheiaRnD{
 
@@ -251,7 +253,7 @@ void Fitter::GetMCPDFsWithCollEff(double collection_eff){
   }
 
   //Scale MC accoring to the DATA considering 1to1 rate for 90Sr and 90Y
-  double norm = (hpdf_dt[1]->Integral()-hpdf_dt[0]->Integral())/(hpdf_mc_fit[0]->Integral()+hpdf_mc_fit[1]->Integral());
+  double norm = (hpdf_dt[1]->Integral(INITBIN,LASTBIN)-hpdf_dt[0]->Integral(INITBIN,LASTBIN))/(hpdf_mc_fit[0]->Integral(INITBIN,LASTBIN)+hpdf_mc_fit[1]->Integral(INITBIN,LASTBIN));
   hpdf_mc_fit[0]->Scale(norm);
   hpdf_mc_fit[1]->Scale(norm);
   
@@ -273,7 +275,7 @@ double Fitter::Likelihood(const double *par){
   GetMCPDFsWithCollEff(p_coleff);
 
   //Calculate likelihood
-  for(int ibin=0; ibin<NBINS; ibin++){
+  for(int ibin=INITBIN; ibin<LASTBIN; ibin++){
     n_mc = p_sr*hpdf_mc_fit[0]->GetBinContent(ibin) +  p_y*hpdf_mc_fit[1]->GetBinContent(ibin) + p_bkg*hpdf_dt[0]->GetBinContent(ibin);
     n_dt = hpdf_dt[1]->GetBinContent(ibin);
     //    likelihood += n_mc - n_dt + n_dt*( log( TMath::Max(n_dt,0.000001) ) - log( TMath::Max(n_mc,0.000001) ) );
@@ -298,7 +300,8 @@ double Fitter::ChiSquare(const double *par){
   double n_mc=0.;
   double n_dt=0.;
 
-  for(int ibin=0; ibin<NBINS; ibin++){
+  //Calculate chisquear
+  for(int ibin=INITBIN; ibin<LASTBIN; ibin++){
     n_mc = p_sr*hpdf_mc[0]->GetBinContent(ibin) +  p_y*hpdf_mc[1]->GetBinContent(ibin) + p_bkg*hpdf_dt[0]->GetBinContent(ibin);
     n_dt = hpdf_dt[1]->GetBinContent(ibin);
     if(n_mc>0 && n_dt>0)
