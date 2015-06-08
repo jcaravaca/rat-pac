@@ -38,42 +38,100 @@
   color: [0.0, 0.0, 0.0, 0.1],
 }
 
-{
-  name: "GEO",
-  index: "pmts",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  mother: "inner",
-  type: "pmtarray",
-  pmt_model: "h11934", //h11934, r7081_hqe, r11780_hqe
-  pmt_detector_type: "idpmt",
-  sensitive_detector: "/mydet/pmt/inner",
-  efficiency_correction: 1.0,
-  pos_table: "PMTINFO_CROSS",
-  // orientation: "point",
-  // orient_point: [0.0, 0.0, 400.0],
-  orientation: "manual",
-}
-
-// {
-//   name: "GEO",
-//   index: "trigger",
-//   valid_begin: [0, 0],
-//   valid_end: [0, 0],
-//   mother: "inner",
-//   type: "pmtarray",
-//   pmt_model: "fast_test", //r7081_hqe, r11780_hqe, fast_test
-//   pmt_detector_type: "idpmt",
-//   sensitive_detector: "/mydet/pmt/inner",
-//   efficiency_correction: 1.0,
-//   pos_table: "PMTINFO_TRIGGER",
-//   orientation: "point",
-//   orient_point: [0.0, 0.0, 400.0],
-// }
-
 ///////////////////////////////////////
 //             VESSELS               //
 ///////////////////////////////////////
+
+///////////////////////////////////////
+//// FISH TANK
+{
+  name: "GEO",
+  index: "outer_vessel",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "inner",
+  type: "box",
+  position: [0.0, 0.0, 179.5], //179.5
+  size: [200.0,200.0,50.0], //tank
+  material: "acrylic_berkeley", //quartz, acrylic_berkeley
+  color: [0.1, 0.3, 0.8, 0.1],
+}
+
+{
+  name: "GEO",
+  index: "inner_vessel",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "outer_vessel",
+  type: "box",
+  position: [0.0, 0.0, 4.5],
+  size: [190.0,190.0,44.5], //tank
+  material: "water", //water, acrylic_berkeley
+  color: [0.1, 0.8, 0.8, 0.1],
+}
+
+{
+  name: "GEO",
+  index: "container",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "inner_vessel",
+  type: "tube",
+  position: [0.0, 0.0, 29.5], //31.0
+  r_max: 30.0, //mm
+  size_z: 15.0, //mm 19.0
+  material: "acrylic_berkeley",
+  color: [0.1, 0.3, 0.8, 0.1],
+}
+
+{
+  name: "GEO",
+  index: "content",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "container",
+  type: "tube",
+  position: [0.0, 0.0, 5.0], //31.0
+  r_max: 20.0, //mm
+  size_z: 10.0, //mm 19.0
+  material: "wbls_5pct", //water, wbls_5pct
+  color: [0.5, 0.1, 0.5, 0.5],
+}
+
+{
+  name: "GEO",
+  index: "cavity_inner",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "inner_vessel",
+  type: "tube",
+  position: [0.0, 0.0, -15.0], //(-20.0)
+  r_max: 5.0, //mm
+  size_z: 29.5, //mm (30.0)
+  material: "air",
+  color: [0.0, 0.0, 0.0, 0.1],
+}
+
+{
+  name: "GEO",
+  index: "cavity_outer",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "outer_vessel",
+  type: "tube",
+  position: [0.0, 0.0, -45.0], //(-20.0)
+  r_max: 5.0, //mm
+  size_z: 5.0, //mm (30.0)
+  material: "air",
+  color: [0.0, 0.0, 0.0, 0.1],
+}
+//////////////////////////////////////////////
 
 ///////////////////////////////////////
 //// BOX
@@ -86,9 +144,10 @@
 //   mother: "inner",
 //   type: "box",
 //   position: [0.0, 0.0, 200.0],
-// //  size: [20.0,20.0,12.0], //mm, half-lenght
-//   size: [20.0,20.0,4.0], //mm, half-lenght
-// //  size: [10.0,10.0,20.0], //mm, half-lenght
+// //  size: [20.0,20.0,12.0], //box
+// //  size: [20.0,20.0,4.0], //thin box
+// //  size: [10.0,10.0,20.0], //cuboid
+//   size: [200.0,200.0,70.5], //tank
 //   material: "quartz", //quartz, acrylic_berkeley
 //   color: [0.1, 0.3, 0.8, 0.1],
 // }
@@ -111,35 +170,35 @@
 
 ///////////////////////////////////////////////
 // //// Cylinder
-{
-  name: "GEO",
-  index: "vessel",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  invisible: 0, // omitted for visualization
-  mother: "inner",
-  type: "tube",
-  r_max: 10.0, //mm
-  size_z: 20.0, //mm
-  position: [0.0, 0.0, 200.0],
-  material: "acrylic_berkeley",
-  color: [0.1, 0.3, 0.8, 0.1],
-}
+// {
+//   name: "GEO",
+//   index: "vessel",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "inner",
+//   type: "tube",
+//   r_max: 10.0, //mm
+//   size_z: 20.0, //mm
+//   position: [0.0, 0.0, 200.0],
+//   material: "acrylic_berkeley",
+//   color: [0.1, 0.3, 0.8, 0.1],
+// }
 
-{
-  name: "GEO",
-  index: "content",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  invisible: 0, // omitted for visualization
-  mother: "vessel",
-  type: "tube",
-  position: [0.0, 0.0, 0.0],
-  r_max: 8.0, //mm
-  size_z: 18.0, //mm
-  material: "wbls_5pct", //labppo_scintillator, water
-  color: [0.1, 0.1, 1.0, 0.5],
-}
+// {
+//   name: "GEO",
+//   index: "content",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "vessel",
+//   type: "tube",
+//   position: [0.0, 0.0, 0.0],
+//   r_max: 8.0, //mm
+//   size_z: 18.0, //mm
+//   material: "wbls_5pct", //labppo_scintillator, water
+//   color: [0.1, 0.1, 1.0, 0.5],
+// }
 ////////////////////////////////////////////////
 
 //////////////////////////////////////////////
@@ -173,6 +232,62 @@
 // }
 ////////////////////////////////////////////////
 
+////////////////////////////////////////////////
+//                   PMTS
+////////////////////////////////////////////////
+
+////////////////////////////////////////////////
+// // FAKE PMTS (acrylic cubes)
+// {
+//   name: "GEO",
+//   index: "fakepmt",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "inner",
+//   type: "box",
+//   position: [-90.0, 0.0, 115.0],
+//   size: [70.5,70.5,14.5],
+//   material: "acrylic_berkeley", //quartz, acrylic_berkeley
+//   color: [0.1, 0.3, 0.8, 0.1],
+// }
+/////////////////////////////////////////////////
+
+/////////////////////////////////////////////////
+// ANALYSIS TUBES
+
+{
+  name: "GEO",
+  index: "pmts",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  mother: "inner",
+//  mother: "vessel",
+  type: "pmtarray",
+  pmt_model: "h11934", //h11934, r7081_hqe, r11780_hqe
+  pmt_detector_type: "idpmt",
+  sensitive_detector: "/mydet/pmt/inner",
+  efficiency_correction: 1.0,
+  pos_table: "PMTINFO_CROSS",
+  orientation: "manual",
+}
+
+// {
+//   name: "GEO",
+//   index: "trigger",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   mother: "inner",
+//   type: "pmtarray",
+//   pmt_model: "fast_test", //r7081_hqe, r11780_hqe, fast_test
+//   pmt_detector_type: "idpmt",
+//   sensitive_detector: "/mydet/pmt/inner",
+//   efficiency_correction: 1.0,
+//   pos_table: "PMTINFO_TRIGGER",
+//   orientation: "point",
+//   orient_point: [0.0, 0.0, 400.0],
+// }
+
 // {
 //   name: "GEO",
 //   index: "source",
@@ -187,3 +302,4 @@
 //   material: "strontium", //strontium
 //   color: [0.1, 1.0, 0.3, 0.8],
 // }
+

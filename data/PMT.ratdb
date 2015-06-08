@@ -142,17 +142,15 @@ index: "h11934",
 valid_begin: [0,0],
 valid_end: [0,0],
 
-dynode_material: "stainless_steel",
-glass_material: "glass", //glass
-pmt_vacuum_material: "pmt_vacuum",
+dynode_material: "acrylic_black", //stainless_steel
+glass_material: "glass", //glass, acrylic_berkeley
+pmt_vacuum_material: "acrylic_black", //pmt_vacuum
 photocathode_surface: "photocathode_H11934",
 mirror_surface: "acrylic_black", //mirror
 dynode_surface: "acrylic_black", //stainless_steel
 
-//From SNO+rat
-
 shape: "cube", //torus, cube
-dynode_radius: 14.0, // mm
+dynode_radius: 14.4, // mm
 dynode_top: 1.0, // mm
 wall_thickness: 0.5, // mm
 

@@ -36,10 +36,11 @@
 
 #define DEBUG false
 #define DRAWTRACKS true
-#define DRAWWAVEFORMS true //if false -> Draw rings
-#define DRAWPMTS false
+#define DRAWWAVEFORMS false //if false -> Draw rings
+#define DRAWPMTS true
 #define DRAWOLDDARKBOX false
 #define DRAWVESSEL true
+#define DRAWXYPLANE true
 
 //Geometry
 #define DB_XSIDE 762.0 // 500.//762.0, 
@@ -50,8 +51,9 @@
 #define ZPOS 0.0
 #define XP_XSIDE 200.0 // 250.//508.0
 #define XP_YSIDE 200.0 // 250.//508.0
-#define XP_ZPOS 110.0 // 116.0
+#define XP_ZPOS 129.5 // 130.0
 
+double pmtwidth = 29.0; //mm
 
 
 char *fInputFile = NULL;
@@ -107,7 +109,6 @@ protected:
   TGeoVolume *vworld;
   std::map<int, TGeoBBox* > bpmt;
   std::map<int, TGeoVolume* > vpmt;
-  double pmtwidth;
   std::vector<TPaveText> vpmtbox;
 
 };
@@ -117,7 +118,6 @@ EventDisplay::EventDisplay(char *_inputfile){
   
   //Init
   OpenFile(_inputfile);
-  pmtwidth = 30.; //mm
 
   //Set canvas
   gStyle->SetGridWidth(1);
@@ -133,10 +133,11 @@ EventDisplay::EventDisplay(char *_inputfile){
   ParticleColor[22]=kYellow;     ParticleWidth[22]=1;   ParticleName[22] = "Standard photon";
   ParticleColor[13]=kOrange;  ParticleWidth[13]=2;   ParticleName[13] = "Muon";
   ParticleColor[211]=kOrange; ParticleWidth[211]=2;  ParticleName[211]= "Pi+";
-  ParticleColor[0]=kBlue;     ParticleWidth[0]=1;    ParticleName[0] = "Cherenkov photon"; //Indeed this is an optical photon, but I changed the definition
-  ParticleColor[9999]=kRed;     ParticleWidth[9999]=1;    ParticleName[9999] = "Scintillation photon"; //Created by me, PDG number doesn't actually exist
+  ParticleColor[0]=kCyan+1;     ParticleWidth[0]=1;    ParticleName[0] = "Cherenkov photon"; //Indeed this is an optical photon, but I changed the definition
+  ParticleColor[9999]=kRed-7;     ParticleWidth[9999]=1;    ParticleName[9999] = "Scintillation photon"; //Created by me, PDG number doesn't actually exist
   
   //Representation plane
+  hxyplane["start"] = new TH2F("hxyplane_cher","Track intersections with XY plane: Cherenkov",1000,-XP_XSIDE,XP_XSIDE,1000,-XP_YSIDE,XP_YSIDE);
   hxyplane["Cerenkov"] = new TH2F("hxyplane_cher","Track intersections with XY plane: Cherenkov",1000,-XP_XSIDE,XP_XSIDE,1000,-XP_YSIDE,XP_YSIDE);
   hxyplane["Scintillation"] = new TH2F("hxyplane_scint","Track intersections with XY plane: Scintillation",1000,-XP_XSIDE,XP_XSIDE,1000,-XP_YSIDE,XP_YSIDE);
   
@@ -155,6 +156,17 @@ EventDisplay::EventDisplay(char *_inputfile){
   vdarkbox->SetLineWidth(3);
   vdarkbox->SetLineColor(1);
   vworld->AddNode(vdarkbox,1);
+
+  if(DRAWXYPLANE){
+    //XY plane
+    TGeoBBox *bxyplane;
+    pos_temp[0] = 0.0; pos_temp[1] = 0.0; pos_temp[2] = XP_ZPOS;
+    bxyplane = new TGeoBBox(DB_XSIDE/2.,DB_YSIDE/2.,.0001,pos_temp);
+    TGeoVolume *vxyplane = new TGeoVolume("xyplane",bxyplane,med);
+    vxyplane->SetLineWidth(1);
+    vxyplane->SetLineColor(1);
+    vworld->AddNode(vxyplane,3);
+  }
   TGeoBBox *bvessel;
   TGeoBBox *bcontent;
   if(DRAWOLDDARKBOX){
@@ -163,24 +175,50 @@ EventDisplay::EventDisplay(char *_inputfile){
     pos_temp[0] = -450.0; pos_temp[1] = 0.0; pos_temp[2] = -300.0;
     bvessel = new TGeoBBox(32.0,100.0,50.0,pos_temp);
   } else{
-    pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 200.0;
-    bvessel = new TGeoBBox(10.0,10.0,20.0,pos_temp);
-    bcontent = new TGeoBBox(8.0,8.0,18.0,pos_temp);
+    pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 179.3;
+    bvessel = new TGeoBBox(200.0,200.0,50.0,pos_temp);
+    bcontent = new TGeoBBox(190.0,190.0,40.0,pos_temp);
   }
   if(DRAWVESSEL){
     TGeoVolume *vvessel = new TGeoVolume("vessel",bvessel,med);
     TGeoVolume *vcontent = new TGeoVolume("content",bcontent,med);
     vvessel->SetLineWidth(3);
-    vvessel->SetLineColor(kCyan);
+    vvessel->SetLineColor(kBlue);
     vcontent->SetLineWidth(2);
-    vcontent->SetLineColor(kCyan+1);
+    vcontent->SetLineColor(kBlue+1);
     vworld->AddNode(vvessel,1);
-    vworld->AddNode(vcontent,2);
+    //    vworld->AddNode(vcontent,2);
   }
   if(DRAWPMTS){
+    //Grid
+    // for(int pmtID=0; pmtID<16; pmtID++){
+    //   pos_temp[0] = 75.0-50.0*(pmtID%4); pos_temp[1] = 75.0-50.0*(pmtID/4); pos_temp[2] = 100.0;
+    //   bpmt[pmtID] = new TGeoBBox(25.4/2.,25.4/2.,25.4/2.,pos_temp);
+    //   vpmt[pmtID] = new TGeoVolume(Form("PMT%i",pmtID),bpmt[pmtID],med);
+    //   vpmt[pmtID]->SetLineWidth(2);
+    //   vworld->AddNode(vpmt[pmtID],1);
+    // }
+    //Cross
+    double pos_pmts[16][3];
+    pos_pmts[0][0] = -90.; pos_pmts[0][1] = 0.; pos_pmts[0][2] = 115.;
+    pos_pmts[1][0] = -60.; pos_pmts[1][1] = 0.; pos_pmts[1][2] = 115.;
+    pos_pmts[2][0] = -30.; pos_pmts[2][1] = 0.; pos_pmts[2][2] = 115.;
+    pos_pmts[3][0] = 0.; pos_pmts[3][1] = 0.; pos_pmts[3][2] = 115.;
+    pos_pmts[4][0] = 30.; pos_pmts[4][1] = 0.; pos_pmts[4][2] = 115.;
+    pos_pmts[5][0] = 60.; pos_pmts[5][1] = 0.; pos_pmts[5][2] = 115.;
+    pos_pmts[6][0] = 90.; pos_pmts[6][1] = 0.; pos_pmts[6][2] = 115.;
+    pos_pmts[7][0] = 0.; pos_pmts[7][1] = -90.; pos_pmts[7][2] = 115.;
+    pos_pmts[8][0] = 0.; pos_pmts[8][1] = -90.; pos_pmts[8][2] = 115.;
+    pos_pmts[9][0] = 0.; pos_pmts[9][1] = -60.; pos_pmts[9][2] = 115.;
+    pos_pmts[10][0] = 0.; pos_pmts[10][1] = -30.; pos_pmts[10][2] = 115.;
+    pos_pmts[11][0] = 0.; pos_pmts[11][1] = 30.; pos_pmts[11][2] = 115.;
+    pos_pmts[12][0] = 0.; pos_pmts[12][1] = 60.; pos_pmts[12][2] = 115.;
+    pos_pmts[13][0] = 0.; pos_pmts[13][1] = 90.; pos_pmts[13][2] = 115.;
+    pos_pmts[14][0] = 60.; pos_pmts[14][1] = 60.; pos_pmts[14][2] = 115.;
+    pos_pmts[15][0] = -60.; pos_pmts[15][1] = -60.; pos_pmts[15][2] = 115.;
+
     for(int pmtID=0; pmtID<16; pmtID++){
-      pos_temp[0] = 75.0-50.0*(pmtID%4); pos_temp[1] = 75.0-50.0*(pmtID/4); pos_temp[2] = 100.0;
-      bpmt[pmtID] = new TGeoBBox(25.4/2.,25.4/2.,25.4/2.,pos_temp);
+      bpmt[pmtID] = new TGeoBBox(pmtwidth/2.,pmtwidth/2.,pmtwidth/2.,pos_pmts[pmtID]);
       vpmt[pmtID] = new TGeoVolume(Form("PMT%i",pmtID),bpmt[pmtID],med);
       vpmt[pmtID]->SetLineWidth(2);
       vworld->AddNode(vpmt[pmtID],1);
@@ -206,7 +244,7 @@ EventDisplay::EventDisplay(char *_inputfile){
     vpmtbox[ipmt].SetFillStyle(3004);
     vpmtbox[ipmt].SetLineColor(2);
     vpmtbox[ipmt].SetLineWidth(1);
-    vpmtbox[ipmt].SetTextColor(1);
+    vpmtbox[ipmt].SetTextColor(kBlack);
     vpmtbox[ipmt].SetTextSize(0.04);
   }
  
@@ -261,6 +299,8 @@ void EventDisplay::LoadEvent(int ievt){
   //Load tracks
   for (int itr = fItrack; itr < fFtrack; itr++) {
     
+    if(DEBUG) std::cout<<"  Track "<<itr<<std::endl;
+    
     RAT::DS::MCTrack *mctrack = mc->GetMCTrack(itr);
     //Create new track
     pl_tracks.resize(pl_tracks.size()+1);
@@ -277,6 +317,7 @@ void EventDisplay::LoadEvent(int ievt){
     FirstProcessCounter[firststep->GetProcess()] += 1;
     LastProcessCounter[laststep->GetProcess()] += 1;
 
+    //Make XY-plane for ring display
     //Loop over all the steps
     int nsteps = mctrack->GetMCTrackStepCount();
     TVector3 top_pos(-9999.,-9999.,-9999.); //first interpolation point
@@ -284,6 +325,8 @@ void EventDisplay::LoadEvent(int ievt){
     TVector3 int_pos(9999.,9999.,9999.);//intersection point
     for (int istep = 0; istep < nsteps; istep++) {
       
+      if(DEBUG) std::cout<<"  |->Step "<<istep<<std::endl;
+
       RAT::DS::MCTrackStep *step = mctrack->GetMCTrackStep(istep);
       const TVector3 endpointstep = step->GetEndpoint();
       pl_tracks.back().SetPoint(istep,endpointstep.X(),endpointstep.Y(),endpointstep.Z());
@@ -291,25 +334,33 @@ void EventDisplay::LoadEvent(int ievt){
       //Calculate intersection with XY plane
       // std::cout<<"step "<<istep<<" "<<top_pos.X()<<" "<<top_pos.Y()<<" "<<top_pos.Z()<<std::endl;
       // std::cout<<"step "<<istep<<" "<<bottom_pos.X()<<" "<<bottom_pos.Y()<<" "<<bottom_pos.Z()<<std::endl;
-      if(mctrack->GetPDGCode()!=0 && mctrack->GetPDGCode()!=22 && mctrack->GetPDGCode()!=9999) continue; //only for photons
+      if(mctrack->GetPDGCode()!=0 && mctrack->GetPDGCode()!=9999) continue; //only for OPTICAL photons
+
       if(bottom_pos.Z()!=-9999.){ //we haven't found the point yet
-	if(endpointstep.Z()>XP_ZPOS){
+      	if(endpointstep.Z()>XP_ZPOS){
+	  if(DEBUG) std::cout<<"      Case 1: "<<std::endl;
 	  top_pos = endpointstep;
 	}
-	else if(top_pos.Z()!=-9999.){ //this is our guy
-	  bottom_pos = endpointstep;
-	  //Intersect!
-	  double lambda = (XP_ZPOS - top_pos.Z())/(bottom_pos.Z() - top_pos.Z());
-	  int_pos = top_pos + (bottom_pos - top_pos)*lambda;
-	  //	  std::cout<<"FILL IT! "<<int_pos.X()<<" "<<int_pos.Y()<<" "<<int_pos.Z()<<std::endl;
-	  hxyplane[firststep->GetProcess()]->Fill(int_pos.X(),int_pos.Y());
+      	else if(top_pos.Z()!=-9999.){ //this is our guy
+
+	  if(DEBUG) std::cout<<"      Case 2: "<<firststep->GetProcess()<<std::endl;
+
+      	  bottom_pos = endpointstep;
+      	  //Intersect!
+      	  double lambda = (XP_ZPOS - top_pos.Z())/(bottom_pos.Z() - top_pos.Z());
+      	  int_pos = top_pos + (bottom_pos - top_pos)*lambda;
+      	  //	  std::cout<<"FILL IT! "<<int_pos.X()<<" "<<int_pos.Y()<<" "<<int_pos.Z()<<std::endl;
+      	  hxyplane[firststep->GetProcess()]->Fill(int_pos.X(),int_pos.Y());
 	  bottom_pos.SetZ(-9999.);
+
 	}
       }
+
+      if(DEBUG) std::cout<<"      (Passed intersection) "<<std::endl;
+      
     } //end step loop
   } //end track loop
 
-  
   //Load photoelectrons
   for (int ipmt = 0; ipmt < 16; ipmt++){
     hitpmts[ipmt] = false; //clear
@@ -345,7 +396,7 @@ void EventDisplay::LoadEvent(int ievt){
     //Set analogue graphs
     vPMTWaveforms[ipmt] = mcpmt->GetWaveform();
     for(int isample=0; isample<vPMTWaveforms[ipmt].size(); isample++){
-      std::cout<<"waveform "<<isample<<" "<<vPMTWaveforms[ipmt][isample]<<std::endl;
+      //      std::cout<<"waveform "<<isample<<" "<<vPMTWaveforms[ipmt][isample]<<std::endl;
       PMTWaveforms[ipmt].SetPoint(isample,isample,vPMTWaveforms[ipmt][isample]);
       ymin = TMath::Min(ymin,vPMTWaveforms[ipmt][isample]);
     }
@@ -358,7 +409,7 @@ void EventDisplay::LoadEvent(int ievt){
       ymin_d = TMath::Min(ymin_d,vPMTDigitizedWaveforms[ipmt][isample]);
     }
 
-  }  
+  }
  
   //Set correct limits for drawing purposes
   for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
@@ -473,12 +524,15 @@ void EventDisplay::DisplayEvent(int ievt){
     }
   } else{
     canvas_event->cd(3);
-    hxyplane["Cerenkov"]->SetLineColor(kBlue);
-    hxyplane["Scintillation"]->SetLineColor(kRed);
+    hxyplane["start"]->SetLineColor(ParticleColor[0]);
+    hxyplane["Cerenkov"]->SetLineColor(ParticleColor[0]);
+    hxyplane["Scintillation"]->SetLineColor(ParticleColor[9999]);
     if(hxyplane["Cerenkov"]->GetEntries()>0)
       hxyplane["Cerenkov"]->Draw("box");
-    else
+    else if(hxyplane["Scintillation"]->GetEntries()>0)
       hxyplane["Scintillation"]->Draw("box");
+    else
+      hxyplane["start"]->Draw("box");
     for (std::map<std::string,TH2F*>::iterator it=hxyplane.begin();it!=hxyplane.end();it++){
       it->second->Draw("box same");
     }

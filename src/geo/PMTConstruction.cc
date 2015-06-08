@@ -210,7 +210,7 @@ namespace RAT {
       const bool overlapRegion = fParams.PCMirrorOverlapTop != fParams.PCMirrorOverlapBottom;
       const double wall = fParams.wallThickness;
       
-      // envelope cylinder
+      // envelope cube
       G4VSolid *envelope_solid=0;
       if (fParams.useEnvelope)
     	envelope_solid = NewEnvelopeSolid(prefix+"_envelope_solid");
