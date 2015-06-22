@@ -51,7 +51,7 @@
 #define ZPOS 0.0
 #define XP_XSIDE 200.0 // 250.//508.0
 #define XP_YSIDE 200.0 // 250.//508.0
-#define XP_ZPOS 129.5 // 130.0
+#define XP_ZPOS 120.0 // 130.0
 
 double pmtwidth = 29.0; //mm
 
