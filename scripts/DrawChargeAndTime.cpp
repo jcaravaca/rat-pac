@@ -20,15 +20,19 @@
 
 #define NPMTs 2
 #define USERROOTLOOP false
+#define DRAWONLYCHARGE false
 
 //Methods
-char * gInputFileMC = NULL;
+char *gInputFileMC = NULL;
 std::vector<char*> gInputFileDT;
+char *gOutFile = NULL;
 void ParseArgs(int argc, char **argv);
 void GetHistos();
+void DrawHistos();
+void PrintHistos(char*);
 void NormalizeHistos();
 
-//Globals
+//Histograms
 std::vector<TH1F*> h_mcpmt_npe; //Number of PE
 std::vector<TH1F*> h_mcpmt_charge; //MC charge
 std::vector<TH1F*> h_mcpmt_fetime; //MC FE time
@@ -53,60 +57,10 @@ int main(int argc, char **argv){
   GetHistos();
   if(gInputFileDT.size()>0)
     NormalizeHistos();
-  
-  //DRAW PLOTS
-  //Charge
-  TCanvas *c_charge = new TCanvas("c_charge","c_charge",400*NPMTs,400);
-  c_charge->Divide(NPMTs,1);
-  for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    c_charge->cd(ipmt+1);
-    h_charge[ipmt]->Draw("");
-  }
-  if(gInputFileDT.size()>0){
-    c_charge->cd(1);
-    h_dt_charge[0]->SetLineColor(kRed);
-    h_dt_charge[0]->Draw("same");
-  }
-  TCanvas *c_charge_scat = new TCanvas("c_charge_scat","c_charge_scat",400*NPMTs,400);
-  c_charge_scat->Divide(NPMTs,1);
-  for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    c_charge_scat->cd(ipmt+1);
-    h_charge_scat[ipmt]->Draw("colz");
-  }
-  TCanvas *c_mccharge = new TCanvas("c_mccharge","c_mccharge",400*NPMTs,400);
-  c_mccharge->Divide(NPMTs,1);
-  for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    c_mccharge->cd(ipmt+1);
-    h_mcpmt_charge[ipmt]->Draw("");
-  }
-  if(gInputFileDT.size()>0){
-    c_mccharge->cd(1);
-    h_dt_charge[0]->Draw("same");
-  }
-  TCanvas *c_time = new TCanvas("c_time","c_time",400*NPMTs,400);
-  c_time->Divide(NPMTs,1);
-  for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    c_time->cd(ipmt+1);
-    h_time[ipmt]->Draw("");
-  }
-  TCanvas *c_mcfetime = new TCanvas("c_mcfetime","c_mcfetime",400*NPMTs,400);
-  c_mcfetime->Divide(NPMTs,1);
-  for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    c_mcfetime->cd(ipmt+1);
-    h_mcpmt_fetime[ipmt]->Draw("");
-  }
-  TCanvas *c_time_diff = new TCanvas("c_time_diff","c_time_diff",400*NPMTs,400);
-  c_time_diff->Divide(NPMTs,1);
-  for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    c_time_diff->cd(ipmt+1);
-    h_time_diff[ipmt]->Draw("");
-  }
-  TCanvas *c_npe = new TCanvas("c_npe","c_npe",400*NPMTs,400);
-  c_npe->Divide(NPMTs,1);
-  for(int ipmt=0; ipmt<NPMTs;ipmt++){
-    c_npe->cd(ipmt+1);
-    h_mcpmt_npe[ipmt]->Draw("");
-  }
+
+  DrawHistos();
+  if(gOutFile)
+    PrintHistos(gOutFile);
   
   new TBrowser;
   dummy.Run();
@@ -204,14 +158,16 @@ void GetHistos(){
       //EV
       std::cout<<"   Loading charge... "<<std::endl;
       T->Draw(Form("ds.ev.pmt.charge>>h_charge_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
-      //      std::cout<<"   Loading time... "<<std::endl;
-      //      T->Draw(Form("ds.ev.pmt.time>>h_time_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
-      //MC
-      // std::cout<<"   Loading mc charge... "<<std::endl;
-      // T->Draw(Form("ds.mc.pmt.GetCharge()>>h_mcpmt_charge_%i",ipmt),Form("ds.mc.pmt.id==%i",ipmt));
-      // T->Draw(Form("ds.mc.pmt.GetMCPhotonCount()>>h_mcpmt_npe_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
-      // T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime>>h_mcpmt_fetime_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
-      // T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime - ds.ev.pmt.time >> h_time_diff_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
+      if (!DRAWONLYCHARGE) {
+	std::cout<<"   Loading time... "<<std::endl;
+	T->Draw(Form("ds.ev.pmt.time>>h_time_%i",ipmt),Form("ds.ev.pmt.id==%i",ipmt));
+	//MC
+	std::cout<<"   Loading mc charge... "<<std::endl;
+	T->Draw(Form("ds.mc.pmt.GetCharge()>>h_mcpmt_charge_%i",ipmt),Form("ds.mc.pmt.id==%i",ipmt));
+	T->Draw(Form("ds.mc.pmt.GetMCPhotonCount()>>h_mcpmt_npe_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
+	T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime>>h_mcpmt_fetime_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
+	T->Draw(Form("ds.mc.pmt.photon.at(0).frontEndTime - ds.ev.pmt.time >> h_time_diff_%i",ipmt),Form("ds.ev.Nhits()>0 && ds.mc.pmt.id==%i",ipmt));
+      }
     }
   }
   
@@ -243,6 +199,92 @@ void GetHistos(){
 
 }
 
+
+//Draw histrograms
+void DrawHistos(){
+
+
+  //DRAW PLOTS
+  //Charge
+  TCanvas *c_charge = new TCanvas("c_charge","c_charge",400*NPMTs,400);
+  c_charge->Divide(NPMTs,1);
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    c_charge->cd(ipmt+1);
+    h_charge[ipmt]->Draw("");
+  }
+  if(gInputFileDT.size()>0){
+    c_charge->cd(1);
+    h_dt_charge[0]->SetLineColor(kRed);
+    h_dt_charge[0]->Draw("same");
+  }
+  TCanvas *c_charge_scat = new TCanvas("c_charge_scat","c_charge_scat",400*NPMTs,400);
+  c_charge_scat->Divide(NPMTs,1);
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    c_charge_scat->cd(ipmt+1);
+    h_charge_scat[ipmt]->Draw("colz");
+  }
+  TCanvas *c_mccharge = new TCanvas("c_mccharge","c_mccharge",400*NPMTs,400);
+  c_mccharge->Divide(NPMTs,1);
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    c_mccharge->cd(ipmt+1);
+    h_mcpmt_charge[ipmt]->Draw("");
+  }
+  if(gInputFileDT.size()>0){
+    c_mccharge->cd(1);
+    h_dt_charge[0]->Draw("same");
+  }
+  TCanvas *c_time = new TCanvas("c_time","c_time",400*NPMTs,400);
+  c_time->Divide(NPMTs,1);
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    c_time->cd(ipmt+1);
+    h_time[ipmt]->Draw("");
+  }
+  TCanvas *c_mcfetime = new TCanvas("c_mcfetime","c_mcfetime",400*NPMTs,400);
+  c_mcfetime->Divide(NPMTs,1);
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    c_mcfetime->cd(ipmt+1);
+    h_mcpmt_fetime[ipmt]->Draw("");
+  }
+  TCanvas *c_time_diff = new TCanvas("c_time_diff","c_time_diff",400*NPMTs,400);
+  c_time_diff->Divide(NPMTs,1);
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    c_time_diff->cd(ipmt+1);
+    h_time_diff[ipmt]->Draw("");
+  }
+  TCanvas *c_npe = new TCanvas("c_npe","c_npe",400*NPMTs,400);
+  c_npe->Divide(NPMTs,1);
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    c_npe->cd(ipmt+1);
+    h_mcpmt_npe[ipmt]->Draw("");
+  }
+
+
+}
+
+
+
+//Output histrograms to file
+void PrintHistos(char *filename){
+
+  std::cout<<" Output histrograms to "<<filename<<std::endl;
+    
+  TFile *fout = new TFile(filename,"RECREATE");
+  fout->cd();
+  for(int ipmt=0; ipmt<NPMTs;ipmt++){
+    h_mcpmt_npe[ipmt]->Write();
+    h_mcpmt_charge[ipmt]->Write();
+    h_mcpmt_fetime[ipmt]->Write();
+    h_charge[ipmt]->Write();
+    h_time[ipmt]->Write();
+    h_time_diff[ipmt]->Write();
+    h_charge_scat[ipmt]->Write();
+  }
+  h_charge_total->Write();
+  fout->Close();
+  
+  
+}
+
 void NormalizeHistos(){
 
   for(int ipmt=0; ipmt<NPMTs;ipmt++){
@@ -267,6 +309,7 @@ void ParseArgs(int argc, char **argv){
   for(int i = 1; i < argc; i++){
     if(std::string(argv[i]) == "-mc") {gInputFileMC = argv[++i]; exist_inputfile=true;}
     if(std::string(argv[i]) == "-dt") {gInputFileDT.push_back(argv[++i]); exist_inputfile=true;}
+    if(std::string(argv[i]) == "-o")  {gOutFile = argv[++i];}
   }
 
   if(!exist_inputfile){

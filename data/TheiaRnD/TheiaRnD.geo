@@ -94,7 +94,7 @@
   position: [0.0, 0.0, 10.0],
   r_max: 10.0,
   size_z: 40.8,
-  material: "water", //air, water, scintillator
+  material: "scintillator", //air, water, scintillator
   color: [0.1, 0.3, 0.8, 0.3],
 }
 

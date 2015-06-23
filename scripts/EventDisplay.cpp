@@ -51,7 +51,7 @@
 #define ZPOS 0.0
 #define XP_XSIDE 200.0 // 250.//508.0
 #define XP_YSIDE 200.0 // 250.//508.0
-#define XP_ZPOS 129.5 // 130.0
+#define XP_ZPOS 129.0 // 130.0
 
 double pmtwidth = 29.0; //mm
 
@@ -121,12 +121,14 @@ EventDisplay::EventDisplay(char *_inputfile){
 
   //Set canvas
   gStyle->SetGridWidth(1);
-  canvas_event = new TCanvas("canvas_event", "Event", 600, 1000);
-  canvas_event->Divide(2,2);
-  canvas_event->cd(1)->SetPad(0.,0.3,1.,1.);
-  canvas_event->cd(2)->SetPad(0.99,0.99,1.,1.);
-  canvas_event->cd(3)->SetPad(0.,0.,0.5,0.3);
-  canvas_event->cd(4)->SetPad(0.5,0.,1.,0.3);
+  canvas_event = new TCanvas("canvas_event", "Event", 1200, 1000);
+  canvas_event->Divide(3,2);
+  canvas_event->cd(1)->SetPad(0., .33, .66, 1.0);
+  canvas_event->cd(2)->SetPad(0., 0., .33, .33);
+  canvas_event->cd(3)->SetPad(.33, 0., .66, .33);
+  canvas_event->cd(4)->SetPad(.66, .66, 1., 1.);
+  canvas_event->cd(5)->SetPad(.66, .33, 1., .66);
+  canvas_event->cd(6)->SetPad(.66, 0., 1., .33);
 
   //Particle maps
   ParticleColor[11]=kGreen;   ParticleWidth[11]=1;   ParticleName[11]="Electron";
@@ -231,7 +233,7 @@ EventDisplay::EventDisplay(char *_inputfile){
     vpmtbox.push_back(TPaveText(pmtwidth*ipmt-3*pmtwidth-pmtwidth/2.,-15.,pmtwidth*ipmt-2*pmtwidth-pmtwidth/2.,15.));
   }
   //y pmts
-  for(int ipmt=0;ipmt<7;ipmt++){
+  for(int ipmt=6;ipmt>-1;ipmt--){ //correct order
     if(ipmt==3) continue; //do not draw the central PMT again
     vpmtbox.push_back(TPaveText(-15.,pmtwidth*ipmt-3*pmtwidth-pmtwidth/2.,15.,pmtwidth*ipmt-2*pmtwidth-pmtwidth/2.));
   }
@@ -494,71 +496,68 @@ void EventDisplay::DisplayEvent(int ievt){
     
   }
   
-  if(DRAWWAVEFORMS){
-    if(mc->GetMCPMTCount()>0){
+  if(mc->GetMCPMTCount()>0){
     
-      if(DEBUG) std::cout<<"Display canvas 2 "<<std::endl;
-      
-      canvas_event->cd(3);
-      PMTWaveforms[0].Draw("AP");
-      PMTWaveforms[0].GetXaxis()->SetTitle("t(ns)");
-      PMTWaveforms[0].GetYaxis()->SetTitle("V");
-      for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
-	PMTWaveforms[ipmt].SetLineColor(ipmt+1);
-	PMTWaveforms[ipmt].Draw("LINE same");
-	//      PMTDigitizedWaveforms[ipmt].SetLineColor(kRed);
-	//      PMTDigitizedWaveforms[ipmt].Draw("LINE same");
-      }
-      
-      if(DEBUG) std::cout<<"Display canvas 3 "<<std::endl;
-      
-      canvas_event->cd(4);
-      PMTDigitizedWaveforms[0].Draw("AP");
-      PMTDigitizedWaveforms[0].GetXaxis()->SetTitle("sample");
-      PMTDigitizedWaveforms[0].GetYaxis()->SetTitle("ADC counts");
-      for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
-	PMTDigitizedWaveforms[ipmt].SetLineColor(ipmt+1);
-	PMTDigitizedWaveforms[ipmt].Draw("LINE same");
+    if(DEBUG) std::cout<<"Display canvas 5 "<<std::endl;
+    
+    canvas_event->cd(4);
+    PMTWaveforms[0].Draw("AP");
+    PMTWaveforms[0].GetXaxis()->SetTitle("t(ns)");
+    PMTWaveforms[0].GetYaxis()->SetTitle("V");
+    for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
+      PMTWaveforms[ipmt].SetLineColor(ipmt+1);
+      PMTWaveforms[ipmt].Draw("LINE same");
+      //      PMTDigitizedWaveforms[ipmt].SetLineColor(kRed);
+      //      PMTDigitizedWaveforms[ipmt].Draw("LINE same");
+    }
+    
+    if(DEBUG) std::cout<<"Display canvas 6 "<<std::endl;
+    
+    canvas_event->cd(5);
+    PMTDigitizedWaveforms[0].Draw("AP");
+    PMTDigitizedWaveforms[0].GetXaxis()->SetTitle("sample");
+    PMTDigitizedWaveforms[0].GetYaxis()->SetTitle("ADC counts");
+    for (int ipmt = 0; ipmt < mc->GetMCPMTCount(); ipmt++) {
+      PMTDigitizedWaveforms[ipmt].SetLineColor(ipmt+1);
+      PMTDigitizedWaveforms[ipmt].Draw("LINE same");
       //      PMTDigitizedWaveforms[ipmt].ComputeRange(xmin_temp,xmax_temp,ymin_temp,ymax_temp);
-      }
     }
-  } else{
-    canvas_event->cd(3);
-    hxyplane["start"]->SetLineColor(ParticleColor[0]);
-    hxyplane["Cerenkov"]->SetLineColor(ParticleColor[0]);
-    hxyplane["Scintillation"]->SetLineColor(ParticleColor[9999]);
-    if(hxyplane["Cerenkov"]->GetEntries()>0)
-      hxyplane["Cerenkov"]->Draw("box");
-    else if(hxyplane["Scintillation"]->GetEntries()>0)
-      hxyplane["Scintillation"]->Draw("box");
-    else
-      hxyplane["start"]->Draw("box");
-    for (std::map<std::string,TH2F*>::iterator it=hxyplane.begin();it!=hxyplane.end();it++){
-      it->second->Draw("box same");
-    }
-    //Draw grid
-    int nlines = 2*XP_XSIDE/pmtwidth;
-    TLine* xline;
-    TLine* yline;
-    for(int iline=0; iline<nlines; iline++){
-      xline = new TLine(-XP_XSIDE,iline*pmtwidth-nlines/2.*pmtwidth,XP_XSIDE,iline*pmtwidth-nlines/2.*pmtwidth);
-      xline->SetLineWidth(1.);
-      xline->SetLineStyle(3);
-      xline->SetLineColor(kGray);
-      xline->Draw("same");
-      yline = new TLine(iline*pmtwidth-nlines/2.*pmtwidth,-XP_YSIDE,iline*pmtwidth-nlines/2.*pmtwidth,XP_YSIDE);
-      yline->SetLineWidth(1.);
-      yline->SetLineStyle(3);
-      yline->SetLineColor(kGray);
-      yline->Draw("same");
-    }
+  }
+  canvas_event->cd(2);
+  hxyplane["start"]->SetLineColor(ParticleColor[0]);
+  hxyplane["Cerenkov"]->SetLineColor(ParticleColor[0]);
+  hxyplane["Scintillation"]->SetLineColor(ParticleColor[9999]);
+  if(hxyplane["Cerenkov"]->GetEntries()>0)
+    hxyplane["Cerenkov"]->Draw("box");
+  else if(hxyplane["Scintillation"]->GetEntries()>0)
+    hxyplane["Scintillation"]->Draw("box");
+  else
+    hxyplane["start"]->Draw("box");
+  for (std::map<std::string,TH2F*>::iterator it=hxyplane.begin();it!=hxyplane.end();it++){
+    it->second->Draw("box same");
+  }
+  //Draw grid
+  int nlines = 2*XP_XSIDE/pmtwidth;
+  TLine* xline;
+  TLine* yline;
+  for(int iline=0; iline<nlines; iline++){
+    xline = new TLine(-XP_XSIDE,iline*pmtwidth-nlines/2.*pmtwidth,XP_XSIDE,iline*pmtwidth-nlines/2.*pmtwidth);
+    xline->SetLineWidth(1.);
+    xline->SetLineStyle(3);
+    xline->SetLineColor(kGray);
+    xline->Draw("same");
+    yline = new TLine(iline*pmtwidth-nlines/2.*pmtwidth,-XP_YSIDE,iline*pmtwidth-nlines/2.*pmtwidth,XP_YSIDE);
+    yline->SetLineWidth(1.);
+    yline->SetLineStyle(3);
+    yline->SetLineColor(kGray);
+    yline->Draw("same");
+  }
+  
+  //Draw pmts
+  for(int ipmt=0; ipmt<vpmtbox.size();ipmt++)
+    vpmtbox[ipmt].Draw("LINE same");
 
-    //Draw pmts
-    for(int ipmt=0; ipmt<vpmtbox.size();ipmt++)
-      vpmtbox[ipmt].Draw("LINE same");
-
-  }    
-
+  
   //Wait for user action
   canvas_event->Modified();
   canvas_event->Update();

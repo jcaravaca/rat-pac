@@ -51,9 +51,14 @@
   valid_end: [0, 0],
   invisible: 0, // omitted for visualization
   mother: "inner",
+//Cylinder
+//  type: "tube",
+//  r_max: 150.0, //mm 200.0
+//  size_z: 50.0, //mm 19.0
+//Cuboid
   type: "box",
-  position: [0.0, 0.0, 179.5], //179.5
   size: [200.0,200.0,50.0], //tank
+  position: [0.0, 0.0, 179.5], //179.5
   material: "acrylic_berkeley", //quartz, acrylic_berkeley
   color: [0.1, 0.3, 0.8, 0.1],
 }
@@ -65,10 +70,15 @@
   valid_end: [0, 0],
   invisible: 0, // omitted for visualization
   mother: "outer_vessel",
+//Cylinder
+//  type: "tube",
+//  r_max: 140.0, //mm
+//  size_z: 44.5, //mm
+//Cuboid
   type: "box",
-  position: [0.0, 0.0, 4.5],
   size: [190.0,190.0,44.5], //tank
-  material: "water", //water, acrylic_berkeley
+  position: [0.0, 0.0, 4.5],
+  material: "acrylic_berkeley", //water, acrylic_berkeley
   color: [0.1, 0.8, 0.8, 0.1],
 }
 
@@ -78,11 +88,17 @@
   valid_begin: [0, 0],
   valid_end: [0, 0],
   invisible: 0, // omitted for visualization
-  mother: "inner_vessel",
-  type: "tube",
-  position: [0.0, 0.0, 29.5], //31.0
-  r_max: 30.0, //mm
-  size_z: 15.0, //mm 19.0
+  mother: "inner", //inner_vessel
+//Cylinder
+//  type: "tube",
+//  r_max: 30.0, //mm
+//  size_z: 15.0, //mm 19.0
+//Cuboid
+  type: "box",
+  rotation:  [0.0, 0.0, -45.0],
+  size: [30.0,30.0,15.0], //30.0, 15.0
+  position: [0.0, 0.0, 244.5], //179.5
+//  position: [0.0, 0.0, 14.5], //29.5
   material: "acrylic_berkeley",
   color: [0.1, 0.3, 0.8, 0.1],
 }
@@ -94,10 +110,14 @@
   valid_end: [0, 0],
   invisible: 0, // omitted for visualization
   mother: "container",
-  type: "tube",
+//Cylinder
+//  type: "tube",
+//  r_max: 20.0, //mm
+//  size_z: 10.0, //mm 19.0
+//Cuboid
+  type: "box",
+  size: [25.0,25.0,10.0], //25.0, 10.0
   position: [0.0, 0.0, 5.0], //31.0
-  r_max: 20.0, //mm
-  size_z: 10.0, //mm 19.0
   material: "wbls_5pct", //water, wbls_5pct
   color: [0.5, 0.1, 0.5, 0.5],
 }
@@ -110,10 +130,10 @@
   invisible: 0, // omitted for visualization
   mother: "inner_vessel",
   type: "tube",
-  position: [0.0, 0.0, -15.0], //(-20.0)
-  r_max: 5.0, //mm
-  size_z: 29.5, //mm (30.0)
-  material: "air",
+  position: [0.0, 0.0, 0.0], //-15.0
+  r_max: 5.0, //5.0
+  size_z: 44.5, //29.5
+  material: "air", //air
   color: [0.0, 0.0, 0.0, 0.1],
 }
 
@@ -127,8 +147,8 @@
   type: "tube",
   position: [0.0, 0.0, -45.0], //(-20.0)
   r_max: 5.0, //mm
-  size_z: 5.0, //mm (30.0)
-  material: "air",
+  size_z: 5.0, //mm
+  material: "air", //air
   color: [0.0, 0.0, 0.0, 0.1],
 }
 //////////////////////////////////////////////
