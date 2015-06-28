@@ -5,6 +5,7 @@
 #/rat/db/set DETECTOR geo_file "TheiaRnD/pmt_test.geo"
 /rat/db/set DETECTOR geo_file "TheiaRnD/pmt_array.geo"
 #/rat/db/set DETECTOR geo_file "TheiaRnD/onepmt_new_close.geo"
+#/rat/db/set DETECTOR geo_file "TheiaRnD/TheiaRnD.geo"
 
 /run/initialize
 #/process/inactivate Cerenkov
@@ -45,9 +46,8 @@
 # /vis/viewer/set/background white
 # /vis/viewer/set/style s
 # /vis/viewer/set/projection p
-# /vis/viewer/set/upVector 1 0 0
-# /vis/viewer/set/viewpointThetaPhi 30 30 side
-# /vis/viewer/set/viewpointThetaPhi 70 30 #corner
+# /vis/viewer/set/upVector 0 0 1
+# /vis/viewer/set/viewpointThetaPhi -80 0 #side
 # /vis/viewer/zoom 10
 
 ###RAYTRACER
@@ -68,14 +68,13 @@
 /rat/proc daq
 /rat/procset trigger "allpmts" #simpledaq, triggerpmt, allpmts
 /rat/proc count
-/rat/procset update 1
+/rat/procset update 100
 
 #Output file
 /rat/proclast outroot
 #/rat/procset file "../results/TheiaRnD_cosmic3GeV_tankholed_acry_cher_wbls5pc.root"
 #/rat/procset file "../results/TheiaRnD_cosmic3GeV_tank_quartz_wbls5pct_noscint_cylinder_pmts.root"
 /rat/procset file "../results/TheiaRnD_pmttest.root"
-#/rat/procset file "../results/TheiaRnD_vessel_wbls5pct_timing.root"
 #########################################
 
 ##### GENERATORS #################
@@ -86,8 +85,16 @@
 
 ###COSMIC
 /generator/add combo gun2:point
-/generator/vtx/set mu- 0.0 0.0 -1.0 0 3000.0 3000.0 //mu->100.0
+# vertical muon
+/generator/vtx/set mu- 0.0 0.0 -1.0 0 3000.0 3000.0
 /generator/pos/set 0.0 0.0 280.0
+# tilted muon
+#/generator/vtx/set mu- 0.0 -10.0 -70.0 0 3000.0 3000.0
+#/generator/pos/set 0.0 13.0 250.0
+# in a volume
+#/generator/add combo gun2:fill
+#/generator/vtx/set mu- 0.0 0.0 -1.0 0 3000.0 3000.0
+#/generator/pos/set cosmics
 
 ###PHOTON BOMB
 # /generator/add combo pbomb:point:uniform    # Photonbomb generator from fixed point, uniform in time
@@ -121,4 +128,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 5
+/run/beamOn 200
