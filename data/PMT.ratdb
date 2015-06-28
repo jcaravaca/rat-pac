@@ -142,16 +142,16 @@ index: "h11934",
 valid_begin: [0,0],
 valid_end: [0,0],
 
-dynode_material: "acrylic_black", //stainless_steel
+dynode_material: "stainless_steel", //stainless_steel
 glass_material: "glass", //glass, acrylic_berkeley
-pmt_vacuum_material: "acrylic_black", //pmt_vacuum
+pmt_vacuum_material: "pmt_vacuum", //pmt_vacuum
 photocathode_surface: "photocathode_H11934",
-mirror_surface: "acrylic_black", //mirror
-dynode_surface: "acrylic_black", //stainless_steel
+mirror_surface: "mirror", //mirror
+dynode_surface: "stainless_steel", //stainless_steel
 
 shape: "cube", //torus, cube
-dynode_radius: 14.4, // mm
-dynode_top: 1.0, // mm
+dynode_radius: 13.0, // mm, 14.4, 14.0
+dynode_top: -20.0, // mm
 wall_thickness: 0.5, // mm
 
 //width: 25.4, //mm

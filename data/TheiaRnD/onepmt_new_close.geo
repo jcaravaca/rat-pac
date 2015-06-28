@@ -70,7 +70,7 @@
   position: [-450.0, 0.0, -300.0],
   size: [12.7,50.8,25.4], //mm
 //  size: [2.5,50.8,25.4], //mm
-  material: "scintillator", //labppo_scintillator, scintillator, acrylic_berkeley
+  material: "acrylic_berkeley", //labppo_scintillator, scintillator, acrylic_berkeley
   color: [0.1, 0.3, 0.8, 0.1],
 }
 

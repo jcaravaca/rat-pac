@@ -656,7 +656,7 @@ index: "scintillator",
 valid_begin : [0, 0],
 valid_end : [0, 0],
 
-LIGHT_YIELD: 1080d, //Added by Javi: original -> 10800d
+LIGHT_YIELD: 10800d,
 NEUTRON_CAPTURE_TIME_value1: [0.0, 1.0, ],
 NEUTRON_CAPTURE_TIME_value2: [163000.0, 163000.0, ],
 NEUTRON_SLOW_DIFFUSION_CONST_value1: [0.0, 1.0, ],
@@ -1031,7 +1031,7 @@ index: "labppo_scintillator",
 valid_begin : [0, 0],
 valid_end : [0, 0],
 NUM_COMP: 2,
-LIGHT_YIELD: 10800d,
+LIGHT_YIELD: 5080d, //modified by Javi for testing (10800d)
 SCINTWAVEFORM_value1: [-4.6d, -18d, -156d,],
 SCINTWAVEFORM_value2: [0.71d, 0.22d, 0.07d,],
 SCINTWAVEFORMalpha_value1: [-3.2d, -18d, -190d,],

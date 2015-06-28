@@ -51,7 +51,7 @@
 #define ZPOS 0.0
 #define XP_XSIDE 200.0 // 250.//508.0
 #define XP_YSIDE 200.0 // 250.//508.0
-#define XP_ZPOS 129.0 // 130.0
+#define XP_ZPOS -25.0 // -29.0, 31.0
 
 double pmtwidth = 29.0; //mm
 
@@ -169,28 +169,36 @@ EventDisplay::EventDisplay(char *_inputfile){
     vxyplane->SetLineColor(1);
     vworld->AddNode(vxyplane,3);
   }
+  TGeoBBox *btank;
   TGeoBBox *bvessel;
   TGeoBBox *bcontent;
   if(DRAWOLDDARKBOX){
     // pos_temp[0] = -180.0; pos_temp[1] = 0.0; pos_temp[2] = 0.0;
     // bvessel = new TGeoBBox(2.5,66.7,47.6,pos_temp);
-    pos_temp[0] = -450.0; pos_temp[1] = 0.0; pos_temp[2] = -300.0;
+    pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 0;
     bvessel = new TGeoBBox(32.0,100.0,50.0,pos_temp);
   } else{
-    pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 179.3;
-    bvessel = new TGeoBBox(200.0,200.0,50.0,pos_temp);
-    bcontent = new TGeoBBox(190.0,190.0,40.0,pos_temp);
+    pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 0;
+    btank = new TGeoBBox(160.0,160.0,25.0,pos_temp);
+    pos_temp[0] = 0; pos_temp[1] = 0; pos_temp[2] = 44.0;
+    bvessel = new TGeoBBox(60.0,60.0,19.0,pos_temp);
+    bcontent = new TGeoBBox(160.0,160.0,40.0,pos_temp);
   }
   if(DRAWVESSEL){
+    TGeoVolume *vtank = new TGeoVolume("tank",btank,med);
     TGeoVolume *vvessel = new TGeoVolume("vessel",bvessel,med);
     TGeoVolume *vcontent = new TGeoVolume("content",bcontent,med);
+    vtank->SetLineWidth(3);
+    vtank->SetLineColor(kBlue);
     vvessel->SetLineWidth(3);
     vvessel->SetLineColor(kBlue);
     vcontent->SetLineWidth(2);
     vcontent->SetLineColor(kBlue+1);
+    vworld->AddNode(vtank,1);
     vworld->AddNode(vvessel,1);
     //    vworld->AddNode(vcontent,2);
   }
+  double pmt_pos[16][3];
   if(DRAWPMTS){
     //Grid
     // for(int pmtID=0; pmtID<16; pmtID++){
@@ -201,26 +209,24 @@ EventDisplay::EventDisplay(char *_inputfile){
     //   vworld->AddNode(vpmt[pmtID],1);
     // }
     //Cross
-    double pos_pmts[16][3];
-    pos_pmts[0][0] = -90.; pos_pmts[0][1] = 0.; pos_pmts[0][2] = 115.;
-    pos_pmts[1][0] = -60.; pos_pmts[1][1] = 0.; pos_pmts[1][2] = 115.;
-    pos_pmts[2][0] = -30.; pos_pmts[2][1] = 0.; pos_pmts[2][2] = 115.;
-    pos_pmts[3][0] = 0.; pos_pmts[3][1] = 0.; pos_pmts[3][2] = 115.;
-    pos_pmts[4][0] = 30.; pos_pmts[4][1] = 0.; pos_pmts[4][2] = 115.;
-    pos_pmts[5][0] = 60.; pos_pmts[5][1] = 0.; pos_pmts[5][2] = 115.;
-    pos_pmts[6][0] = 90.; pos_pmts[6][1] = 0.; pos_pmts[6][2] = 115.;
-    pos_pmts[7][0] = 0.; pos_pmts[7][1] = -90.; pos_pmts[7][2] = 115.;
-    pos_pmts[8][0] = 0.; pos_pmts[8][1] = -90.; pos_pmts[8][2] = 115.;
-    pos_pmts[9][0] = 0.; pos_pmts[9][1] = -60.; pos_pmts[9][2] = 115.;
-    pos_pmts[10][0] = 0.; pos_pmts[10][1] = -30.; pos_pmts[10][2] = 115.;
-    pos_pmts[11][0] = 0.; pos_pmts[11][1] = 30.; pos_pmts[11][2] = 115.;
-    pos_pmts[12][0] = 0.; pos_pmts[12][1] = 60.; pos_pmts[12][2] = 115.;
-    pos_pmts[13][0] = 0.; pos_pmts[13][1] = 90.; pos_pmts[13][2] = 115.;
-    pos_pmts[14][0] = 60.; pos_pmts[14][1] = 60.; pos_pmts[14][2] = 115.;
-    pos_pmts[15][0] = -60.; pos_pmts[15][1] = -60.; pos_pmts[15][2] = 115.;
+    pmt_pos[0][0] = -105; pmt_pos[0][1] = 0.; pmt_pos[0][2] = -39.5;
+    pmt_pos[1][0] = -70.; pmt_pos[1][1] = 0.; pmt_pos[1][2] = -39.5;
+    pmt_pos[2][0] = -35.; pmt_pos[2][1] = 0.; pmt_pos[2][2] = -39.5;
+    pmt_pos[3][0] = 0.; pmt_pos[3][1] = 0.; pmt_pos[3][2] = -39.5;
+    pmt_pos[4][0] = 35.; pmt_pos[4][1] = 0.; pmt_pos[4][2] = -39.5;
+    pmt_pos[5][0] = 70.; pmt_pos[5][1] = 0.; pmt_pos[5][2] = -39.5;
+    pmt_pos[6][0] = 105; pmt_pos[6][1] = 0.; pmt_pos[6][2] = -39.5;
+    pmt_pos[7][0] = 0.; pmt_pos[7][1] = 105; pmt_pos[7][2] = -39.5;
+    pmt_pos[8][0] = 0.; pmt_pos[8][1] = 70.; pmt_pos[8][2] = -39.5;
+    pmt_pos[9][0] = 0.; pmt_pos[9][1] = 35.; pmt_pos[9][2] = -39.5;
+    pmt_pos[10][0] = 0.; pmt_pos[10][1] = -35.; pmt_pos[10][2] = -39.5;
+    pmt_pos[11][0] = 0.; pmt_pos[11][1] = -70.; pmt_pos[11][2] = -39.5;
+    pmt_pos[12][0] = 0.; pmt_pos[12][1] = -105; pmt_pos[12][2] = -39.5;
+    pmt_pos[13][0] = 60.; pmt_pos[13][1] = 60.; pmt_pos[13][2] = -39.5;
+    pmt_pos[14][0] = -60.; pmt_pos[14][1] = -60.; pmt_pos[14][2] = -39.5;
 
-    for(int pmtID=0; pmtID<16; pmtID++){
-      bpmt[pmtID] = new TGeoBBox(pmtwidth/2.,pmtwidth/2.,pmtwidth/2.,pos_pmts[pmtID]);
+    for(int pmtID=0; pmtID<15; pmtID++){
+      bpmt[pmtID] = new TGeoBBox(pmtwidth/2.,pmtwidth/2.,pmtwidth/2.,pmt_pos[pmtID]);
       vpmt[pmtID] = new TGeoVolume(Form("PMT%i",pmtID),bpmt[pmtID],med);
       vpmt[pmtID]->SetLineWidth(2);
       vworld->AddNode(vpmt[pmtID],1);
@@ -228,22 +234,11 @@ EventDisplay::EventDisplay(char *_inputfile){
   }
 
   //PMTs in XY plane
-  //x pmts
-  for(int ipmt=0;ipmt<7;ipmt++){
-    vpmtbox.push_back(TPaveText(pmtwidth*ipmt-3*pmtwidth-pmtwidth/2.,-15.,pmtwidth*ipmt-2*pmtwidth-pmtwidth/2.,15.));
-  }
-  //y pmts
-  for(int ipmt=6;ipmt>-1;ipmt--){ //correct order
-    if(ipmt==3) continue; //do not draw the central PMT again
-    vpmtbox.push_back(TPaveText(-15.,pmtwidth*ipmt-3*pmtwidth-pmtwidth/2.,15.,pmtwidth*ipmt-2*pmtwidth-pmtwidth/2.));
-  }
-  //offset pmts
-  vpmtbox.push_back(TPaveText(pmtwidth*5-3*pmtwidth-pmtwidth/2.,pmtwidth*5-3*pmtwidth-pmtwidth/2.,pmtwidth*5-2*pmtwidth-pmtwidth/2.,pmtwidth*5-2*pmtwidth-pmtwidth/2.));
-  vpmtbox.push_back(TPaveText(pmtwidth*1-3*pmtwidth-pmtwidth/2.,pmtwidth*1-3*pmtwidth-pmtwidth/2.,pmtwidth*1-2*pmtwidth-pmtwidth/2.,pmtwidth*1-2*pmtwidth-pmtwidth/2.));
-  //customize
-  for(int ipmt=0;ipmt<vpmtbox.size();ipmt++){
+  for(int ipmt=0;ipmt<15;ipmt++){
+    vpmtbox.push_back(TPaveText(pmt_pos[ipmt][0]+pmtwidth/2. , pmt_pos[ipmt][1]+pmtwidth/2. , pmt_pos[ipmt][0]-pmtwidth/2. , pmt_pos[ipmt][1]-pmtwidth/2. ));
+    //customize
     vpmtbox[ipmt].SetFillColor(kGray);
-    vpmtbox[ipmt].SetFillStyle(3004);
+    vpmtbox[ipmt].SetFillStyle(3002);
     vpmtbox[ipmt].SetLineColor(2);
     vpmtbox[ipmt].SetLineWidth(1);
     vpmtbox[ipmt].SetTextColor(kBlack);
@@ -352,7 +347,8 @@ void EventDisplay::LoadEvent(int ievt){
       	  double lambda = (XP_ZPOS - top_pos.Z())/(bottom_pos.Z() - top_pos.Z());
       	  int_pos = top_pos + (bottom_pos - top_pos)*lambda;
       	  //	  std::cout<<"FILL IT! "<<int_pos.X()<<" "<<int_pos.Y()<<" "<<int_pos.Z()<<std::endl;
-      	  hxyplane[firststep->GetProcess()]->Fill(int_pos.X(),int_pos.Y());
+      	  if(firststep->GetProcess()=="Reemission") hxyplane["Scintillation"]->Fill(int_pos.X(),int_pos.Y());
+	  else hxyplane[firststep->GetProcess()]->Fill(int_pos.X(),int_pos.Y());
 	  bottom_pos.SetZ(-9999.);
 
 	}
@@ -431,9 +427,9 @@ void EventDisplay::DrawGeometry(){
 
   //Highlight PMT if was hit
   if(DRAWPMTS){
-    for(int pmtID=0; pmtID<16; pmtID++){
-      vpmt[pmtID]->SetLineColor(1);
-      if(hitpmts[pmtID]) vpmt[pmtID]->SetLineColor(kRed);
+    for( std::map<int, TGeoVolume* >::iterator ipmt=vpmt.begin(); ipmt!=vpmt.end(); ipmt++){
+      ipmt->second->SetLineColor(1);
+      if(hitpmts[ipmt->first]) ipmt->second->SetLineColor(kRed);
     }
   }
   vworld->Draw("");

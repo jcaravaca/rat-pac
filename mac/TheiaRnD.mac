@@ -3,15 +3,15 @@
 
 /rat/db/set DETECTOR experiment "TheiaRnD"
 #/rat/db/set DETECTOR geo_file "TheiaRnD/pmt_test.geo"
-#/rat/db/set DETECTOR geo_file "TheiaRnD/pmt_array.geo"
+/rat/db/set DETECTOR geo_file "TheiaRnD/pmt_array.geo"
 #/rat/db/set DETECTOR geo_file "TheiaRnD/onepmt_new_close.geo"
-/rat/db/set DETECTOR geo_file "TheiaRnD/TheiaRnD.geo"
+#/rat/db/set DETECTOR geo_file "TheiaRnD/TheiaRnD.geo"
 
 /run/initialize
 #/process/inactivate Cerenkov
-#/glg4scint/off
-#/glg4scint/reemission off
-/tracking/storeTrajectory 0
+/glg4scint/off
+/glg4scint/reemission off
+/tracking/storeTrajectory 1
 
 ##### Visualization ##########################
 
@@ -68,14 +68,14 @@
 /rat/proc daq
 /rat/procset trigger "allpmts" #simpledaq, triggerpmt, allpmts
 /rat/proc count
-/rat/procset update 1000
+/rat/procset update 100
 
 #Output file
 /rat/proclast outroot
 #/rat/procset file "../results/TheiaRnD_cosmic3GeV_tankholed_acry_cher_wbls5pc.root"
 #/rat/procset file "../results/TheiaRnD_cosmic3GeV_tank_quartz_wbls5pct_noscint_cylinder_pmts.root"
-#/rat/procset file "../results/TheiaRnD_90Y_cross.root"
-/rat/procset file "../results/TheiaRnD_geant4.9_sixpmts_scint.root"
+/rat/procset file "../results/TheiaRnD_wbls_cher_5cm_thintarget_target35mm_pmtholder.root"
+#/rat/procset file "../results/TheiaRnD_geant4.10_onepmt_acry.root"
 #########################################
 
 ##### GENERATORS #################
@@ -85,13 +85,17 @@
 # /generator/pos/set 0 0 422.0
 
 ###COSMIC
-#/generator/add combo gun2:point
+/generator/add combo gun2:point
 # vertical muon
-#/generator/vtx/set mu- 0.0 0.0 -1.0 0 200.0 200.0
-#/generator/pos/set 0.0 0.0 280.0
+/generator/vtx/set mu- 0.0 0.0 -1.0 0 3000.0 3000.0
+/generator/pos/set 0.0 0.0 280.0
 # tilted muon
 #/generator/vtx/set mu- 0.0 -10.0 -70.0 0 3000.0 3000.0
 #/generator/pos/set 0.0 13.0 250.0
+# in a volume
+#/generator/add combo gun2:fill
+#/generator/vtx/set mu- 0.0 0.0 -1.0 0 3000.0 3000.0
+#/generator/pos/set cosmics
 
 ###PHOTON BOMB
 # /generator/add combo pbomb:point:uniform    # Photonbomb generator from fixed point, uniform in time
@@ -113,11 +117,11 @@
 # /generator/pos/set source
 
 ###RADIACTIVE SOURCE DECAYCHAIN
-/generator/add decaychain 90Y:fill:uniform
-/generator/pos/set -410.0 -410.0 0.0 #corner of the box (for TheiaRnD.geo)
+#/generator/add decaychain 90Y:fill:uniform
+#/generator/pos/set -410.0 -410.0 0.0 #corner of the box (for TheiaRnD.geo)
 #/generator/pos/set 0 0 423.0 #top of the box
 #/generator/pos/set -464.287 -25.0 -300.0 #side of the box (for onepmt_new_close.geo)
-/generator/pos/set source
+#/generator/pos/set source
 
 ###SOLAR NEUTRINOS
 #/generator/add solar pep:nue
@@ -126,4 +130,4 @@
 #######################################
 
 ##### RUN ###########
-/run/beamOn 100000
+/run/beamOn 200
