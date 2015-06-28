@@ -320,7 +320,7 @@
   pmt_detector_type: "idpmt",
   sensitive_detector: "/mydet/pmt/inner",
   efficiency_correction: 1.0,
-  pos_table: "PMTINFO_CROSS_SPARSE",
+  pos_table: "PMTINFO_CROSS_SIMPLE",
   orientation: "manual",
 }
 

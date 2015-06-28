@@ -151,7 +151,7 @@ dynode_surface: "stainless_steel", //stainless_steel
 
 shape: "cube", //torus, cube
 dynode_radius: 13.0, // mm, 14.4, 14.0
-dynode_top: -20.0, // mm
+dynode_top: -2.0, // mm
 wall_thickness: 0.5, // mm
 
 //width: 25.4, //mm

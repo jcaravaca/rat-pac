@@ -125,6 +125,7 @@ namespace RAT {
 	  body_log,           // the mother volume
 	  false,               // no boolean ops
 	  0 );                 // copy number
+
       // place gap between inner1 and inner2
       central_gap_phys= new G4PVPlacement
 	( 0,                   // no rotation
@@ -133,7 +134,7 @@ namespace RAT {
 	  prefix+"_central_gap_phys",            // a name for this physical volume
 	  body_log,           // the mother volume
 	  false,               // no boolean ops
-	  0 );                 // copy number 
+	  0 );                 // copy number
       // place dynode in stem/back
       dynode_phys= new G4PVPlacement
 	( 0,
@@ -205,9 +206,7 @@ namespace RAT {
       
       
     } else if(fParams.shape == "cube"){
-
       
-      const bool overlapRegion = fParams.PCMirrorOverlapTop != fParams.PCMirrorOverlapBottom;
       const double wall = fParams.wallThickness;
       
       // envelope cube
@@ -216,45 +215,44 @@ namespace RAT {
     	envelope_solid = NewEnvelopeSolid(prefix+"_envelope_solid");
       
       // Construct the glass body
+      //      G4Box* caseSolid = new G4Box( prefix + "_case_solid", fParams.width/2.0 + wall, fParams.width/2.0 + wall, fParams.width/2.0 + wall);
+
+      // Construct the glass body
       G4Box* bodySolid = new G4Box( prefix + "_body_solid", fParams.width/2.0, fParams.width/2.0, fParams.width/2.0);
 
       // Construct inners
-      //      const double inner1Height = fParams.width/2.0 - wall;
-      const double inner1Height = fParams.width/2.0 - fParams.PCMirrorOverlapTop - wall;
-      G4Box* inner1Solid = new G4Box( prefix + "_inner1_solid", fParams.width/2.0 - wall, fParams.width/2.0 - wall, inner1Height / 2.0 );
-      //const double inner2Height = fParams.width / 2.0 - wall;
-      const double inner2Height = fParams.PCMirrorOverlapBottom + fParams.width / 2.0 - wall;
-      G4Box* inner2Solid = new G4Box( prefix + "_inner2_solid", fParams.width/2.0 - wall, fParams.width/2.0 - wall, inner2Height / 2.0 );
-      // const double hhgap = 0.5e-7;
-      // G4Box* central_gap_solid = new G4Box( prefix + "_central_gap_solid", fParams.width / 2.0 - wall, fParams.width / 2.0 - wall, hhgap );
-      const double hhgap = fParams.PCMirrorOverlapTop - fParams.PCMirrorOverlapBottom;
-      G4Box* central_gap_solid = NULL;
-      if( overlapRegion ) 
-	central_gap_solid = new G4Box( prefix + "_central_gap_solid", fParams.width / 2.0 - wall, fParams.width / 2.0 - wall, hhgap / 2.0 );
-      
+      int pcheight = 5.0;//mm
+      const double inner1Height = pcheight/2.0;
+      G4Box* inner1Solid = new G4Box( prefix + "_inner1_solid", fParams.width/2.0 - wall, fParams.width/2.0 - wall, inner1Height );
+      const double hhgap = 0.5e-7;
+      const double inner2Height = fParams.width/2.0 - wall - inner1Height - hhgap;
+      G4Box* inner2Solid = new G4Box( prefix + "_inner2_solid", fParams.width/2.0 - wall, fParams.width/2.0 - wall, inner2Height);
+      G4Box* central_gap_solid = new G4Box( prefix + "_central_gap_solid", fParams.width / 2.0 - wall, fParams.width / 2.0 - wall, hhgap );
+
       // Construct the dynode volume
-      //      double dynodeHeight = fParams.dynodeTop + fParams.width / 2.0 - wall;
-      double dynodeHeight = inner2Height + fParams.dynodeTop;
-      G4Box* dynodeSolid = new G4Box( prefix + "_dynode_solid", fParams.dynodeRadius, fParams.dynodeRadius, dynodeHeight / 2.0 );
+      double dynodeHeight = fParams.dynodeTop + inner2Height;
+      G4Box* dynodeSolid = new G4Box( prefix + "_dynode_solid", fParams.dynodeRadius, fParams.dynodeRadius, dynodeHeight );
 
       
       // ------------ Logical Volumes -------------
-      G4LogicalVolume *envelope_log, *body_log, *inner1_log, *inner2_log, *central_gap_log, *dynode_log;
+      G4LogicalVolume *envelope_log, *case_log, *body_log, *inner1_log, *inner2_log, *central_gap_log, *dynode_log;
       if (fParams.useEnvelope)
     	envelope_log = new G4LogicalVolume(envelope_solid, fParams.exterior, prefix+"envelope_log");
       
+      //      case_log = new G4LogicalVolume( caseSolid, fParams.outcase, prefix + "_case_logic" );
       body_log = new G4LogicalVolume( bodySolid, fParams.glass, prefix + "_body_logic" );
       if (fParams.detector)
        	body_log->SetSensitiveDetector(fParams.detector);
 
       inner1_log = new G4LogicalVolume( inner1Solid, fParams.vacuum, prefix + "_inner1_logic" );
+      //      inner1_log->SetSensitiveDetector(fParams.detector);
+
       inner2_log = new G4LogicalVolume( inner2Solid, fParams.vacuum, prefix + "_inner2_logic");
 
-      //      central_gap_log = new G4LogicalVolume( central_gap_solid, fParams.vacuum, prefix + "_central_gap_logic");
-      if( overlapRegion )
-      	central_gap_log = new G4LogicalVolume( central_gap_solid, fParams.vacuum, prefix + "_central_gap_logic");
-
       dynode_log = new G4LogicalVolume( dynodeSolid, fParams.dynode, prefix + "_dynode_logic" );
+
+      central_gap_log = new G4LogicalVolume( central_gap_solid, fParams.vacuum, prefix + "_central_gap_logic");
+
       
       
       // ------------ Physical Volumes -------------
@@ -277,8 +275,8 @@ namespace RAT {
       // Place the inner solids in the body solid to produce the physical volumes
       inner1_phys= new G4PVPlacement
       	( 0,                   // no rotation
-      	  G4ThreeVector( 0.0, 0.0, fParams.PCMirrorOverlapTop + inner1Height / 2.0 ),
-      	  //G4ThreeVector(0.0, 0.0, 2.*hhgap),  
+	  G4ThreeVector(0.0, 0.0, fParams.width/2.0 - inner1Height -wall),       // puts face equator in right place, in front of tolerance gap
+      	  //G4ThreeVector(0.0, 0.0, 2.*hhgap),
       	  inner1_log,                    // the logical volume
       	  prefix+"_inner1_phys",         // a name for this physical volume
       	  body_log,           // the mother volume
@@ -287,8 +285,7 @@ namespace RAT {
       
       inner2_phys= new G4PVPlacement
       	( 0,                   // no rotation
-      	  G4ThreeVector( 0.0, 0.0, fParams.PCMirrorOverlapBottom - inner2Height / 2.0 ),
-      	  // noTranslation, 
+	  G4ThreeVector(0.0, 0.0, - fParams.width/2.0 + inner2Height + wall),       // puts face equator in right place, in front of tolerance gap
       	  inner2_log,                    // the logical volume
       	  prefix+"_inner2_phys",         // a name for this physical volume
       	  body_log,           // the mother volume
@@ -296,38 +293,24 @@ namespace RAT {
       	  0 );                 // copy number
 
       // place gap between inner1 and inner2
-      central_gap_phys = NULL;
-      if( overlapRegion )
-	central_gap_phys= new G4PVPlacement
-	  ( 0,                   // no rotation
-	    G4ThreeVector(0.0, 0.0, fParams.PCMirrorOverlapBottom + inner2Height / 2.0),        // puts face equator in right place, between inner1 and inner2
-	    central_gap_log,                       // the logical volume
-	    prefix+"_central_gap_phys",            // a name for this physical volume
-	    body_log,           // the mother volume
-	    false,               // no boolean ops
-	    0 );                 // copy number 
+      central_gap_phys= new G4PVPlacement
+	( 0,                   // no rotation
+	  G4ThreeVector(0.0, 0.0, 0.0),        // puts face equator in right place, between inner1 and inner2
+	  central_gap_log,                       // the logical volume
+	  prefix+"_central_gap_phys",            // a name for this physical volume
+	  body_log,           // the mother volume
+	  false,               // no boolean ops
+	  0 );                 // copy number 
       // place dynode in stem/back
       dynode_phys= new G4PVPlacement
       	( 0,
-	  G4ThreeVector(0.0, 0.0, fParams.dynodeTop/2.0),
+	  G4ThreeVector(0.0, 0.0, - inner2Height + dynodeHeight),
       	  prefix+"_dynode_phys",
       	  dynode_log,
       	  inner2_phys,
       	  false,
       	  0 );
 
-
-
-
-      // inner1_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, fParams.PCMirrorOverlapTop + inner1Height / 2.0 ), inner1_log, prefix + "_inner1", body_log, false, 0 );
-      // inner2_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0,fParams.PCMirrorOverlapBottom - inner2Height / 2.0 ), inner2_log, prefix + "_inner2", body_log, false,  0 );
-      // //      central_gap_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, fParams.PCMirrorOverlapBottom + inner2Height / 2.0 ), inner2_log, prefix + "_inner2", body_log, false, 0 );
-      // central_gap_phys = NULL;
-      // if( overlapRegion )
-      // 	central_gap_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, fParams.PCMirrorOverlapBottom + inner2Height / 2.0 ), inner2_log, prefix + "_inner2", body_log, false, 0 );
-      // dynode_phys = new G4PVPlacement( 0, G4ThreeVector( 0.0, 0.0, fParams.dynodeTop - dynodeHeight / 2.0 ), dynode_log, prefix + "_dynode", inner2_log, false, 0 );
-      
-      
       // build the optical surface for the dynode straight away since we already have the logical volume
       new G4LogicalSkinSurface(prefix+"_dynode_logsurf",dynode_log,fParams.dynode_surface);
       
@@ -351,10 +334,11 @@ namespace RAT {
       G4Region* body_region = new G4Region(prefix+"_GLG4_PMTOpticalRegion");
       body_region->AddRootLogicalVolume(body_log);
       /*GLG4PMTOpticalModel * pmtOpticalModel =*/
-      new GLG4PMTOpticalModel(prefix+"_optical_model", body_region, body_log,
+      GLG4PMTOpticalModel *optmodel = new GLG4PMTOpticalModel(prefix+"_optical_model", body_region, body_log,
 			      pc_log_surface, fParams.efficiencyCorrection,
 			      fParams.dynodeTop, fParams.dynodeRadius,
 			      fParams.prepulseProb);
+      optmodel->SetNewValue(new G4UIcommand("verbose",optmodel), "2");
       
       // ------------ Vis Attributes -------------
       G4VisAttributes * visAtt;

@@ -390,7 +390,7 @@ GLG4PMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep)
     A= 1.0 - (T+R);
     An= 1.0 - (fT_n+fR_n); //The absorption at normal incidence
     collection_eff= _efficiency/An; // net QE = _efficiency for normal inc.
-    
+
 # ifdef G4DEBUG
     if (A < 0.0 || A > 1.0 || collection_eff < 0.0 || collection_eff > 1.0) {
       G4cerr << "GLG4PMTOpticalModel::DoIt(): Strange coefficients!\n";
@@ -411,6 +411,13 @@ GLG4PMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep)
     // "the track is absorbed", which is implemented correctly below for
     // the weight == 1 case, and as good as can be done for weight>1 case.
     G4double mean_N_pe= weight*A*collection_eff;
+
+    if (_verbosity >= 2) {
+      G4cout << "GLG4PMTOpticalModel: mean_N_pe "<<mean_N_pe
+	     <<" collection_eff " << collection_eff
+	     <<" An "<< An <<" A "<<A<<"\n";
+    }
+   
     for(int i=0;i<int(BEfficiencyCorrection.size());i++)
       if(BEfficiencyCorrection[i].first==ipmt){
         if(BEfficiencyCorrection[i].second>=0)
