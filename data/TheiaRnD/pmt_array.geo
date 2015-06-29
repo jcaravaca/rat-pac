@@ -59,7 +59,7 @@
   type: "box",
   size: [160.0,160.0,25.0], //tank 35.0
   position: [0.0, 0.0, 0.0], //179.5
-  material: "acrylic_berkeley", //quartz, acrylic_berkeley
+  material: "water", //acrylic_berkeley
   color: [0.1, 0.3, 0.8, 0.1],
 }
 
@@ -147,25 +147,25 @@
 //Cuboid
 //  type: "box",
 //  size: [25.0,25.0,10.0], //25.0, 10.0
-  position: [0.0, 0.0, 0.0], //2.5
+  position: [0.0, 0.0, 2.5], //2.5
   material: "wbls_10pct", //water, wbls_5pct, wbls_10pct, labppo_scintillator
   color: [0.5, 0.1, 0.5, 0.5],
 }
 
-// {
-//   name: "GEO",
-//   index: "blind_spot",
-//   valid_begin: [0, 0],
-//   valid_end: [0, 0],
-//   invisible: 0, // omitted for visualization
-//   mother: "container",
-//   type: "tube",
-//   position: [0.0, 0.0, -17.5], //(-20.0)
-//   r_max: 10.0, //5.0
-//   size_z: 2.5, //5.0
-//   material: "acrylic_black", //air
-//   color: [0.0, 0.0, 1.0, 1.0],
-// }
+{
+  name: "GEO",
+  index: "blind_spot",
+  valid_begin: [0, 0],
+  valid_end: [0, 0],
+  invisible: 0, // omitted for visualization
+  mother: "container",
+  type: "tube",
+  position: [0.0, 0.0, -17.5], //(-20.0)
+  r_max: 10.0, //5.0
+  size_z: 1.5, //5.0
+  material: "acrylic_black", //air
+  color: [0.0, 0.0, 1.0, 1.0],
+}
 
 //////////////////////////////////////////////
 
@@ -293,34 +293,34 @@
 // ANALYSIS TUBES
 
 //Container for pmts
-{
-  name: "GEO",
-  index: "pmt_holder",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  invisible: 0, // omitted for visualization
-  mother: "inner",
-//Cuboid
-  type: "box",
-  size: [121.0,121.0,15.0],
-  position: [0.0, 0.0, -40.0],
-  material: "acrylic_black",
-  color: [0.5, 0.0, 0.0, 0.5],
-}
+// {
+//   name: "GEO",
+//   index: "pmt_holder",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "inner",
+// //Cuboid
+//   type: "box",
+//   size: [121.0,121.0,15.0],
+//   position: [0.0, 0.0, -40.0],
+//   material: "acrylic_black",
+//   color: [0.5, 0.0, 0.0, 0.5],
+// }
 
 {
   name: "GEO",
   index: "pmts",
   valid_begin: [0, 0],
   valid_end: [0, 0],
-  mother: "pmt_holder",
+  mother: "inner", //pmt_holder
 //  mother: "vessel",
   type: "pmtarray",
   pmt_model: "h11934", //h11934, r7081_hqe, r11780_hqe
   pmt_detector_type: "idpmt",
   sensitive_detector: "/mydet/pmt/inner",
   efficiency_correction: 1.0,
-  pos_table: "PMTINFO_CROSS_SIMPLE",
+  pos_table: "PMTINFO_CROSS_SPARSE",
   orientation: "manual",
 }
 

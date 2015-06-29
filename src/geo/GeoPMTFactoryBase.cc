@@ -88,6 +88,7 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
     pmtParam.rhoEdge = lpmt->GetDArray("rho_edge");
     pmtParam.zOrigin = lpmt->GetDArray("z_origin");
   } else if(pmtParam.shape == "cube"){
+    pmtParam.pc_width = lpmt->GetD("pc_width");
     pmtParam.width = lpmt->GetD( "width" );
     pmtParam.PCMirrorOverlapTop = lpmt->GetD( "photocathode_mirror_top" );
     pmtParam.PCMirrorOverlapBottom = lpmt->GetD( "photocathode_mirror_bottom" );
@@ -105,6 +106,7 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
 
   // Materials
   pmtParam.exterior = mother->GetMaterial();
+  pmtParam.outcase = G4Material::GetMaterial(lpmt->GetS("case_material"));
   pmtParam.glass = G4Material::GetMaterial(lpmt->GetS("glass_material"));
   pmtParam.dynode = G4Material::GetMaterial(lpmt->GetS("dynode_material"));
   pmtParam.vacuum = G4Material::GetMaterial(lpmt->GetS("pmt_vacuum_material")); 
@@ -387,7 +389,7 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
   // id - the nth pmt that GeoPMTFactoryBase has built
   for (int idx = start_idx, id = pmtinfo.GetPMTCount(); idx <= end_idx; idx++, id++) {
   
-    string pmtname = volume_name + ::to_string(id); //internally PMTs are represented by the nth pmt built, not pmtid
+    string pmtname = volume_name + "_pmtenv_" + ::to_string(id); //internally PMTs are represented by the nth pmt built, not pmtid
     
     // position
     G4ThreeVector pmtpos(pmt_x[idx], pmt_y[idx], pmt_z[idx]);
@@ -511,10 +513,17 @@ G4VPhysicalVolume *GeoPMTFactoryBase::ConstructPMTs(DBLinkPtr table,
                       phys_mother,
                       false,
                       id);
-    if (!pmtParam.useEnvelope) {
+
+    // if (pmtParam.shape == "cube") {
+    //   logiPMT->GetDaughter(0)->SetCopyNo(id);
+    //   cout<<" GeoPMTFactoryBase: Daughter "<<id
+    // 	  <<" name "<<logiPMT->GetDaughter(0)->GetName()<<"\n";
+    // }
+
+    if (!pmtParam.useEnvelope && pmtParam.shape != "cube") {
       // If not using envelope volume, the PMT optical surfaces have NOT been set
       // and we must do so NOW.
-      pmtConstruct.SetPMTOpticalSurfaces(thisPhysPMT,pmtname); 
+      pmtConstruct.SetPMTOpticalSurfaces(thisPhysPMT,pmtname);
     }
     
     if (!pmtParam.useEnvelope && logiWg) {

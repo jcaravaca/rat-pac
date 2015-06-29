@@ -215,19 +215,22 @@ namespace RAT {
     	envelope_solid = NewEnvelopeSolid(prefix+"_envelope_solid");
       
       // Construct the glass body
-      //      G4Box* caseSolid = new G4Box( prefix + "_case_solid", fParams.width/2.0 + wall, fParams.width/2.0 + wall, fParams.width/2.0 + wall);
+      G4Box* caseSolid = new G4Box( prefix + "_case_solid", fParams.width, fParams.width, fParams.width);
 
       // Construct the glass body
-      G4Box* bodySolid = new G4Box( prefix + "_body_solid", fParams.width/2.0, fParams.width/2.0, fParams.width/2.0);
+      G4Box* bodySolid = new G4Box( prefix + "_body_solid", fParams.width - wall, fParams.width - wall, fParams.width - wall);
+
+      const double glass_thick = 1.0; //mm
+      const double pc_width = fParams.pc_width; //mm
 
       // Construct inners
-      int pcheight = 5.0;//mm
+      int pcheight = 5.0; //mm
       const double inner1Height = pcheight/2.0;
-      G4Box* inner1Solid = new G4Box( prefix + "_inner1_solid", fParams.width/2.0 - wall, fParams.width/2.0 - wall, inner1Height );
+      G4Box* inner1Solid = new G4Box( prefix + "_inner1_solid", pc_width, pc_width, inner1Height );
       const double hhgap = 0.5e-7;
-      const double inner2Height = fParams.width/2.0 - wall - inner1Height - hhgap;
-      G4Box* inner2Solid = new G4Box( prefix + "_inner2_solid", fParams.width/2.0 - wall, fParams.width/2.0 - wall, inner2Height);
-      G4Box* central_gap_solid = new G4Box( prefix + "_central_gap_solid", fParams.width / 2.0 - wall, fParams.width / 2.0 - wall, hhgap );
+      const double inner2Height = fParams.width - wall - glass_thick - inner1Height - hhgap;
+      G4Box* inner2Solid = new G4Box( prefix + "_inner2_solid", pc_width, pc_width, inner2Height);
+      G4Box* central_gap_solid = new G4Box( prefix + "_central_gap_solid", pc_width, pc_width, hhgap );
 
       // Construct the dynode volume
       double dynodeHeight = fParams.dynodeTop + inner2Height;
@@ -239,10 +242,10 @@ namespace RAT {
       if (fParams.useEnvelope)
     	envelope_log = new G4LogicalVolume(envelope_solid, fParams.exterior, prefix+"envelope_log");
       
-      //      case_log = new G4LogicalVolume( caseSolid, fParams.outcase, prefix + "_case_logic" );
+      case_log = new G4LogicalVolume( caseSolid, fParams.outcase, prefix + "_case_logic" );
       body_log = new G4LogicalVolume( bodySolid, fParams.glass, prefix + "_body_logic" );
       if (fParams.detector)
-       	body_log->SetSensitiveDetector(fParams.detector);
+	body_log->SetSensitiveDetector(fParams.detector);
 
       inner1_log = new G4LogicalVolume( inner1Solid, fParams.vacuum, prefix + "_inner1_logic" );
       //      inner1_log->SetSensitiveDetector(fParams.detector);
@@ -258,24 +261,32 @@ namespace RAT {
       // ------------ Physical Volumes -------------
 
       G4ThreeVector noTranslation(0., 0., 0.);
-      body_phys=0;
+      case_phys=0;
       if (fParams.useEnvelope) {
       	// place body in envelope
-      	body_phys= new G4PVPlacement
+      	case_phys= new G4PVPlacement
       	  ( 0,                   // no rotation
       	    noTranslation,      // Bounding envelope already constructed to put equator at origin
-      	    body_log,            // the logical volume
-      	    prefix+"_body_phys", // a name for this physical volume
+	    case_log,            // the logical volume
+      	    prefix+"_case_phys", // a name for this physical volume
       	    envelope_log,                // the mother volume
       	    false,               // no boolean ops
       	    0 );                 // copy number
       }
 
-
       // Place the inner solids in the body solid to produce the physical volumes
+      body_phys= new G4PVPlacement
+	( 0,                   // no rotation
+	  G4ThreeVector(0.0, 0.0, wall), //place glass surface at case surface 
+	  body_log,            // the logical volume
+	  prefix+"_body_phys", // a name for this physical volume
+	  case_log,                // the mother volume
+	  false,               // no boolean ops
+	  0 );                 // copy number
+
       inner1_phys= new G4PVPlacement
       	( 0,                   // no rotation
-	  G4ThreeVector(0.0, 0.0, fParams.width/2.0 - inner1Height -wall),       // puts face equator in right place, in front of tolerance gap
+	  G4ThreeVector(0.0, 0.0, fParams.width - wall - inner1Height - glass_thick),       // puts face equator in right place, in front of tolerance gap
       	  //G4ThreeVector(0.0, 0.0, 2.*hhgap),
       	  inner1_log,                    // the logical volume
       	  prefix+"_inner1_phys",         // a name for this physical volume
@@ -285,7 +296,7 @@ namespace RAT {
       
       inner2_phys= new G4PVPlacement
       	( 0,                   // no rotation
-	  G4ThreeVector(0.0, 0.0, - fParams.width/2.0 + inner2Height + wall),       // puts face equator in right place, in front of tolerance gap
+	  G4ThreeVector(0.0, 0.0, - fParams.width + inner2Height + wall + glass_thick),       // puts face equator in right place, in front of tolerance gap
       	  inner2_log,                    // the logical volume
       	  prefix+"_inner2_phys",         // a name for this physical volume
       	  body_log,           // the mother volume
@@ -295,7 +306,8 @@ namespace RAT {
       // place gap between inner1 and inner2
       central_gap_phys= new G4PVPlacement
 	( 0,                   // no rotation
-	  G4ThreeVector(0.0, 0.0, 0.0),        // puts face equator in right place, between inner1 and inner2
+	  G4ThreeVector(0.0, 0.0, fParams.width - 2.*inner1Height),       // puts face equator in right place, in front of tolerance gap
+	  //	  G4ThreeVector(0.0, 0.0, 0.0),        // puts face equator in right place, between inner1 and inner2
 	  central_gap_log,                       // the logical volume
 	  prefix+"_central_gap_phys",            // a name for this physical volume
 	  body_log,           // the mother volume
@@ -318,9 +330,9 @@ namespace RAT {
       // If we're using an envelope, body_phys has been created and we can therefore
       // set the optical surfaces, otherwise this must be done later once the physical volume
       // has been placed
-      if (fParams.useEnvelope) {
-	SetPMTOpticalSurfaces(body_phys,prefix);
-      }
+      // if (fParams.useEnvelope) {
+      // 	SetPMTOpticalSurfaces(body_phys,prefix);
+      // }
       
       // Go ahead and place the cathode optical surface---this can always be done at this point
       G4LogicalBorderSurface *pc_log_surface = 
@@ -338,13 +350,14 @@ namespace RAT {
 			      pc_log_surface, fParams.efficiencyCorrection,
 			      fParams.dynodeTop, fParams.dynodeRadius,
 			      fParams.prepulseProb);
-      optmodel->SetNewValue(new G4UIcommand("verbose",optmodel), "2");
+      //      optmodel->SetNewValue(new G4UIcommand("verbose",optmodel), "2");
       
       // ------------ Vis Attributes -------------
       G4VisAttributes * visAtt;
       if (simpleVis) {
 	visAtt = new G4VisAttributes(G4Color(0.0,1.0,1.0,0.05));
 	if (fParams.useEnvelope) envelope_log->SetVisAttributes(visAtt);
+	case_log->SetVisAttributes(  G4VisAttributes::Invisible );
 	body_log->SetVisAttributes(  G4VisAttributes::Invisible );
 	dynode_log->SetVisAttributes(G4VisAttributes::Invisible);
 	inner1_log->SetVisAttributes(G4VisAttributes::Invisible);
@@ -352,6 +365,9 @@ namespace RAT {
 	central_gap_log->SetVisAttributes(G4VisAttributes::Invisible);
       } else {
 	if (fParams.useEnvelope) envelope_log-> SetVisAttributes (G4VisAttributes::Invisible);
+	// PMT case
+	visAtt= new G4VisAttributes(G4Color(0.5,0.0,0.0,0.5));
+	case_log->SetVisAttributes( visAtt );
 	// PMT glass
 	visAtt= new G4VisAttributes(G4Color(0.0,1.0,1.0,0.05));
 	body_log->SetVisAttributes( visAtt );
@@ -371,7 +387,7 @@ namespace RAT {
       if (fParams.useEnvelope)
 	return envelope_log;
       else
-	return body_log;
+	return case_log;
       
     }
     

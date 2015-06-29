@@ -110,6 +110,7 @@ namespace RAT {
 
     //////////// PMT Materials
     fParam.exterior = mother->GetMaterial();
+    fParam.outcase = G4Material::GetMaterial(lpmt->GetS("case_material"));
     fParam.glass = G4Material::GetMaterial(lpmt->GetS("glass_material"));
     fParam.dynode = G4Material::GetMaterial(lpmt->GetS("dynode_material"));
     fParam.vacuum = G4Material::GetMaterial(lpmt->GetS("pmt_vacuum_material"));

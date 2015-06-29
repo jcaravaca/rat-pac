@@ -34,6 +34,7 @@ struct PMTConstructionParams {
   std::vector<double> zOrigin; // n
   // Cube
   double width;
+  double pc_width;
   double PCMirrorOverlapTop;
   double PCMirrorOverlapBottom;
   
@@ -42,6 +43,7 @@ struct PMTConstructionParams {
   double dynodeTop; // mm
 
   G4Material *exterior;
+  G4Material *outcase;
   G4Material *glass;
   G4Material *vacuum;
   G4Material *dynode;
@@ -71,6 +73,7 @@ protected:
                        int &equatorIndex, double &zLowestDynode);  
   // physical volumes 
   G4PVPlacement* body_phys;
+  G4PVPlacement* case_phys;
   G4PVPlacement* inner1_phys;
   G4PVPlacement* inner2_phys;
   G4PVPlacement* central_gap_phys; 
