@@ -18,7 +18,7 @@
 #include<RAT/DS/Root.hh>
 #include <RAT/DB.hh>
 
-#define NPMTs 15
+#define NPMTs 14
 #define USERROOTLOOP true
 #define DRAWONLYCHARGE false
 #define NLOGENTRIES 20
@@ -34,7 +34,7 @@ void PrintHistos(char*);
 void NormalizeHistos();
 
 //Global variables
-double pos_pmts[50][3];
+double pmt_pos[50][3];
 
 
 //Histograms
@@ -81,21 +81,38 @@ void GetHistos(){
   //MC
   std::cout<<" GetMCPDFs "<<std::endl;
   //Init pmt positions
-  pos_pmts[0][0] = -30.; pos_pmts[0][1] = 0.; pos_pmts[0][2] = 115.;
-  pos_pmts[1][0] = -20.; pos_pmts[1][1] = 0.; pos_pmts[1][2] = 115.;
-  pos_pmts[2][0] = -10.; pos_pmts[2][1] = 0.; pos_pmts[2][2] = 115.;
-  pos_pmts[3][0] = 0.; pos_pmts[3][1] = 0.; pos_pmts[3][2] = 115.;
-  pos_pmts[4][0] = 10.; pos_pmts[4][1] = 0.; pos_pmts[4][2] = 115.;
-  pos_pmts[5][0] = 20.; pos_pmts[5][1] = 0.; pos_pmts[5][2] = 115.;
-  pos_pmts[6][0] = 30.; pos_pmts[6][1] = 0.; pos_pmts[6][2] = 115.;
-  pos_pmts[7][0] = 0.; pos_pmts[7][1] = -30.; pos_pmts[7][2] = 115.;
-  pos_pmts[8][0] = 0.; pos_pmts[8][1] = -20.; pos_pmts[8][2] = 115.;
-  pos_pmts[9][0] = 0.; pos_pmts[9][1] = -10.; pos_pmts[9][2] = 115.;
-  pos_pmts[10][0] = 0.; pos_pmts[10][1] = 10.; pos_pmts[10][2] = 115.;
-  pos_pmts[11][0] = 0.; pos_pmts[11][1] = 20.; pos_pmts[11][2] = 115.;
-  pos_pmts[12][0] = 0.; pos_pmts[12][1] = 30.; pos_pmts[12][2] = 115.;
-  pos_pmts[13][0] = 20.; pos_pmts[13][1] = 20.; pos_pmts[13][2] = 115.;
-  pos_pmts[14][0] = -20.; pos_pmts[14][1] = -20.; pos_pmts[14][2] = 115.;
+  //Cross sparse
+  // pmt_pos[0][0] = -105; pmt_pos[0][1] = 0.; pmt_pos[0][2] = -39.5;
+  // pmt_pos[1][0] = -70.; pmt_pos[1][1] = 0.; pmt_pos[1][2] = -39.5;
+  // pmt_pos[2][0] = -35.; pmt_pos[2][1] = 0.; pmt_pos[2][2] = -39.5;
+  // pmt_pos[3][0] = 35.; pmt_pos[3][1] = 0.; pmt_pos[3][2] = -39.5;
+  // pmt_pos[4][0] = 70.; pmt_pos[4][1] = 0.; pmt_pos[4][2] = -39.5;
+  // pmt_pos[5][0] = 105; pmt_pos[5][1] = 0.; pmt_pos[5][2] = -39.5;
+  // pmt_pos[6][0] = 0.; pmt_pos[6][1] = 105; pmt_pos[6][2] = -39.5;
+  // pmt_pos[7][0] = 0.; pmt_pos[7][1] = 70.; pmt_pos[7][2] = -39.5;
+  // pmt_pos[8][0] = 0.; pmt_pos[8][1] = 35.; pmt_pos[8][2] = -39.5;
+  // pmt_pos[9][0] = 0.; pmt_pos[9][1] = -35.; pmt_pos[9][2] = -39.5;
+  // pmt_pos[10][0] = 0.; pmt_pos[10][1] = -70.; pmt_pos[10][2] = -39.5;
+  // pmt_pos[11][0] = 0.; pmt_pos[11][1] = -105; pmt_pos[11][2] = -39.5;
+  // pmt_pos[12][0] = 60.; pmt_pos[12][1] = 60.; pmt_pos[12][2] = -39.5;
+  // pmt_pos[13][0] = -60.; pmt_pos[13][1] = -60.; pmt_pos[13][2] = -39.5;
+  
+  //Cross
+  pmt_pos[0][0] = -30; pmt_pos[0][1] = 0.; pmt_pos[0][2] = -39.5;
+  pmt_pos[1][0] = -20.; pmt_pos[1][1] = 0.; pmt_pos[1][2] = -39.5;
+  pmt_pos[2][0] = -10.; pmt_pos[2][1] = 0.; pmt_pos[2][2] = -39.5;
+  pmt_pos[3][0] = 10.; pmt_pos[3][1] = 0.; pmt_pos[3][2] = -39.5;
+  pmt_pos[4][0] = 20.; pmt_pos[4][1] = 0.; pmt_pos[4][2] = -39.5;
+  pmt_pos[5][0] = 30; pmt_pos[5][1] = 0.; pmt_pos[5][2] = -39.5;
+  pmt_pos[6][0] = 0.; pmt_pos[6][1] = 30; pmt_pos[6][2] = -39.5;
+  pmt_pos[7][0] = 0.; pmt_pos[7][1] = 20.; pmt_pos[7][2] = -39.5;
+  pmt_pos[8][0] = 0.; pmt_pos[8][1] = 10.; pmt_pos[8][2] = -39.5;
+  pmt_pos[9][0] = 0.; pmt_pos[9][1] = -10.; pmt_pos[9][2] = -39.5;
+  pmt_pos[10][0] = 0.; pmt_pos[10][1] = -20.; pmt_pos[10][2] = -39.5;
+  pmt_pos[11][0] = 0.; pmt_pos[11][1] = -30; pmt_pos[11][2] = -39.5;
+  pmt_pos[12][0] = 20.; pmt_pos[12][1] = 20.; pmt_pos[12][2] = -39.5;
+  pmt_pos[13][0] = -20.; pmt_pos[13][1] = -20.; pmt_pos[13][2] = -39.5;
+  
   
 
   //Init histos
@@ -140,7 +157,7 @@ void GetHistos(){
       	int pmtid = mcpmt->GetID();
 	//count PE
 	h_mcpmt_npe[pmtid]->Fill(mcpmt->GetMCPhotonCount());
-	h_mcpmt_npevspos->Fill(pos_pmts[pmtid][0],pos_pmts[pmtid][1],mcpmt->GetMCPhotonCount()/(double)nentries);
+	h_mcpmt_npevspos->Fill(pmt_pos[pmtid][0],pmt_pos[pmtid][1],mcpmt->GetMCPhotonCount()/(double)nentries);
 
       	for (int iph=0; iph < mcpmt->GetMCPhotonCount(); iph++){
       	  h_mcpmt_charge[pmtid]->Fill(mcpmt->GetMCPhoton(iph)->GetCharge());

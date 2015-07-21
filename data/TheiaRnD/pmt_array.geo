@@ -57,9 +57,9 @@
 //  size_z: 50.0, //mm 19.0
 //Cuboid
   type: "box",
-  size: [160.0,160.0,25.0], //tank 35.0
+  size: [160.0,160.0,23.5], // 160.0, 25.0
   position: [0.0, 0.0, 0.0], //179.5
-  material: "water", //acrylic_berkeley
+  material: "acrylic_berkeley", //acrylic_berkeley
   color: [0.1, 0.3, 0.8, 0.1],
 }
 
@@ -91,8 +91,8 @@
   mother: "outer_vessel",
   type: "tube",
   position: [0.0, 0.0, 0.0], //-15.0
-  r_max: 10.0, // 5.0
-  size_z: 25.0, // 35.0
+  r_max: 5.0, // 5.0
+  size_z: 23.5, // 25.0
   material: "air", //air
   color: [0.0, 0.0, 0.0, 0.1],
 }
@@ -126,8 +126,8 @@
 //Cuboid
   type: "box",
   rotation:  [0.0, 0.0, 0.0],
-  size: [60.0,60.0,19.0], //17.5
-  position: [0.0, 0.0, 44.0], //54.0
+  size: [100.0,100.0,15.0], //19.0
+  position: [0.0, 0.0, 38.5], //44.0
 //  position: [0.0, 0.0, 14.5], //29.5
   material: "acrylic_berkeley",
   color: [0.1, 0.3, 0.8, 0.1],
@@ -143,29 +143,29 @@
 //Cylinder
   type: "tube",
   r_max: 10.0, //10.0, 30.0
-  size_z: 17.5, //mm 17.5
+  size_z: 14.0, //17.5
 //Cuboid
 //  type: "box",
 //  size: [25.0,25.0,10.0], //25.0, 10.0
-  position: [0.0, 0.0, 2.5], //2.5
+  position: [0.0, 0.0, 1.0], //1.5
   material: "wbls_10pct", //water, wbls_5pct, wbls_10pct, labppo_scintillator
   color: [0.5, 0.1, 0.5, 0.5],
 }
 
-{
-  name: "GEO",
-  index: "blind_spot",
-  valid_begin: [0, 0],
-  valid_end: [0, 0],
-  invisible: 0, // omitted for visualization
-  mother: "container",
-  type: "tube",
-  position: [0.0, 0.0, -17.5], //(-20.0)
-  r_max: 10.0, //5.0
-  size_z: 1.5, //5.0
-  material: "acrylic_black", //air
-  color: [0.0, 0.0, 1.0, 1.0],
-}
+// {
+//   name: "GEO",
+//   index: "blind_spot",
+//   valid_begin: [0, 0],
+//   valid_end: [0, 0],
+//   invisible: 0, // omitted for visualization
+//   mother: "container",
+//   type: "tube",
+//   position: [0.0, 0.0, -17.5], //(-20.0)
+//   r_max: 10.0, //5.0
+//   size_z: 1.5, //1.5
+//   material: "air", //air
+//   color: [0.0, 0.0, 1.0, 1.0],
+// }
 
 //////////////////////////////////////////////
 

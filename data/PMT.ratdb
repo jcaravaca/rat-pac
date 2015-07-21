@@ -155,7 +155,7 @@ dynode_radius: 10.0, // mm, 14.4, 14.0
 dynode_top: -2.0, // mm
 wall_thickness: 2.0, // mm 0.5
 
-width: 14.5, //mm
+width: 15.0, //mm
 pc_width: 11.5, //mm
 photocathode_mirror_top: 11.0, //mm
 photocathode_mirror_bottom: 11.0, //mm

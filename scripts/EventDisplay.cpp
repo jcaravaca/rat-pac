@@ -41,6 +41,7 @@
 #define DRAWOLDDARKBOX false
 #define DRAWVESSEL true
 #define DRAWXYPLANE true
+#define NPMTs 14
 
 //Geometry
 #define DB_XSIDE 762.0 // 500.//762.0, 
@@ -51,9 +52,10 @@
 #define ZPOS 0.0
 #define XP_XSIDE 200.0 // 250.//508.0
 #define XP_YSIDE 200.0 // 250.//508.0
-#define XP_ZPOS -25.0 // -29.0, 31.0
+#define XP_ZPOS -20.0 // -29.0, 31.0
 
-double pmtwidth = 29.0; //mm
+double pmtcase = 30.0; //mm This is the whole PMT
+double pmtwidth = 23.0; //mm This is the sensitive area
 
 
 char *fInputFile = NULL;
@@ -109,7 +111,7 @@ protected:
   TGeoVolume *vworld;
   std::map<int, TGeoBBox* > bpmt;
   std::map<int, TGeoVolume* > vpmt;
-  std::vector<TPaveText> vpmtbox;
+  std::vector<TPaveText*> vpmtbox;
 
 };
 
@@ -198,7 +200,7 @@ EventDisplay::EventDisplay(char *_inputfile){
     vworld->AddNode(vvessel,1);
     //    vworld->AddNode(vcontent,2);
   }
-  double pmt_pos[16][3];
+  double pmt_pos[NPMTs][3];
   if(DRAWPMTS){
     //Grid
     // for(int pmtID=0; pmtID<16; pmtID++){
@@ -208,25 +210,46 @@ EventDisplay::EventDisplay(char *_inputfile){
     //   vpmt[pmtID]->SetLineWidth(2);
     //   vworld->AddNode(vpmt[pmtID],1);
     // }
-    //Cross
-    pmt_pos[0][0] = -105; pmt_pos[0][1] = 0.; pmt_pos[0][2] = -39.5;
-    pmt_pos[1][0] = -70.; pmt_pos[1][1] = 0.; pmt_pos[1][2] = -39.5;
-    pmt_pos[2][0] = -35.; pmt_pos[2][1] = 0.; pmt_pos[2][2] = -39.5;
-    pmt_pos[3][0] = 0.; pmt_pos[3][1] = 0.; pmt_pos[3][2] = -39.5;
-    pmt_pos[4][0] = 35.; pmt_pos[4][1] = 0.; pmt_pos[4][2] = -39.5;
-    pmt_pos[5][0] = 70.; pmt_pos[5][1] = 0.; pmt_pos[5][2] = -39.5;
-    pmt_pos[6][0] = 105; pmt_pos[6][1] = 0.; pmt_pos[6][2] = -39.5;
-    pmt_pos[7][0] = 0.; pmt_pos[7][1] = 105; pmt_pos[7][2] = -39.5;
-    pmt_pos[8][0] = 0.; pmt_pos[8][1] = 70.; pmt_pos[8][2] = -39.5;
-    pmt_pos[9][0] = 0.; pmt_pos[9][1] = 35.; pmt_pos[9][2] = -39.5;
-    pmt_pos[10][0] = 0.; pmt_pos[10][1] = -35.; pmt_pos[10][2] = -39.5;
-    pmt_pos[11][0] = 0.; pmt_pos[11][1] = -70.; pmt_pos[11][2] = -39.5;
-    pmt_pos[12][0] = 0.; pmt_pos[12][1] = -105; pmt_pos[12][2] = -39.5;
-    pmt_pos[13][0] = 60.; pmt_pos[13][1] = 60.; pmt_pos[13][2] = -39.5;
-    pmt_pos[14][0] = -60.; pmt_pos[14][1] = -60.; pmt_pos[14][2] = -39.5;
+    //Cross sparse
+    // pmt_pos[0][0] = -101; pmt_pos[0][1] = 0.; pmt_pos[0][2] = -40.0;
+    // pmt_pos[1][0] = -71.; pmt_pos[1][1] = 0.; pmt_pos[1][2] = -40.0;
+    // pmt_pos[2][0] = -41.; pmt_pos[2][1] = 0.; pmt_pos[2][2] = -40.0;
+    // pmt_pos[3][0] = 41.; pmt_pos[3][1] = 0.; pmt_pos[3][2] = -40.0;
+    // pmt_pos[4][0] = 71.; pmt_pos[4][1] = 0.; pmt_pos[4][2] = -40.0;
+    // pmt_pos[5][0] = 101; pmt_pos[5][1] = 0.; pmt_pos[5][2] = -40.0;
+    // pmt_pos[6][0] = 0.; pmt_pos[6][1] = 101; pmt_pos[6][2] = -40.0;
+    // pmt_pos[7][0] = 0.; pmt_pos[7][1] = 71.; pmt_pos[7][2] = -40.0;
+    // pmt_pos[8][0] = 0.; pmt_pos[8][1] = 41.; pmt_pos[8][2] = -40.0;
+    // pmt_pos[9][0] = 0.; pmt_pos[9][1] = -41.; pmt_pos[9][2] = -40.0;
+    // pmt_pos[10][0] = 0.; pmt_pos[10][1] = -71.; pmt_pos[10][2] = -40.0;
+    // pmt_pos[11][0] = 0.; pmt_pos[11][1] = -101; pmt_pos[11][2] = -40.0;
+    // pmt_pos[12][0] = 60.; pmt_pos[12][1] = 60.; pmt_pos[12][2] = -40.0;
+    // pmt_pos[13][0] = -60.; pmt_pos[13][1] = -60.; pmt_pos[13][2] = -40.0;
 
-    for(int pmtID=0; pmtID<15; pmtID++){
-      bpmt[pmtID] = new TGeoBBox(pmtwidth/2.,pmtwidth/2.,pmtwidth/2.,pmt_pos[pmtID]);
+    //Cross
+    pmt_pos[0][0] = -90; pmt_pos[0][1] = 0.; pmt_pos[0][2] = -39.5;
+    pmt_pos[1][0] = -60.; pmt_pos[1][1] = 0.; pmt_pos[1][2] = -39.5;
+    pmt_pos[2][0] = -30.; pmt_pos[2][1] = 0.; pmt_pos[2][2] = -39.5;
+    pmt_pos[3][0] = 30.; pmt_pos[3][1] = 0.; pmt_pos[3][2] = -39.5;
+    pmt_pos[4][0] = 60.; pmt_pos[4][1] = 0.; pmt_pos[4][2] = -39.5;
+    pmt_pos[5][0] = 90; pmt_pos[5][1] = 0.; pmt_pos[5][2] = -39.5;
+    pmt_pos[6][0] = 0.; pmt_pos[6][1] = 90; pmt_pos[6][2] = -39.5;
+    pmt_pos[7][0] = 0.; pmt_pos[7][1] = 60.; pmt_pos[7][2] = -39.5;
+    pmt_pos[8][0] = 0.; pmt_pos[8][1] = 30.; pmt_pos[8][2] = -39.5;
+    pmt_pos[9][0] = 0.; pmt_pos[9][1] = -30.; pmt_pos[9][2] = -39.5;
+    pmt_pos[10][0] = 0.; pmt_pos[10][1] = -60.; pmt_pos[10][2] = -39.5;
+    pmt_pos[11][0] = 0.; pmt_pos[11][1] = -90; pmt_pos[11][2] = -39.5;
+    pmt_pos[12][0] = 60.; pmt_pos[12][1] = 60.; pmt_pos[12][2] = -39.5;
+    pmt_pos[13][0] = -60.; pmt_pos[13][1] = -60.; pmt_pos[13][2] = -39.5;
+
+    //Cross simple
+    // pmt_pos[0][0] = -80; pmt_pos[0][1] = 0.; pmt_pos[0][2] = -39.5;
+    // pmt_pos[1][0] = 80; pmt_pos[1][1] = 0.; pmt_pos[1][2] = -39.5;
+    // pmt_pos[2][0] = 0.; pmt_pos[2][1] = 80; pmt_pos[2][2] = -39.5;
+    // pmt_pos[3][0] = 0.; pmt_pos[3][1] = -80; pmt_pos[3][2] = -39.5;
+
+    for(int pmtID=0; pmtID<NPMTs; pmtID++){
+      bpmt[pmtID] = new TGeoBBox(pmtcase/2.,pmtcase/2.,pmtcase/2.,pmt_pos[pmtID]);
       vpmt[pmtID] = new TGeoVolume(Form("PMT%i",pmtID),bpmt[pmtID],med);
       vpmt[pmtID]->SetLineWidth(2);
       vworld->AddNode(vpmt[pmtID],1);
@@ -234,15 +257,14 @@ EventDisplay::EventDisplay(char *_inputfile){
   }
 
   //PMTs in XY plane
-  for(int ipmt=0;ipmt<15;ipmt++){
-    vpmtbox.push_back(TPaveText(pmt_pos[ipmt][0]+pmtwidth/2. , pmt_pos[ipmt][1]+pmtwidth/2. , pmt_pos[ipmt][0]-pmtwidth/2. , pmt_pos[ipmt][1]-pmtwidth/2. ));
+  for(int ipmt=0;ipmt<NPMTs;ipmt++){
+    vpmtbox.push_back(new TPaveText(pmt_pos[ipmt][0]+pmtwidth/2. , pmt_pos[ipmt][1]+pmtwidth/2. , pmt_pos[ipmt][0]-pmtwidth/2. , pmt_pos[ipmt][1]-pmtwidth/2. ));
     //customize
-    vpmtbox[ipmt].SetFillColor(kGray);
-    vpmtbox[ipmt].SetFillStyle(3002);
-    vpmtbox[ipmt].SetLineColor(2);
-    vpmtbox[ipmt].SetLineWidth(1);
-    vpmtbox[ipmt].SetTextColor(kBlack);
-    vpmtbox[ipmt].SetTextSize(0.04);
+    vpmtbox[ipmt]->SetFillStyle(3001);
+    vpmtbox[ipmt]->SetFillColor(kGray);
+    vpmtbox[ipmt]->SetBorderSize(1);
+    vpmtbox[ipmt]->SetTextColor(kBlack);
+    vpmtbox[ipmt]->SetTextSize(0.04);
   }
  
 };
@@ -360,7 +382,7 @@ void EventDisplay::LoadEvent(int ievt){
   } //end track loop
 
   //Load photoelectrons
-  for (int ipmt = 0; ipmt < 16; ipmt++){
+  for (int ipmt = 0; ipmt < NPMTs; ipmt++){
     hitpmts[ipmt] = false; //clear
     npe[ipmt]=0;
   }
@@ -372,8 +394,8 @@ void EventDisplay::LoadEvent(int ievt){
   }
 
   for(int ipmt=0;ipmt<vpmtbox.size();ipmt++){
-    vpmtbox[ipmt].Clear();
-    vpmtbox[ipmt].AddText(Form("%d",npe[ipmt]));
+    vpmtbox[ipmt]->Clear();
+    vpmtbox[ipmt]->AddText(Form("%d",npe[ipmt]));
   }
 
   //Load waveforms
@@ -487,7 +509,7 @@ void EventDisplay::DisplayEvent(int ievt){
     DrawGeometry();
     //    pl_tracks[0].Draw("LINE");
     for (int itr = 0; itr < fFtrack-fItrack; itr++) {
-      pl_tracks[itr].Draw("LINE same");
+      pl_tracks[itr].Draw("same");
     }
     
   }
@@ -551,7 +573,7 @@ void EventDisplay::DisplayEvent(int ievt){
   
   //Draw pmts
   for(int ipmt=0; ipmt<vpmtbox.size();ipmt++)
-    vpmtbox[ipmt].Draw("LINE same");
+    vpmtbox[ipmt]->Draw("");
 
   
   //Wait for user action

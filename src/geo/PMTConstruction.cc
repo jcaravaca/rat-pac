@@ -224,21 +224,14 @@ namespace RAT {
       const double pc_width = fParams.pc_width; //mm
 
       // Construct inners
-      int pcheight = 5.0; //mm
-      const double inner1Height = pcheight/2.0;
-      G4Box* inner1Solid = new G4Box( prefix + "_inner1_solid", pc_width, pc_width, inner1Height );
+      const double inner1Height = fParams.width - wall - glass_thick;
+      G4Box* inner1Solid = new G4Box( prefix + "_inner1_solid", pc_width, pc_width, inner1Height);
       const double hhgap = 0.5e-7;
-      const double inner2Height = fParams.width - wall - glass_thick - inner1Height - hhgap;
+      const double inner2Height = inner1Height - glass_thick;
       G4Box* inner2Solid = new G4Box( prefix + "_inner2_solid", pc_width, pc_width, inner2Height);
-      G4Box* central_gap_solid = new G4Box( prefix + "_central_gap_solid", pc_width, pc_width, hhgap );
 
-      // Construct the dynode volume
-      double dynodeHeight = fParams.dynodeTop + inner2Height;
-      G4Box* dynodeSolid = new G4Box( prefix + "_dynode_solid", fParams.dynodeRadius, fParams.dynodeRadius, dynodeHeight );
-
-      
       // ------------ Logical Volumes -------------
-      G4LogicalVolume *envelope_log, *case_log, *body_log, *inner1_log, *inner2_log, *central_gap_log, *dynode_log;
+      G4LogicalVolume *envelope_log, *case_log, *body_log, *inner1_log, *inner2_log;
       if (fParams.useEnvelope)
     	envelope_log = new G4LogicalVolume(envelope_solid, fParams.exterior, prefix+"envelope_log");
       
@@ -248,13 +241,9 @@ namespace RAT {
 	body_log->SetSensitiveDetector(fParams.detector);
 
       inner1_log = new G4LogicalVolume( inner1Solid, fParams.vacuum, prefix + "_inner1_logic" );
-      //      inner1_log->SetSensitiveDetector(fParams.detector);
+      inner1_log->SetSensitiveDetector(fParams.detector);
 
       inner2_log = new G4LogicalVolume( inner2Solid, fParams.vacuum, prefix + "_inner2_logic");
-
-      dynode_log = new G4LogicalVolume( dynodeSolid, fParams.dynode, prefix + "_dynode_logic" );
-
-      central_gap_log = new G4LogicalVolume( central_gap_solid, fParams.vacuum, prefix + "_central_gap_logic");
 
       
       
@@ -286,7 +275,8 @@ namespace RAT {
 
       inner1_phys= new G4PVPlacement
       	( 0,                   // no rotation
-	  G4ThreeVector(0.0, 0.0, fParams.width - wall - inner1Height - glass_thick),       // puts face equator in right place, in front of tolerance gap
+	  //	  G4ThreeVector(0.0, 0.0, fParams.width - wall - inner1Height - glass_thick),       // puts face equator in right place, in front of tolerance gap
+	  G4ThreeVector(0.0, 0.0, 0.0),       // puts face equator in right place, in front of tolerance gap
       	  //G4ThreeVector(0.0, 0.0, 2.*hhgap),
       	  inner1_log,                    // the logical volume
       	  prefix+"_inner1_phys",         // a name for this physical volume
@@ -303,29 +293,6 @@ namespace RAT {
       	  false,               // no boolean ops
       	  0 );                 // copy number
 
-      // place gap between inner1 and inner2
-      central_gap_phys= new G4PVPlacement
-	( 0,                   // no rotation
-	  G4ThreeVector(0.0, 0.0, fParams.width - 2.*inner1Height),       // puts face equator in right place, in front of tolerance gap
-	  //	  G4ThreeVector(0.0, 0.0, 0.0),        // puts face equator in right place, between inner1 and inner2
-	  central_gap_log,                       // the logical volume
-	  prefix+"_central_gap_phys",            // a name for this physical volume
-	  body_log,           // the mother volume
-	  false,               // no boolean ops
-	  0 );                 // copy number 
-      // place dynode in stem/back
-      dynode_phys= new G4PVPlacement
-      	( 0,
-	  G4ThreeVector(0.0, 0.0, - inner2Height + dynodeHeight),
-      	  prefix+"_dynode_phys",
-      	  dynode_log,
-      	  inner2_phys,
-      	  false,
-      	  0 );
-
-      // build the optical surface for the dynode straight away since we already have the logical volume
-      new G4LogicalSkinSurface(prefix+"_dynode_logsurf",dynode_log,fParams.dynode_surface);
-      
       //--------------Exterior Optical Surface----------------- 
       // If we're using an envelope, body_phys has been created and we can therefore
       // set the optical surfaces, otherwise this must be done later once the physical volume
@@ -359,10 +326,8 @@ namespace RAT {
 	if (fParams.useEnvelope) envelope_log->SetVisAttributes(visAtt);
 	case_log->SetVisAttributes(  G4VisAttributes::Invisible );
 	body_log->SetVisAttributes(  G4VisAttributes::Invisible );
-	dynode_log->SetVisAttributes(G4VisAttributes::Invisible);
 	inner1_log->SetVisAttributes(G4VisAttributes::Invisible);
 	inner2_log->SetVisAttributes(G4VisAttributes::Invisible);  
-	central_gap_log->SetVisAttributes(G4VisAttributes::Invisible);
       } else {
 	if (fParams.useEnvelope) envelope_log-> SetVisAttributes (G4VisAttributes::Invisible);
 	// PMT case
@@ -371,17 +336,12 @@ namespace RAT {
 	// PMT glass
 	visAtt= new G4VisAttributes(G4Color(0.0,1.0,1.0,0.05));
 	body_log->SetVisAttributes( visAtt );
-	// dynode is medium gray
-	visAtt= new G4VisAttributes(G4Color(0.5,0.5,0.5,1.0));
-	dynode_log->SetVisAttributes( visAtt );
 	// (surface of) interior vacuum is clear orangish gray on top (PC),
 	// silvery blue on bottom (mirror)
 	visAtt= new G4VisAttributes(G4Color(0.7,0.5,0.3,0.27));
 	inner1_log->SetVisAttributes (visAtt);
 	visAtt= new G4VisAttributes(G4Color(0.6,0.7,0.8,0.67));
 	inner2_log->SetVisAttributes (visAtt);
-	// central gap is invisible  
-	central_gap_log->SetVisAttributes (G4VisAttributes::Invisible);
       }
       
       if (fParams.useEnvelope)

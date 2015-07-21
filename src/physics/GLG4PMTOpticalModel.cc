@@ -243,7 +243,7 @@ GLG4PMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep)
   int ipmt= -1;
 
   // find which pmt we are in
-  ipmt=fastTrack.GetEnvelopePhysicalVolume()->GetCopyNo();
+  //  ipmt=fastTrack.GetEnvelopePhysicalVolume()->GetCopyNo();
   //Javi quick fix
   ipmt=GetPMTID(fastTrack);
 
@@ -314,18 +314,33 @@ GLG4PMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep)
 	// advance to next interface
 	dist1= envelope_solid->DistanceToOut( pos, dir );
 	dist= _inner1_solid->DistanceToIn( pos, dir );
+	if (_verbosity >= 2) {
+	  G4cout<<" In glass: dist1: "<<dist1<<" dist "<<dist<<"\n";
+	  G4cout<<"   Envelope: "<<envelope_solid->GetName()<<" inner1 "<<_inner1_solid->GetName()<<"\n";
+	}
 	if (dist1 < dist)
 	  {
 	    // we hit the envelope outer surface, not the inner surface
+	    if (_verbosity >= 2) 
+	      G4cout<<" Case 1: we hit the envelope outer surface, not the inner surface \n";
 	    dist= dist1;
 	    if ( dir.z() < 0.0 ) // headed towards equator?
 	      { // make sure we don't cross the equator
+		if (_verbosity >= 2) 
+		  G4cout<<" Case 1: make sure we don't cross the equator \n";
 		dist1= - pos.z() / dir.z(); // distance to equator
-		if (dist1 < dist)
+		if (dist1 < dist){
+		  if (_verbosity >= 2) 
+		    G4cout<<" Case 1: about to cross the equator! \n";
 		  dist= dist1;
+		}
 	      }
 	    pos += dist*dir;
 	    time += dist*n_glass/c_light;
+	    if (_verbosity >= 2) {
+	      G4cout<<" Case 1: Outer surface \n";
+	      G4cout<<" dist: "<<dist<<" dist1: "<<dist1<<"\n";
+	    }
 	    break;
 	  }
 	pos += dist*dir;
@@ -346,8 +361,11 @@ GLG4PMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep)
 	  }
 	pos += dist*dir;
 	time += dist/c_light;
-	if ( pos.z() < surfaceTolerance ) // we're passing through the equator
+	if ( pos.z() < surfaceTolerance ){
+	  // we're passing through the equator
+	  if (_verbosity > 0) G4cout<<" Case 2: Equator \n";
 	  break;
+	}
 	_n1= 1.0;
 	_n3= n_glass;
       }
@@ -447,6 +465,10 @@ GLG4PMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep)
 	  prepulse = true;
 	  pos = posAtDynodeZ;
 	}
+    }
+
+    if (_verbosity >= 2) {
+      G4cout << "GLG4PMTOpticalModel made " << N_pe << " pe\n";
     }
 
     if (N_pe > 0) {
