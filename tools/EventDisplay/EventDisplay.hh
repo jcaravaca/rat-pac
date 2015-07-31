@@ -15,6 +15,7 @@
 #include<TGeoBBox.h>
 #include<TPaveText.h>
 #include<TPolyLine3D.h>
+#include<TApplication.h>
 //RATPAC-libs
 #include<RAT/DSReader.hh>
 #include<RAT/DS/Root.hh>
@@ -48,6 +49,7 @@ protected:
   RAT::DBLinkPtr dbED;
   int debugLevel;
   bool drawGeometry;
+  bool drawPMTs;
   std::string geoFileName;
   std::string pmtInfoFileName;
   std::string inputFileName;
@@ -57,7 +59,7 @@ protected:
   int event_number;
   std::vector<double> intersection_zplane;
 
-
+  TApplication *dummyApp;
   
   //Maps
   std::map<std::string,int> FirstProcessCounter; //Process name - Counter
