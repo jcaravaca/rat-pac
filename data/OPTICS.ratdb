@@ -815,6 +815,27 @@ PROPERTY_LIST: ["REFLECTIVITY", "ABSLENGTH", ]
 
 {
 name: "OPTICS",
+index: "annie_liner",
+valid_begin : [0, 0],
+valid_end : [0, 0],
+surface: 1,
+finish: "ground",
+model: "glisur",
+type: "dielectric_metal",
+polish: 0.01,
+REFLECTIVITY_option: "wavelength",
+REFLECTIVITY_value1:[60.0, 800.0, ],
+REFLECTIVITY_value2:[0.87, 0.87, ],
+ABSLENGTH_option: "wavelength",
+ABSLENGTH_value1: [60.0, 800.0, ],
+ABSLENGTH_value2: [1e3, 1e3, ],
+PROPERTY_LIST: ["REFLECTIVITY", "ABSLENGTH", ]
+}
+
+
+
+{
+name: "OPTICS",
 index: "styrofoam",
 valid_begin : [0, 0],
 valid_end : [0, 0],

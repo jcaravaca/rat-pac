@@ -719,6 +719,18 @@ elemprop: [0.8563, 0.1437],
 
 {
 name: "MATERIAL",
+index: "annie_liner",
+valid_begin : [0, 0],
+valid_end : [0, 0],
+density: 96.0,
+nelements: 2,
+nmaterials: 0,
+elements: ["Carbon","Hydrogen",],
+elemprop: [0.8563, 0.1437],
+}
+
+{
+name: "MATERIAL",
 index: "polystyrene_foam",
 valid_begin : [0, 0],
 valid_end : [0, 0],

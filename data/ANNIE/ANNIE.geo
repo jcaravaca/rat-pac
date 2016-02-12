@@ -48,22 +48,21 @@
   size_z: 1951.2,
   position: [0.0,0.0,0.0],
   material: "water",
-  surface: "tyvek",
   color: [0.0, 0.0, 0.3, 0.3],
 }
 
 {
   name: "GEO",
-  index: "ncv",
+  index: "liner",
   valid_begin: [0, 0],
   valid_end: [0, 0],
-  mother: "content",
-  type: "tube",
-  r_max: 254.0,
-  size_z: 304.8,
-  position: [0.0,-800.0,500.0],
-  material: "acrylic",
-  color: [0.0, 0.0, 0.7, 0.5],
+  invisible: 0, // omitted for visualization
+  mother: "content", //not used
+  type: "border",
+  volume1: "tank",
+  volume2: "content",
+  reverse: 1,
+  surface: "annie_liner",
 }
 
 {
@@ -77,7 +76,7 @@
   size_z: 304.8,
   position: [0.0,-800.0,500.0],
   material: "acrylic_uvt",
-  color: [0.0, 0.5, 0.7, 0.5],
+  color: [0.0, 0.0, 0.7, 0.5],
 }
 
 {

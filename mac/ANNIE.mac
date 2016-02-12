@@ -69,5 +69,9 @@
 /generator/vtx/set neutron 0.0 0.0 0.0 5.0
 /generator/pos/set 0.0 -800.0 500.0
 
+#/generator/add combo pbomb:point:uniform
+#/generator/vtx/set 1000 400
+#/generator/pos/set 100.0 100.0 -1000.0
+
 ##### RUN ###########
 /run/beamOn 10
