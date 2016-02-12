@@ -75,7 +75,7 @@
   r_max: 254.0,
   size_z: 304.8,
   position: [0.0,-800.0,500.0],
-  material: "acrylic_uvt",
+  material: "acrylic_uva_McMaster",
   color: [0.0, 0.0, 0.7, 0.5],
 }
 
@@ -89,7 +89,7 @@
   r_max: 244.475,
   size_z: 295.275,
   position: [0.0,0.0,0.0],
-  material: "gd_scintillator",
+  material: "eljen_331",
   color: [0.3, 0.2, 0.7, 0.5],
 }
 
